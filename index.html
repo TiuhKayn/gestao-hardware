@@ -820,18 +820,6 @@
             </div>
         </div>
 
-        <div id="verify-email-overlay" class="glass-overlay" style="display: none;">
-            <div class="auth-card glass">
-                <div style="font-size: 3rem; margin-bottom: 20px;">📧</div>
-                <h2>Verifique seu E-mail</h2>
-                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 25px;">
-                    Enviamos um link de ativação para o seu e-mail. <br>
-                    <strong>Por favor, clique no link antes de tentar logar.</strong>
-                </p>
-                <button class="btn btn-auth" onclick="App.UI.toggleAuthView(false)">Entendi, Voltar para Login</button>
-            </div>
-        </div>
-
         <div id="settings-overlay" class="glass-overlay" style="display: none;">
             <div class="auth-card glass">
                 <div class="settings-header">
@@ -2277,9 +2265,11 @@
                     // ENVIAR VERIFICAÇÃO 
                     await sendEmailVerification(cred.user);
 
-                    document.getElementById('register-view').style.display = 'none';
-                    document.getElementById('verify-email-overlay').style.display = 'flex';
+                    window.App.Utils.toast("Cadastro realizado! Verifique seu e-mail para ativar a conta.", "success");
+
+                    // Sai do registro e vai para o Login
                     signOut(auth);
+                    App.UI.toggleAuthView(false);
                 } catch (e) {
                     console.error("Erro Cadastro:", e);
                     if (e.code === 'auth/configuration-not-found') {
@@ -2353,9 +2343,13 @@
                         criadoEm: new Date()
                     }, { merge: true });
 
-                    document.getElementById('display-name').innerText = name;
                     document.getElementById('username-prompt-overlay').style.display = 'none';
-                    App.Utils.toast("Nome definido com sucesso!", "success");
+
+                    // REGRA: Depois de escolher o nome via Google, joga para o Login (como solicitado)
+                    await signOut(auth);
+                    App.UI.toggleAuthView(false);
+
+                    window.App.Utils.toast("Nome definido! Agora você pode logar com seu e-mail ou nome.", "success");
                 } catch (e) {
                     console.error("Erro ao definir nome:", e);
                     App.Utils.toast("Erro ao salvar nome", "error");

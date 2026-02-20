@@ -773,47 +773,49 @@
 
 
                     const s = App.State.sort;
-                    if (s.col) {
-                        filtered.sort((a, b) => {
-                            let valA, valB;
-                            const getTotals = (x) => {
-                                const kids = App.State.data.filter(c => c.kitParentId == x.id);
-                                const kitInitialCusto = parseFloat(x.custo) || 0;
-                                const kitInitialReceita = parseFloat(x.valor) || 0;
-                                const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
-                                const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-                                const bonusExtra = parseFloat(x.receita) || 0;
+                    // Ordenação Padrão: Data Decrescente (Mais recentes primeiro)
+                    const sortCol = s.col || 'data';
+                    const sortDir = s.col ? s.dir : 'desc';
 
-                                const totalCusto = kitInitialCusto + kidsCusto;
-                                const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
+                    filtered.sort((a, b) => {
+                        let valA, valB;
+                        const getTotals = (x) => {
+                            const kids = App.State.data.filter(c => String(c.kitParentId) === String(x.id));
+                            const kitInitialCusto = parseFloat(x.custo) || 0;
+                            const kitInitialReceita = parseFloat(x.valor) || 0;
+                            const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
+                            const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                            const bonusExtra = parseFloat(x.receita) || 0;
 
-                                return {
-                                    custo: totalCusto,
-                                    receita: totalReceita,
-                                    saldo: totalReceita - totalCusto
-                                };
+                            const totalCusto = kitInitialCusto + kidsCusto;
+                            const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
+
+                            return {
+                                custo: totalCusto,
+                                receita: totalReceita,
+                                saldo: totalReceita - totalCusto
                             };
+                        };
 
-                            if (s.col === 'saldo') {
-                                valA = getTotals(a).saldo;
-                                valB = getTotals(b).saldo;
-                            } else if (s.col === 'custo') {
-                                valA = getTotals(a).custo;
-                                valB = getTotals(b).custo;
-                            } else if (s.col === 'data') {
-                                valA = new Date(a.data || 0).getTime();
-                                valB = new Date(b.data || 0).getTime();
-                            } else {
-                                valA = (a[s.col] || '').toString().toLowerCase();
-                                valB = (b[s.col] || '').toString().toLowerCase();
-                            }
+                        if (sortCol === 'saldo') {
+                            valA = getTotals(a).saldo;
+                            valB = getTotals(b).saldo;
+                        } else if (sortCol === 'custo') {
+                            valA = getTotals(a).custo;
+                            valB = getTotals(b).custo;
+                        } else if (sortCol === 'data') {
+                            valA = new Date(a.data || 0).getTime();
+                            valB = new Date(b.data || 0).getTime();
+                        } else {
+                            valA = (a[sortCol] || '').toString().toLowerCase();
+                            valB = (b[sortCol] || '').toString().toLowerCase();
+                        }
 
-                            if (typeof valA === 'number') {
-                                return s.dir === 'asc' ? valA - valB : valB - valA;
-                            }
-                            return s.dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                        });
-                    }
+                        if (typeof valA === 'number') {
+                            return sortDir === 'asc' ? valA - valB : valB - valA;
+                        }
+                        return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                    });
 
                     list.innerHTML = filtered.map(t => {
                         const isKit = t.tipo === 'kit';
@@ -1352,9 +1354,12 @@
 
 
 
-        // Função de Sincronização v7 (Safe Collaborative Sync)
-        // Foco: Segurança extrema contra perda de dados em multi-dispositivos.
-        // O sistema nunca deleta dados locais automaticamente (propaga apenas adições e edições).
+        // Função de Sincronização v8 (Final Collaborative Sync)
+        // Regras:
+        // 1. Novos locais (ID numérico) sobem para a nuvem.
+        // 2. Novos na nuvem (ID string inexistente local) baixam para o local.
+        // 3. Excluídos na nuvem (ID string local que sumiu da nuvem) são removidos do local.
+        // 4. Se a nuvem estiver vazia, assumimos que é uma falha e NÃO deletamos nada para segurança.
         async function carregarVendasDoFirebase() {
             const setStatus = (sts, color) => {
                 const dot = document.getElementById('sync-dot');
@@ -1363,7 +1368,7 @@
                 if (text) text.innerText = sts;
             };
 
-            console.log("--- Sync Engine v7.0 (Safe Mode) ---");
+            console.log("--- Sync Engine v8.0 ---");
             setStatus("Sincronizando...", "#f59e0b");
 
             try {
@@ -1384,13 +1389,17 @@
                     });
                 });
 
+                // Se a nuvem estiver 100% vazia, pode ser erro. 
+                // Evitamos apagar o local se o usuário tiver dados sérios (ex: > 10 itens).
+                const cloudIsSuspiciouslyEmpty = cloudItems.length === 0;
+
                 // 2. Ler Local
                 let localItems = [];
                 try {
                     localItems = JSON.parse(localStorage.getItem(App.State.dbKey) || '[]');
                 } catch (e) { localItems = []; }
 
-                // 3. Mesclagem Segura
+                // 3. Mesclagem Inteligente
                 const finalItems = [];
                 const cloudMapId = new Map(cloudItems.map(i => [String(i.id), i]));
                 const getSig = (i) => `${i.desc}|${Number(i.valor).toFixed(2)}|${i.data}`;
@@ -1400,7 +1409,7 @@
                 const updatesToCloud = [];
                 const uploadsToCloud = [];
 
-                // A. Processa Local (Preserva tudo o que o usuário já tem)
+                // A. Processa Local
                 for (const lItem of localItems) {
                     const lSig = getSig(lItem);
                     let cMatch = cloudMapId.get(String(lItem.id)) || cloudMapSig.get(lSig);
@@ -1408,28 +1417,36 @@
                     if (cMatch) {
                         cloudProcessedIds.add(String(cMatch.id));
 
-                        // Resolução de Zeros
-                        const cZero = (cMatch.valor === 0 && cMatch.custo === 0);
-                        const lNotZero = (lItem.valor > 0 || lItem.custo > 0);
+                        // Resolução de Zeros/Divergências (Vence o que tiver valor maior de seguro)
+                        const cCompleto = (cMatch.valor > 0 || cMatch.custo > 0);
+                        const lCompleto = (lItem.valor > 0 || lItem.custo > 0);
 
                         let finalItem = { ...cMatch };
 
-                        if (cZero && lNotZero) {
+                        if (!cCompleto && lCompleto) {
                             finalItem = { ...lItem, id: cMatch.id };
                             updatesToCloud.push({ id: cMatch.id, data: finalItem });
                         } else {
-                            lItem.id = cMatch.id;
+                            lItem.id = cMatch.id; // Alinha ID local
                         }
                         finalItems.push(finalItem);
                     } else {
-                        // Item Local sem par na nuvem.
-                        // No v7, NUNCA deletamos. Tratamos sempre como novo ou recuperado.
-                        finalItems.push(lItem);
-                        uploadsToCloud.push(lItem);
+                        // Item Local SEM correspondente na nuvem
+                        const isServerId = (typeof lItem.id === 'string' && lItem.id.length > 5);
+
+                        // Segurança: Se for ID de servidor mas sumiu da nuvem -> FOI DELETADO em outro lugar
+                        if (isServerId && !cloudIsSuspiciouslyEmpty) {
+                            console.log(`[Sync] Removendo excluído: ${lItem.desc}`);
+                            continue; // Não adiciona ao finalItems
+                        } else {
+                            // É um item novo local (Upload)
+                            finalItems.push(lItem);
+                            uploadsToCloud.push(lItem);
+                        }
                     }
                 }
 
-                // B. Adiciona itens da nuvem de outros aparelhos
+                // B. Itens novos da nuvem
                 for (const cItem of cloudItems) {
                     if (!cloudProcessedIds.has(String(cItem.id))) {
                         const hasContentMatch = localItems.some(l => getSig(l) === getSig(cItem));
@@ -1444,7 +1461,7 @@
                 App.Data.save(true);
                 App.UI.render();
 
-                // 5. Sync Background
+                // 5. Background Sync
                 if (updatesToCloud.length > 0 || uploadsToCloud.length > 0) {
                     (async () => {
                         for (const u of updatesToCloud) {
@@ -1462,6 +1479,7 @@
                                     categoria: rest.categoria, tipo: rest.tipo, data: rest.data,
                                     kitParentId: rest.kitParentId || null, updatedAt: new Date()
                                 });
+                                // Local ID update
                                 const inList = finalItems.find(x => x === item);
                                 if (inList) inList.id = ref.id;
                             } catch (e) { }
@@ -1474,7 +1492,7 @@
                 }
 
             } catch (e) {
-                console.error("Erro Sync v7:", e);
+                console.error("Erro Sync v8:", e);
                 setStatus("Link Off", "#ef4444");
                 App.UI.render();
             }

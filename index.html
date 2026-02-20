@@ -815,7 +815,8 @@
                 </p>
                 <div class="auth-form">
                     <input type="text" id="prompt-user-name" placeholder="Ex: Yugoh, Kayn123...">
-                    <button class="btn btn-auth" onclick="App.Auth.setInitialUsername()">Salvar e Entrar</button>
+                    <button id="btn-save-username" class="btn btn-auth" onclick="App.Auth.setInitialUsername()">Salvar e
+                        Entrar</button>
                 </div>
             </div>
         </div>
@@ -1333,7 +1334,6 @@
                 toggleAuthView: (isRegister) => {
                     document.getElementById('login-view').style.display = isRegister ? 'none' : 'block';
                     document.getElementById('register-view').style.display = isRegister ? 'block' : 'none';
-                    document.getElementById('verify-email-overlay').style.display = 'none';
                     document.getElementById('auth-overlay').style.display = 'flex';
                 },
 
@@ -2273,7 +2273,7 @@
                     window.App.Utils.toast("Cadastro realizado! Verifique seu e-mail para ativar a conta.", "success");
 
                     // Sai do registro e vai para o Login
-                    signOut(auth);
+                    await signOut(auth);
                     App.UI.toggleAuthView(false);
                 } catch (e) {
                     console.error("Erro Cadastro:", e);
@@ -2330,18 +2330,27 @@
             },
 
             setInitialUsername: async () => {
+                const btn = document.getElementById('btn-save-username');
                 const nameInput = document.getElementById('prompt-user-name');
                 const name = nameInput.value.trim();
                 if (!name) return App.Utils.toast("Escolha um nome primeiro", "warning");
 
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = "Salvando...";
+                }
+
                 try {
                     const isUnique = await App.Auth.checkUsernameUnique(name);
-                    if (!isUnique) return App.Utils.toast("Este nome já está em uso", "error");
+                    if (!isUnique) {
+                        if (btn) { btn.disabled = false; btn.innerText = "Salvar e Entrar"; }
+                        return App.Utils.toast("Este nome já está em uso", "error");
+                    }
 
                     const user = auth.currentUser;
-                    if (!user) throw new Error("Usuário não autenticado");
+                    if (!user) throw new Error("Sessão expirada. Tente logar novamente.");
 
-                    // 1. Salva no Firestore
+                    // 1. Salva no Firestore (Prioridade Máxima)
                     await setDoc(doc(db, "perfis", user.uid), {
                         nome: name,
                         email: user.email,
@@ -2349,8 +2358,12 @@
                         criadoEm: new Date()
                     }, { merge: true });
 
-                    // 2. Atualiza perfil no Auth (Opcional, mas bom para consistência)
-                    await updateProfile(user, { displayName: name });
+                    // 2. Tenta atualizar Perfil Auth (Se falhar, não trava o processo)
+                    try {
+                        await updateProfile(user, { displayName: name });
+                    } catch (errAuth) {
+                        console.warn("Erro ao atualizar displayName no Auth:", errAuth);
+                    }
 
                     // 3. Esconde overlay
                     const promptOverlay = document.getElementById('username-prompt-overlay');
@@ -2367,7 +2380,8 @@
                     window.App.Utils.toast("Nome definido com sucesso! Entre agora com seu novo usuário.", "success");
                 } catch (e) {
                     console.error("Erro completo ao definir nome:", e);
-                    App.Utils.toast("Erro ao salvar nome. Tente novamente ou use e-mail.", "error");
+                    if (btn) { btn.disabled = false; btn.innerText = "Salvar e Entrar"; }
+                    App.Utils.toast("Erro ao salvar: " + (e.message || "tente novamente"), "error");
                 }
             },
 

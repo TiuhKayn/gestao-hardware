@@ -1971,7 +1971,14 @@
                     await signInWithEmailAndPassword(auth, email, pass);
                     window.App.Utils.toast("Bem-vindo!", "success");
                 } catch (e) {
-                    window.App.Utils.toast("Erro no login: " + e.code, "error");
+                    console.error("Erro Login:", e);
+                    if (e.code === 'auth/configuration-not-found') {
+                        window.App.Utils.toast("Erro: Login por E-mail não ativado no Firebase.", "error");
+                    } else if (e.code === 'auth/invalid-credential') {
+                        window.App.Utils.toast("E-mail ou senha incorretos.", "error");
+                    } else {
+                        window.App.Utils.toast("Erro no login: " + e.code, "error");
+                    }
                 }
             },
 
@@ -1980,6 +1987,7 @@
                 const email = document.getElementById('reg-email').value;
                 const pass = document.getElementById('reg-pass').value;
                 if (!name || !email || !pass) return window.App.Utils.toast("Preencha todos os campos", "warning");
+                if (pass.length < 6) return window.App.Utils.toast("A senha deve ter pelo menos 6 caracteres", "warning");
 
                 try {
                     const cred = await createUserWithEmailAndPassword(auth, email, pass);
@@ -1991,9 +1999,16 @@
                         criadoEm: new Date()
                     });
 
-                    window.App.Utils.toast("Conta criada!", "success");
+                    window.App.Utils.toast("Conta criada com sucesso!", "success");
                 } catch (e) {
-                    window.App.Utils.toast("Erro no cadastro: " + e.code, "error");
+                    console.error("Erro Cadastro:", e);
+                    if (e.code === 'auth/configuration-not-found') {
+                        window.App.Utils.toast("Erro: Cadastro por E-mail não ativado no Firebase.", "error");
+                    } else if (e.code === 'auth/email-already-in-use') {
+                        window.App.Utils.toast("Este e-mail já está sendo usado.", "error");
+                    } else {
+                        window.App.Utils.toast("Erro no cadastro: " + e.code, "error");
+                    }
                 }
             },
 

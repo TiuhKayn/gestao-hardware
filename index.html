@@ -736,6 +736,216 @@
             margin-top: 15px;
             font-weight: 600;
         }
+
+        /* --- RESPONSIVIDADE MOBILE --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .page-header {
+                padding: 16px;
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .page-header div[style*="align-items:center"] {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            #sync-status {
+                justify-content: center;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr !important;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .form-grid .input-group {
+                grid-column: span 12 !important;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .t-header {
+                display: none;
+            }
+
+            /* --- PREMIUM MOBILE CARD DESIGN --- */
+            .t-row {
+                display: flex !important;
+                flex-direction: column;
+                padding: 0 !important;
+                gap: 0 !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 14px !important;
+                margin-bottom: 14px !important;
+                background: #111 !important;
+                overflow: hidden;
+            }
+
+            /* Col 1: select (always hidden on mobile) */
+            .t-row>.select-col {
+                display: none !important;
+            }
+
+            /* Col 2: Description — becomes the card header */
+            .t-row>div:nth-child(2) {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: flex-start !important;
+                padding: 14px 16px 10px !important;
+                gap: 10px !important;
+                font-size: 1rem !important;
+                font-weight: 700 !important;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                background: rgba(255, 255, 255, 0.03);
+                white-space: normal !important;
+                word-break: break-word !important;
+                text-align: left !important;
+            }
+
+            .t-row>div:nth-child(2)::before {
+                display: none !important;
+            }
+
+            /* Financial data area (cols 3-6): wrap into a 2x2 grid */
+            .t-row>div:nth-child(3),
+            .t-row>div:nth-child(4),
+            .t-row>div:nth-child(5),
+            .t-row>div:nth-child(6) {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                justify-content: center !important;
+                width: 50%;
+                float: left;
+                padding: 10px 14px !important;
+                box-sizing: border-box;
+                font-size: 0.9rem;
+                text-align: left !important;
+            }
+
+            /* Clear float after col 6 */
+            .t-row>div:nth-child(6) {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            }
+
+            .t-row>div:nth-child(5) {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            }
+
+            .t-row>div:nth-child(3) {
+                border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+            }
+
+            .t-row>div:nth-child(5) {
+                border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+            }
+
+            .t-row>div:nth-child(3)::before,
+            .t-row>div:nth-child(4)::before,
+            .t-row>div:nth-child(5)::before,
+            .t-row>div:nth-child(6)::before {
+                display: block !important;
+                font-size: 0.65rem !important;
+                font-weight: 700 !important;
+                color: var(--text-secondary) !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.8px !important;
+                margin-bottom: 3px !important;
+            }
+
+            .t-row>div:nth-child(3)::before {
+                content: "Categoria" !important;
+            }
+
+            .t-row>div:nth-child(4)::before {
+                content: "Custo" !important;
+            }
+
+            .t-row>div:nth-child(5)::before {
+                content: "Saldo" !important;
+            }
+
+            .t-row>div:nth-child(6)::before {
+                content: "Tipo" !important;
+            }
+
+            /* Col 7: Date — hidden (shown in footer) */
+            .t-row>div:nth-child(7) {
+                clear: both;
+                display: none !important;
+            }
+
+            /* Col 8: Action buttons — the card footer */
+            .t-row>div:nth-child(8) {
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                clear: both !important;
+                padding: 10px 14px !important;
+                gap: 10px !important;
+                background: rgba(255, 255, 255, 0.02) !important;
+                border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+            }
+
+            .t-row>div:nth-child(8)::before {
+                display: none !important;
+            }
+
+            .t-row .btn-icon {
+                flex: 1 !important;
+                height: 38px !important;
+                border-radius: 10px !important;
+                font-size: 1rem !important;
+                width: auto !important;
+            }
+
+            .select-col {
+                display: none !important;
+            }
+
+            .search-box.active {
+                width: 100%;
+            }
+
+            .form-header {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                text-align: center;
+            }
+
+            .type-selector {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .auth-card {
+                width: 100%;
+                margin: 20px;
+                padding: 24px;
+            }
+        }
     </style>
 </head>
 

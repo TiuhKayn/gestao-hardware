@@ -456,7 +456,15 @@
                 <h1>Gestão Vendas & Hardware</h1>
                 <p class="subtitle" id="real-time-clock">--/--/---- --:--:--</p>
             </div>
-            <div class="subtitle" style="font-weight: 700; color: var(--accent-primary)">v3.0 ULTRA</div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                <div class="subtitle" style="font-weight: 700; color: var(--accent-primary)">v3.0 ULTRA</div>
+                <div id="sync-status"
+                    style="font-size: 0.65rem; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; opacity: 0.8;">
+                    <span id="sync-dot"
+                        style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; transition: all 0.3s ease;"></span>
+                    <span id="sync-text">Conectando...</span>
+                </div>
+            </div>
         </header>
 
         <div class="dashboard-grid" id="dashboard-container"></div>
@@ -1344,168 +1352,130 @@
 
 
 
-        // Função de Sincronização v4 (Local Mirror - "O Local é a Lei")
-        // Estratégia: O que está na tela (LocalStorage) é a verdade absoluta.
-        // A nuvem deve ser apenas um espelho. Se tem na nuvem e não tem no local, apaga da nuvem.
+        // Função de Sincronização v7 (Safe Collaborative Sync)
+        // Foco: Segurança extrema contra perda de dados em multi-dispositivos.
+        // O sistema nunca deleta dados locais automaticamente (propaga apenas adições e edições).
         async function carregarVendasDoFirebase() {
-            console.log("Iniciando Smart Sync v4 (Local Mirror)...");
+            const setStatus = (sts, color) => {
+                const dot = document.getElementById('sync-dot');
+                const text = document.getElementById('sync-text');
+                if (dot) dot.style.background = color;
+                if (text) text.innerText = sts;
+            };
+
+            console.log("--- Sync Engine v7.0 (Safe Mode) ---");
+            setStatus("Sincronizando...", "#f59e0b");
 
             try {
-                // 1. Ler Local (Fonte da Verdade)
-                let localItems = [];
-                try {
-                    localItems = JSON.parse(localStorage.getItem(App.State.dbKey) || '[]');
-                } catch (e) { localItems = []; }
-
-                // Se não tiver nada local, evitamos apagar a nuvem por acidente (segurança)
-                if (localItems.length === 0) {
-                    console.warn("Local vazio. Abortando Mirror para segurança.");
-                    // Fallback: Baixa da nuvem normal
-                    const q = await getDocs(collection(db, "vendas"));
-                    const fromCloud = [];
-                    q.forEach(d => fromCloud.push({ id: d.id, ...d.data() }));
-                    if (fromCloud.length > 0) {
-                        App.State.data = fromCloud;
-                        App.Data.save(true);
-                        App.UI.render();
-                    }
-                    return;
-                }
-
-                // Carrega IMEDIATAMENTE o que é confiável
-                App.State.data = localItems;
-                App.UI.render();
-
-                // 2. Baixar Nuvem para Comparação em Background
+                // 1. Baixar Nuvem
                 const querySnapshot = await getDocs(collection(db, "vendas"));
                 let cloudItems = [];
                 querySnapshot.forEach((doc) => {
                     const d = doc.data();
                     cloudItems.push({
                         id: doc.id,
-                        desc: d.descricao || d.desc,
+                        desc: d.descricao || d.desc || "Item sem nome",
                         valor: Number(d.valor || d.amount || 0),
                         custo: Number(d.custo || d.cost || 0),
-                        data: d.data
+                        categoria: d.categoria || "Geral",
+                        tipo: d.tipo || "venda",
+                        data: d.data || new Date().toISOString().split('T')[0],
+                        kitParentId: d.kitParentId || null
                     });
                 });
 
-                // 3. Análise de Diferenças (Background)
-                const ops = { delete: [], update: [], create: [] };
+                // 2. Ler Local
+                let localItems = [];
+                try {
+                    localItems = JSON.parse(localStorage.getItem(App.State.dbKey) || '[]');
+                } catch (e) { localItems = []; }
 
-                // Mapa para busca rápida na nuvem
-                const getSig = (i) => `${i.desc || i.descricao}|${Number(i.valor).toFixed(2)}|${i.data}`;
-                const cloudMapId = new Map(cloudItems.map(i => [i.id, i]));
+                // 3. Mesclagem Segura
+                const finalItems = [];
+                const cloudMapId = new Map(cloudItems.map(i => [String(i.id), i]));
+                const getSig = (i) => `${i.desc}|${Number(i.valor).toFixed(2)}|${i.data}`;
                 const cloudMapSig = new Map(cloudItems.map(i => [getSig(i), i]));
 
-                // A. Verifica cada item Local
+                const cloudProcessedIds = new Set();
+                const updatesToCloud = [];
+                const uploadsToCloud = [];
+
+                // A. Processa Local (Preserva tudo o que o usuário já tem)
                 for (const lItem of localItems) {
-                    let cItem = cloudMapId.get(String(lItem.id));
+                    const lSig = getSig(lItem);
+                    let cMatch = cloudMapId.get(String(lItem.id)) || cloudMapSig.get(lSig);
 
-                    if (!cItem) {
-                        // Tenta achar por conteúdo (recuperar ID perdido/mudado)
-                        cItem = cloudMapSig.get(getSig(lItem));
-                    }
+                    if (cMatch) {
+                        cloudProcessedIds.add(String(cMatch.id));
 
-                    if (cItem) {
-                        // Existe nos dois.
-                        // Remove do mapa cloud para marcar como "mantido"
-                        cloudMapId.delete(cItem.id);
-                        cloudMapSig.delete(getSig(cItem)); // garante que não delete duplicata de conteúdo se já deu match
+                        // Resolução de Zeros
+                        const cZero = (cMatch.valor === 0 && cMatch.custo === 0);
+                        const lNotZero = (lItem.valor > 0 || lItem.custo > 0);
 
-                        // Verifica se precisa atualizar dados na Nuvem
-                        const diffVal = Math.abs(Number(lItem.valor) - Number(cItem.valor)) > 0.01;
+                        let finalItem = { ...cMatch };
 
-                        if (diffVal) {
-                            ops.update.push({ id: cItem.id, data: lItem });
+                        if (cZero && lNotZero) {
+                            finalItem = { ...lItem, id: cMatch.id };
+                            updatesToCloud.push({ id: cMatch.id, data: finalItem });
+                        } else {
+                            lItem.id = cMatch.id;
                         }
-
-                        // Atualiza ID local se necessário (se deu match por sig mas ID era diferente)
-                        if (String(lItem.id) !== cItem.id) {
-                            lItem.id = cItem.id; // Adota ID da nuvem silenciosamente para manter link
-                        }
+                        finalItems.push(finalItem);
                     } else {
-                        // Não existe na nuvem -> Criar
-                        ops.create.push(lItem);
+                        // Item Local sem par na nuvem.
+                        // No v7, NUNCA deletamos. Tratamos sempre como novo ou recuperado.
+                        finalItems.push(lItem);
+                        uploadsToCloud.push(lItem);
                     }
                 }
 
-                // B. O que sobrou no cloudMapId são itens que estão na Nuvem mas NÃO no Local
-                // Como é um MIRROR, esses itens são "lixo" ou duplicatas indesejadas. DELETAR.
-                for (const [id, item] of cloudMapId) {
-                    ops.delete.push(id);
+                // B. Adiciona itens da nuvem de outros aparelhos
+                for (const cItem of cloudItems) {
+                    if (!cloudProcessedIds.has(String(cItem.id))) {
+                        const hasContentMatch = localItems.some(l => getSig(l) === getSig(cItem));
+                        if (!hasContentMatch) {
+                            finalItems.push(cItem);
+                        }
+                    }
                 }
 
-                // 4. Executa Operações
-                const totalOps = ops.delete.length + ops.update.length + ops.create.length;
-                if (totalOps > 0) {
-                    console.log(`Sync v4: Delete ${ops.delete.length}, Create ${ops.create.length}, Update ${ops.update.length}`);
-                    App.Utils.toast(`Otimizando Nuvem: Removendo ${ops.delete.length} duplicatas...`, "info");
+                // 4. Salva e Renderiza
+                App.State.data = finalItems;
+                App.Data.save(true);
+                App.UI.render();
 
-                    // Deletes
-                    for (const id of ops.delete) {
-                        try { await deleteDoc(doc(db, "vendas", id)); } catch (e) { }
-                    }
-                    // Updates
-                    for (const u of ops.update) {
-                        try {
-                            await updateDoc(doc(db, "vendas", u.id), {
-                                descricao: u.data.desc,
-                                custo: Number(u.data.custo || 0),
-                                valor: Number(u.data.valor || 0),
-                                categoria: u.data.categoria || "Geral",
-                                tipo: u.data.tipo || "venda",
-                                data: u.data.data,
-                                kitParentId: u.data.kitParentId || null,
-                                updatedAt: new Date()
-                            });
-                        } catch (e) { }
-                    }
-                    // Creates
-                    for (const item of ops.create) {
-                        try {
-                            let ref;
-                            if (item.id && String(item.id).length > 5 && isNaN(Number(item.id))) {
-                                // Tenta manter ID se parecer válido (string longa)
-                                await setDoc(doc(db, "vendas", item.id), {
-                                    descricao: item.desc,
-                                    custo: Number(item.custo || 0),
-                                    valor: Number(item.valor || 0),
-                                    categoria: item.categoria || "Geral",
-                                    tipo: item.tipo || "venda",
-                                    data: item.data,
-                                    kitParentId: item.kitParentId || null,
-                                    updatedAt: new Date()
+                // 5. Sync Background
+                if (updatesToCloud.length > 0 || uploadsToCloud.length > 0) {
+                    (async () => {
+                        for (const u of updatesToCloud) {
+                            try {
+                                await updateDoc(doc(db, "vendas", u.id), {
+                                    descricao: u.data.desc, custo: Number(u.data.custo), valor: Number(u.data.valor), updatedAt: new Date()
                                 });
-                                ref = { id: item.id };
-                            } else {
-                                // Cria novo ID
-                                ref = await addDoc(collection(db, "vendas"), {
-                                    descricao: item.desc,
-                                    custo: Number(item.custo || 0),
-                                    valor: Number(item.valor || 0),
-                                    categoria: item.categoria || "Geral",
-                                    tipo: item.tipo || "venda",
-                                    data: item.data,
-                                    kitParentId: item.kitParentId || null,
-                                    updatedAt: new Date()
+                            } catch (e) { }
+                        }
+                        for (const item of uploadsToCloud) {
+                            try {
+                                const { id, ...rest } = item;
+                                const ref = await addDoc(collection(db, "vendas"), {
+                                    descricao: rest.desc, custo: Number(rest.custo || 0), valor: Number(rest.valor || 0),
+                                    categoria: rest.categoria, tipo: rest.tipo, data: rest.data,
+                                    kitParentId: rest.kitParentId || null, updatedAt: new Date()
                                 });
-                            }
-                            // Atualiza local com o ID final
-                            item.id = ref.id;
-                        } catch (e) { }
-                    }
-
-                    // Salva IDs atualizados
-                    App.Data.save(true);
-                    App.Utils.toast("Nuvem limpa e sincronizada!", "success");
+                                const inList = finalItems.find(x => x === item);
+                                if (inList) inList.id = ref.id;
+                            } catch (e) { }
+                        }
+                        App.Data.save(true);
+                        setStatus("Nuvem Ativa", "#10b981");
+                    })();
                 } else {
-                    console.log("Sync v4: Sincronização concluída!");
+                    setStatus("Nuvem Ativa", "#10b981");
                 }
 
             } catch (e) {
-                console.error("Erro Sync v4:", e);
-                // Fallback
+                console.error("Erro Sync v7:", e);
+                setStatus("Link Off", "#ef4444");
                 App.UI.render();
             }
         }

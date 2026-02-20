@@ -501,26 +501,200 @@
                 opacity: 1;
             }
         }
+
+        /* --- LOGIN OVERLAY --- */
+        #auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .auth-card h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-form input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .auth-form input:focus {
+            border-color: var(--accent-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-auth {
+            background: var(--accent-primary);
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .auth-footer {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .auth-footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50px;
+            margin-right: 15px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn-logout {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-dim);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .google-btn {
+            background: white;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <header class="page-header glass">
-            <div>
-                <h1>Gestão Vendas & Hardware</h1>
-                <p class="subtitle" id="real-time-clock">--/--/---- --:--:--</p>
-            </div>
-            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                <div class="subtitle" style="font-weight: 700; color: var(--accent-primary)">v3.0 ULTRA</div>
-                <div id="sync-status"
-                    style="font-size: 0.65rem; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; opacity: 0.8;">
+        <header class="header glass">
+            <div style="display:flex; align-items:center; gap:20px">
+                <div
+                    style="font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; display:flex; align-items:center; gap:10px">
+                    <span
+                        style="background: var(--accent-primary); width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:white">🗃️</span>
+                    StockMaster <span style="opacity:0.3; font-weight:300">PRO</span>
+                </div>
+                <div id="sync-status" style="display: flex; align-items: center; gap: 8px;">
                     <span id="sync-dot"
-                        style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; transition: all 0.3s ease;"></span>
-                    <span id="sync-text">Conectando...</span>
+                        style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
+                    <span id="sync-text" style="font-size: 0.7rem; color: var(--text-dim);">Conectando...</span>
                 </div>
             </div>
+
+            <div style="display: flex; align-items: center;">
+                <div id="user-info" class="user-profile" style="display: none;">
+                    <span class="user-name" id="display-name">Carregando...</span>
+                    <button class="btn-logout" onclick="App.Auth.logout()">Sair</button>
+                </div>
+                <button class="btn-icon" onclick="App.UI.toggleVisualMode()" id="btn-theme"
+                    title="Alternar Visual">✨</button>
+            </div>
         </header>
+
+        <div id="auth-overlay">
+            <div class="auth-card glass">
+                <div id="login-view">
+                    <h2>Bem-vindo</h2>
+                    <div class="auth-form">
+                        <input type="email" id="login-email" placeholder="Gmail ou E-mail">
+                        <input type="password" id="login-pass" placeholder="Senha">
+                        <button class="btn btn-auth" onclick="App.Auth.login()">Entrar</button>
+                        <button class="btn google-btn" onclick="App.Auth.loginWithGoogle()">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                            Entrar com Google
+                        </button>
+                    </div>
+                    <div class="auth-footer">
+                        Não tem conta? <a onclick="App.UI.toggleAuthView(true)">Cadastre-se</a>
+                    </div>
+                </div>
+
+                <div id="register-view" style="display: none;">
+                    <h2>Criar Registro</h2>
+                    <div class="auth-form">
+                        <input type="text" id="reg-user-name" placeholder="Nome Completo / Usuário">
+                        <input type="email" id="reg-email" placeholder="Seu Gmail">
+                        <input type="password" id="reg-pass" placeholder="Definir Senha">
+                        <button class="btn btn-auth" onclick="App.Auth.register()">Concluir Cadastro</button>
+                    </div>
+                    <div class="auth-footer">
+                        Já é cadastrado? <a onclick="App.UI.toggleAuthView(false)">Fazer Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="dashboard-grid" id="dashboard-container"></div>
 
@@ -654,7 +828,7 @@
     <div id="toast-container"></div>
 
     <script>
-        const App = {
+        window.App = {
             State: {
                 dbKey: 'hw_transacoes_v3',
                 data: [],
@@ -665,7 +839,8 @@
                 history: [],
                 selectedIds: new Set(),
                 selectionMode: false,
-                lastSelectedId: null
+                lastSelectedId: null,
+                user: null
             },
 
             Utils: {
@@ -788,6 +963,10 @@
 
                 updateDashboard: () => {
                     const items = App.State.data || [];
+
+                    // Se estiver logado, garante que filtre apenas dados do usuário? 
+                    // (A sincronização v11/v12 já deve garantir isso na carga)
+
                     const income = items.reduce((a, t) => {
                         const v = (t.tipo === 'venda' || t.tipo === 'troca' ? (parseFloat(t.valor) || 0) : (t.tipo === 'kit' ? (parseFloat(t.valor) || 0) + (parseFloat(t.receita) || 0) : 0));
                         return a + (Math.abs(v) > 1e8 ? 0 : v);
@@ -999,6 +1178,18 @@
                     const cur = sel.value;
                     sel.innerHTML = '<option value="Todos">Categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
                     sel.value = cur;
+                },
+
+                toggleAuthView: (isRegister) => {
+                    document.getElementById('login-view').style.display = isRegister ? 'none' : 'block';
+                    document.getElementById('register-view').style.display = isRegister ? 'block' : 'none';
+                },
+
+                toggleVisualMode: () => {
+                    document.body.classList.toggle('compact-view');
+                    const isCompact = document.body.classList.contains('compact-view');
+                    document.getElementById('btn-theme').innerText = isCompact ? '🔍' : '✨';
+                    App.Utils.toast(isCompact ? "Modo Compacto" : "Modo Premium");
                 },
 
                 resetForms: () => {
@@ -1382,7 +1573,8 @@
     </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpHlbH7m66pm0E_GA-faf-zKor2lq49Gk",
@@ -1396,6 +1588,8 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
 
         async function testarConexao() {
             try {
@@ -1740,10 +1934,104 @@
             }
         }
 
-        window.addEventListener('load', carregarVendasDoFirebase);
 
-        // Auto-Sync a cada 60 segundos para manter tudo atualizado sem F5
-        setInterval(carregarVendasDoFirebase, 60000);
+        // ======= SISTEMA DE AUTENTICAÇÃO (APP.AUTH) =======
+        window.App.Auth = {
+            monitor: () => {
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        window.App.State.user = user;
+                        document.getElementById('auth-overlay').style.opacity = '0';
+                        setTimeout(() => {
+                            document.getElementById('auth-overlay').style.display = 'none';
+                        }, 300);
+                        document.getElementById('user-info').style.display = 'flex';
+                        document.getElementById('display-name').innerText = user.displayName || user.email.split('@')[0];
+
+                        carregarVendasDoFirebase();
+                    } else {
+                        window.App.State.user = null;
+                        document.getElementById('auth-overlay').style.display = 'flex';
+                        document.getElementById('auth-overlay').style.opacity = '1';
+                        document.getElementById('user-info').style.display = 'none';
+
+                        // Limpa dados locais se deslogar
+                        window.App.State.data = [];
+                        window.App.UI.render();
+                    }
+                });
+            },
+
+            login: async () => {
+                const email = document.getElementById('login-email').value;
+                const pass = document.getElementById('login-pass').value;
+                if (!email || !pass) return window.App.Utils.toast("Preencha email e senha", "warning");
+
+                try {
+                    await signInWithEmailAndPassword(auth, email, pass);
+                    window.App.Utils.toast("Bem-vindo!", "success");
+                } catch (e) {
+                    window.App.Utils.toast("Erro no login: " + e.code, "error");
+                }
+            },
+
+            register: async () => {
+                const name = document.getElementById('reg-user-name').value;
+                const email = document.getElementById('reg-email').value;
+                const pass = document.getElementById('reg-pass').value;
+                if (!name || !email || !pass) return window.App.Utils.toast("Preencha todos os campos", "warning");
+
+                try {
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    await updateProfile(cred.user, { displayName: name });
+
+                    await setDoc(doc(db, "perfis", cred.user.uid), {
+                        nome: name,
+                        email: email,
+                        criadoEm: new Date()
+                    });
+
+                    window.App.Utils.toast("Conta criada!", "success");
+                } catch (e) {
+                    window.App.Utils.toast("Erro no cadastro: " + e.code, "error");
+                }
+            },
+
+            loginWithGoogle: async () => {
+                if (window.location.protocol === 'file:') {
+                    return window.App.Utils.toast("O Login Google não funciona abrindo o arquivo direto. Use o Live Server ou publique no GitHub.", "warning");
+                }
+                try {
+                    const result = await signInWithPopup(auth, googleProvider);
+                    await setDoc(doc(db, "perfis", result.user.uid), {
+                        nome: result.user.displayName,
+                        email: result.user.email,
+                        ultimoAcesso: new Date()
+                    }, { merge: true });
+
+                    window.App.Utils.toast("Logado!", "success");
+                } catch (e) {
+                    console.error("Erro Google Auth:", e);
+                    if (e.code === 'auth/configuration-not-found') {
+                        window.App.Utils.toast("Erro: Google Auth não ativado no Firebase Console.", "error");
+                    } else if (e.code === 'auth/operation-not-allowed') {
+                        window.App.Utils.toast("Erro: Operação não permitida. Verifique o console do Firebase.", "error");
+                    } else {
+                        window.App.Utils.toast("Erro ao logar com Google", "error");
+                    }
+                }
+            },
+
+            logout: () => {
+                if (confirm("Sair do sistema?")) signOut(auth);
+            }
+        };
+
+        window.App.Auth.monitor();
+
+        window.addEventListener('load', () => {
+            // carregarVendasDoFirebase() será chamado pelo monitor de Auth
+        });
 
     </script>
 </body>

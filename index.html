@@ -668,7 +668,7 @@
                 <div id="login-view">
                     <h2>Bem-vindo</h2>
                     <div class="auth-form">
-                        <input type="email" id="login-email" placeholder="Gmail ou E-mail">
+                        <input type="email" id="login-email" placeholder="Usuário ou E-mail">
                         <input type="password" id="login-pass" placeholder="Senha">
                         <button class="btn btn-auth" onclick="App.Auth.login()">Entrar</button>
                         <button class="btn google-btn" onclick="App.Auth.loginWithGoogle()">
@@ -685,7 +685,7 @@
                     <h2>Criar Registro</h2>
                     <div class="auth-form">
                         <input type="text" id="reg-user-name" placeholder="Nome Completo / Usuário">
-                        <input type="email" id="reg-email" placeholder="Seu Gmail">
+                        <input type="email" id="reg-email" placeholder="Definir E-mail">
                         <input type="password" id="reg-pass" placeholder="Definir Senha">
                         <button class="btn btn-auth" onclick="App.Auth.register()">Concluir Cadastro</button>
                     </div>
@@ -1439,8 +1439,25 @@
                 },
                 importData: (i) => {
                     const f = i.files[0]; if (!f) return;
-                    const r = new FileReader(); r.onload = (e) => {
-                        App.State.data = JSON.parse(e.target.result); App.Data.save();
+                    const r = new FileReader(); r.onload = async (e) => {
+                        try {
+                            const dados = JSON.parse(e.target.result);
+                            if (!Array.isArray(dados)) throw new Error("Formato inválido");
+
+                            if (window.importarBackupParaNuvem) {
+                                const mode = confirm("IMPORTAÇÃO PROFISSIONAL:\n\nDeseja SUBSTITUIR todos os dados da nuvem pelos deste arquivo?\n\nOK = Apagar atual e usar backup\nCancelar = Apenas adicionar itens novos") ? 'replace' : 'merge';
+
+                                App.Utils.toast("Iniciando importação...", "info");
+                                await window.importarBackupParaNuvem(dados, mode);
+                                App.Utils.toast("Backup processado! A tela atualizará em breve.", "success");
+                            } else {
+                                App.State.data = dados;
+                                App.Data.save();
+                                App.UI.render();
+                            }
+                        } catch (err) {
+                            App.Utils.toast("Erro ao ler backup", "error");
+                        }
                     }; r.readAsText(f);
                 },
 
@@ -1572,7 +1589,7 @@
     </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -1748,10 +1765,78 @@
             }
         }
 
+        // Função para Importar Backup em Lote (Professional Version)
+        async function importarBackupParaNuvem(lista, mode = 'merge') {
+            if (!auth.currentUser) return;
+            const setStatus = (sts, color) => {
+                const dot = document.getElementById('sync-dot');
+                const text = document.getElementById('sync-text');
+                if (dot) dot.style.background = color;
+                if (text) text.innerText = sts;
+            };
+
+            try {
+                setStatus("Importando...", "#3b82f6");
+
+                if (mode === 'replace') {
+                    const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
+                    const snap = await getDocs(q);
+                    // Deleta em lotes de 500 (limite do Firestore)
+                    let batch = writeBatch(db);
+                    let count = 0;
+                    for (const d of snap.docs) {
+                        batch.delete(d.ref);
+                        count++;
+                        if (count === 400) { await batch.commit(); batch = writeBatch(db); count = 0; }
+                    }
+                    if (count > 0) await batch.commit();
+                }
+
+                // Upload em lotes
+                let batch = writeBatch(db);
+                let count = 0;
+                for (const item of lista) {
+                    const docId = String(item.id || Date.now() + Math.random());
+                    const ref = doc(db, "vendas", docId);
+
+                    // Mapeamento de campos LEGADOS (v1/v2 -> v3)
+                    const dataToSave = {
+                        descricao: item.desc || item.descricao || "Item sem nome",
+                        custo: Number(item.custo || item.cost || 0),
+                        valor: Number(item.valor || item.amount || 0),
+                        categoria: item.categoria || "Geral",
+                        tipo: item.tipo || "venda",
+                        data: item.data || new Date().toISOString().split('T')[0],
+                        kitParentId: item.kitParentId || null,
+                        userId: auth.currentUser.uid,
+                        updatedAt: new Date()
+                    };
+
+                    batch.set(ref, dataToSave, { merge: true });
+                    count++;
+
+                    if (count === 400) {
+                        await batch.commit();
+                        batch = writeBatch(db);
+                        count = 0;
+                    }
+                }
+
+                if (count > 0) await batch.commit();
+
+                setStatus("Nuvem Ativa", "#10b981");
+            } catch (e) {
+                console.error("Erro no upload do backup:", e);
+                setStatus("Erro Import", "#ef4444");
+                throw e;
+            }
+        }
+
         // Expondo para o App
         window.salvarVendaNoFirebase = salvarVendaNoFirebase;
         window.atualizarVendaNoFirebase = atualizarVendaNoFirebase;
         window.removerVendaDoFirebase = removerVendaDoFirebase;
+        window.importarBackupParaNuvem = importarBackupParaNuvem;
 
 
 

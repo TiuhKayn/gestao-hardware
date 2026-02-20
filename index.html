@@ -1589,7 +1589,7 @@
     </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -2007,11 +2007,22 @@
                 }
                 try {
                     const result = await signInWithPopup(auth, googleProvider);
-                    await setDoc(doc(db, "perfis", result.user.uid), {
-                        nome: result.user.displayName,
+
+                    // Verifica se já existe um perfil para NÃO sobrescrever o nome
+                    const perfilRef = doc(db, "perfis", result.user.uid);
+                    const perfilSnap = await getDoc(perfilRef);
+
+                    const dadosPerfil = {
                         email: result.user.email,
                         ultimoAcesso: new Date()
-                    }, { merge: true });
+                    };
+
+                    // Só define o nome se o perfil for NOVO ou não tiver nome
+                    if (!perfilSnap.exists() || !perfilSnap.data().nome) {
+                        dadosPerfil.nome = result.user.displayName;
+                    }
+
+                    await setDoc(perfilRef, dadosPerfil, { merge: true });
 
                     window.App.Utils.toast("Logado!", "success");
                 } catch (e) {

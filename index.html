@@ -738,16 +738,17 @@
                         App.Data.save();
                     }
                 },
-                relink: (oldId, newId) => {
-                    if (!oldId || !newId || oldId === newId) return;
+                relink: (oldId, newId, targetArray = null) => {
+                    if (!oldId || !newId || String(oldId) === String(newId)) return;
+                    const arr = targetArray || App.State.data;
                     let count = 0;
-                    App.State.data.forEach(item => {
+                    arr.forEach(item => {
                         if (String(item.kitParentId) === String(oldId)) {
                             item.kitParentId = newId;
                             count++;
                         }
                     });
-                    if (count > 0) console.log(`[Relink] ${count} sub-items vinculados ao novo ID: ${newId}`);
+                    if (count > 0) console.log(`[Relink] ${count} sub-items atualizados (${oldId} -> ${newId})`);
                 },
                 clearAll: () => { if (confirm("Limpar TUDO?")) { App.State.data = []; App.Data.save(); } }
             },
@@ -1610,6 +1611,7 @@
                 const cloudMapSig = new Map(cloudItems.map(i => [getSig(i), i]));
 
                 const cloudProcessedIds = new Set();
+                const idTranslationMap = new Map(); // Para traduzir IDs de backup em IDs de servidor
                 const updatesToCloud = [];
                 const uploadsToCloud = [];
 
@@ -1633,11 +1635,10 @@
                         } else {
                             if (String(lItem.id) !== String(cMatch.id)) {
                                 const oldId = lItem.id;
+                                idTranslationMap.set(String(oldId), String(cMatch.id));
                                 lItem.id = cMatch.id;
-                                // Relink imediato no array que estamos construindo/usando
-                                localItems.forEach(child => {
-                                    if (String(child.kitParentId) === String(oldId)) child.kitParentId = cMatch.id;
-                                });
+                                App.Data.relink(oldId, cMatch.id, localItems);
+                                App.Data.relink(oldId, cMatch.id, finalItems);
                             }
                         }
                         finalItems.push(finalItem);
@@ -1669,7 +1670,17 @@
                     }
                 }
 
-                // 4. Salva e Renderiza
+                // C. POST-PROCESS: Relink final (Trata casos onde o filho da nuvem veio com ID numérico do pai)
+                finalItems.forEach(item => {
+                    if (item.kitParentId && idTranslationMap.has(String(item.kitParentId))) {
+                        const newParentId = idTranslationMap.get(String(item.kitParentId));
+                        if (String(item.kitParentId) !== String(newParentId)) {
+                            item.kitParentId = newParentId;
+                            console.log(`[Sync-Relink] Corrigindo vínculo cloud: ${item.desc}`);
+                        }
+                    }
+                });
+
                 App.State.data = finalItems;
                 App.Data.save(true);
                 App.UI.render();
@@ -1677,27 +1688,39 @@
                 // 5. Background Sync
                 if (updatesToCloud.length > 0 || uploadsToCloud.length > 0) {
                     (async () => {
+                        // A. Updates (Items que já têm ID de servidor)
                         for (const u of updatesToCloud) {
                             try {
                                 await updateDoc(doc(db, "vendas", u.id), {
-                                    descricao: u.data.desc, custo: Number(u.data.custo), valor: Number(u.data.valor), updatedAt: new Date()
+                                    descricao: u.data.desc, custo: Number(u.data.custo), valor: Number(u.data.valor),
+                                    categoria: u.data.categoria, tipo: u.data.tipo, data: u.data.data,
+                                    kitParentId: u.data.kitParentId || null, updatedAt: new Date()
                                 });
                             } catch (e) { }
                         }
-                        for (const item of uploadsToCloud) {
+
+                        // B. Uploads (Items novos - Ordenar Kits primeiro para relink funcionar)
+                        const sortedUploads = [...uploadsToCloud].sort((a, b) => (b.tipo === 'kit' ? 1 : -1));
+
+                        for (const item of sortedUploads) {
                             try {
+                                const oldId = item.id;
                                 const { id, ...rest } = item;
                                 const ref = await addDoc(collection(db, "vendas"), {
                                     descricao: rest.desc, custo: Number(rest.custo || 0), valor: Number(rest.valor || 0),
                                     categoria: rest.categoria, tipo: rest.tipo, data: rest.data,
-                                    kitParentId: rest.kitParentId || null, updatedAt: new Date()
+                                    kitParentId: item.kitParentId || null, // Importante: usar valor atualizado!
+                                    updatedAt: new Date()
                                 });
-                                // Local ID update
-                                const inList = finalItems.find(x => x === item);
-                                if (inList) inList.id = ref.id;
+
+                                // Atualiza IDs no array final para persistência local
+                                item.id = ref.id;
+                                App.Data.relink(oldId, ref.id, finalItems);
+                                // Salva a cada upload bem sucedido para evitar perda em caso de queda
+                                App.Data.save(true);
                             } catch (e) { }
                         }
-                        App.Data.save(true);
+
                         setStatus("Nuvem Ativa", "#10b981");
                     })();
                 } else {

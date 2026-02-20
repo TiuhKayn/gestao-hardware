@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão Vendas & Hardware v3.0</title>
+    <title>Masabushi Store - Hardware Premium</title>
     <style>
+        /* Design System imported from gestao_vendas */
         :root {
             --bg-body: #0a0f1d;
             --bg-glass: rgba(30, 41, 59, 0.7);
@@ -20,12 +21,7 @@
             --warning: #f59e0b;
             --purple: #a855f7;
             --border-radius: 16px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --select-col-width: 0px;
-        }
-
-        .selection-active {
-            --select-col-width: 40px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         body {
@@ -33,7 +29,7 @@
             background: radial-gradient(circle at top right, #1e293b, #0a0f1d);
             color: var(--text-primary);
             margin: 0;
-            padding: 24px;
+            padding: 0;
             min-height: 100vh;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
@@ -42,11 +38,10 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+            padding: 24px;
         }
 
+        /* Utilities */
         .glass {
             background: var(--bg-glass);
             -webkit-backdrop-filter: blur(12px);
@@ -54,189 +49,6 @@
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: var(--border-radius);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        }
-
-        .page-header {
-            padding: 20px 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            z-index: 100;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            background: linear-gradient(to right, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtitle {
-            margin: 0;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .stat-card {
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            border-left: 4px solid var(--stat-color, var(--accent-primary));
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-        }
-
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .smart-form-container {
-            padding: 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 20px;
-        }
-
-        .type-selector {
-            display: flex;
-            background: var(--bg-input);
-            padding: 4px;
-            border-radius: 12px;
-            gap: 4px;
-        }
-
-        .type-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-
-        .type-btn.active {
-            background: var(--accent-primary);
-            color: white;
-            box-shadow: 0 4px 12px var(--accent-glow);
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 20px;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-            padding-left: 4px;
-        }
-
-        input,
-        select {
-            background: var(--bg-input);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            color: white;
-            height: 44px;
-            border-radius: 10px;
-            padding: 0 16px;
-            font-size: 0.95rem;
-            transition: var(--transition);
-        }
-
-        select {
-            appearance: none;
-            -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 16px;
-            padding-right: 40px;
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: var(--bg-input);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 0 10px;
-            transition: var(--transition);
-            width: 44px;
-            overflow: hidden;
-            cursor: pointer;
-        }
-
-        .search-box.active {
-            width: 250px;
-            border-color: var(--accent-primary);
-        }
-
-        .search-input {
-            border: none;
-            background: transparent;
-            width: 100%;
-            margin-left: 8px;
-            color: white;
-            outline: none;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            box-shadow: none !important;
-        }
-
-        .search-input:focus {
-            box-shadow: none !important;
-        }
-
-        .search-box.active .search-input {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 4px var(--accent-glow);
         }
 
         .btn {
@@ -252,2102 +64,535 @@
             justify-content: center;
             gap: 10px;
             font-size: 0.95rem;
+            color: white;
         }
 
         .btn-primary {
             background: linear-gradient(135deg, var(--accent-primary), #2563eb);
-            color: white;
             box-shadow: 0 4px 15px var(--accent-glow);
-            width: 100%;
         }
 
-        .btn-danger {
-            background: linear-gradient(135deg, var(--danger), #b91c1c);
-            color: white;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--accent-glow);
         }
 
-        .toolbar {
-            padding: 16px 24px;
+        /* Header */
+        .store-header {
+            position: sticky;
+            top: 24px;
+            z-index: 1000;
+            margin-bottom: 40px;
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .filter-controls {
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .nav-actions {
             display: flex;
             gap: 20px;
-        }
-
-        .backup-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .transactions-card {
-            overflow: hidden;
-        }
-
-        .t-header,
-        .t-row {
-            display: grid;
-            grid-template-columns: var(--select-col-width) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
-            padding: 14px 24px;
             align-items: center;
-            transition: var(--transition);
-            overflow: hidden;
         }
 
-        .selection-active .t-header,
-        .selection-active .t-row {
-            grid-template-columns: 40px 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
-        }
-
-        .select-col {
+        .search-box {
             display: flex;
-            justify-content: center;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 0 10px;
+            transition: var(--transition);
+            width: 44px;
+            overflow: hidden;
+            cursor: pointer;
+            height: 40px;
+        }
+
+        .search-box:hover,
+        .search-box.active {
+            width: 250px;
+            border-color: var(--accent-primary);
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            margin-left: 8px;
+            color: white;
+            outline: none;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s;
+            transition: opacity 0.3s;
         }
 
-        .selection-active .select-col {
+        .search-box:hover .search-input,
+        .search-box.active .search-input {
             opacity: 1;
             pointer-events: all;
         }
 
-        .checkbox-custom {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: var(--accent-primary);
-        }
-
-        .bulk-actions-bar {
-            background: var(--bg-card);
-            padding: 12px 24px;
-            border-radius: 12px;
-            display: none;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 20px;
-            border: 1px solid var(--accent-glow);
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .t-header {
-            background: rgba(255, 255, 255, 0.02);
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 0 24px;
-            padding: 0 24px;
-        }
-
-        .t-row {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .t-row:hover {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .badge {
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.65rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .badge-venda {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
-        }
-
-        .badge-gasto {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-
-        .badge-kit {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--accent-primary);
-        }
-
-        .badge-troca {
-            background: rgba(168, 85, 247, 0.1);
-            color: var(--purple);
-        }
-
-        .row-group.open .sub-row-container {
-            display: block;
-        }
-
-        .sub-row-container {
-            display: none;
-            background: rgba(0, 0, 0, 0.15);
-            padding: 5px 0 10px 0;
-        }
-
-        .btn-toggle {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: transform 0.2s;
-            font-size: 0.7rem;
-        }
-
-        .t-row[draggable="true"] {
-            cursor: grab;
-        }
-
-        .t-row.dragging {
-            opacity: 0.4;
-            background: rgba(255, 255, 255, 0.1) !important;
-        }
-
-        .row-group.open .btn-toggle {
-            transform: rotate(90deg);
-        }
-
-        .btn-icon {
-            width: 32px;
-            height: 32px;
+        .cart-btn {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
             cursor: pointer;
+            transition: var(--transition);
             color: var(--text-secondary);
         }
 
-        .btn-icon:hover {
+        .cart-btn:hover {
             background: rgba(255, 255, 255, 0.1);
             color: white;
+            transform: scale(1.05);
         }
 
-        #toast-container {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 9999;
-        }
-
-        .toast {
-            padding: 12px 20px;
-            border-radius: 10px;
-            background: #1e293b;
+        .cart-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-primary);
             color: white;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            animation: slideUp 0.3s ease;
-            border-left: 4px solid var(--success);
-        }
-
-        .t-header div {
-            padding: 14px 4px;
-            cursor: pointer;
-            transition: var(--transition);
+            font-size: 0.7rem;
+            font-weight: 800;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 6px;
-            user-select: none;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        .t-header div:hover {
-            color: white;
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            margin-bottom: 40px;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0) 0%, rgba(30, 41, 59, 0.3) 100%);
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255, 255, 255, 0.02);
         }
 
-        .sort-icon {
-            font-size: 0.7rem;
-            opacity: 0;
-            transition: opacity 0.2s;
+        .hero h1 {
+            font-size: 3rem;
+            margin: 0 0 16px 0;
+            background: linear-gradient(to right, #fff, var(--accent-primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .t-header div:hover .sort-icon,
-        .sort-active .sort-icon {
-            opacity: 1;
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .sort-active .sort-icon {
+        /* Product Grid */
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .product-card {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .product-image {
+            height: 200px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .product-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .product-category {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             color: var(--accent-primary);
+            font-weight: 700;
         }
 
-        @keyframes slideUp {
-            from {
-                transform: translateY(100%);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+            color: white;
+            line-height: 1.4;
         }
 
-        /* --- LOGIN OVERLAY --- */
-        #auth-overlay,
-        #settings-overlay {
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--success);
+            margin-top: auto;
+        }
+
+        .add-btn {
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 80px;
+            padding: 40px;
+            text-align: center;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(15px);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .modal-content {
+            width: 400px;
+            height: 100%;
+            background: #1e293b;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            animation: slideLeft 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .cart-items-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .cart-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .cart-item-emoji {
+            font-size: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-            transition: opacity 0.3s;
+            border-radius: 8px;
         }
 
-        .user-menu-container {
-            position: relative;
-            display: inline-block;
+        .cart-item-info {
+            flex: 1;
         }
 
-        .user-dropdown-trigger {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-primary);
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 500;
-            transition: all 0.2s;
+        .cart-item-title {
+            font-weight: 600;
+            font-size: 0.9rem;
         }
 
-        .user-dropdown-trigger:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--accent-primary);
+        .cart-item-price {
+            color: var(--success);
+            font-weight: 700;
+            font-size: 0.85rem;
         }
 
-        .dropdown-menu {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            width: 220px;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 10000;
-            backdrop-filter: blur(10px);
-            animation: slideUp 0.2s ease-out;
-        }
-
-        .dropdown-menu.active {
-            display: flex;
-        }
-
-        .dropdown-item {
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
+        .btn-remove {
+            background: transparent;
             border: none;
-            background: none;
-            width: 100%;
-            text-align: left;
-            font-size: 0.9rem;
-        }
-
-        .dropdown-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-primary);
-        }
-
-        .dropdown-divider {
-            height: 1px;
-            background: var(--border-color);
-            margin: 4px 0;
-        }
-
-        .dropdown-item.danger {
-            color: #ef4444;
-        }
-
-        .dropdown-item.danger:hover {
-            background: rgba(239, 68, 68, 0.1);
-        }
-
-        .btn-close:hover {
-            color: var(--text-primary);
-        }
-
-        .auth-card {
-            width: 100%;
-            max-width: 400px;
-            padding: 40px;
-            text-align: center;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .auth-card h2 {
-            font-size: 2rem;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, #fff 0%, var(--accent-primary) 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .auth-form input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 14px;
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1rem;
-            outline: none;
-            transition: var(--transition);
-        }
-
-        .auth-form input:focus {
-            border-color: var(--accent-primary);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .btn-auth {
-            background: var(--accent-primary);
-            color: white;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: 600;
-            margin-top: 10px;
-            box-shadow: 0 4px 15px var(--accent-glow);
-        }
-
-        .auth-footer {
-            margin-top: 25px;
-            font-size: 0.9rem;
-            color: var(--text-dim);
-        }
-
-        .auth-footer a {
-            color: var(--accent-primary);
-            text-decoration: none;
-            font-weight: 600;
             cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.2s;
         }
 
-        .user-profile {
+        .btn-remove:hover {
+            opacity: 1;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .cart-total {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50px;
-            margin-right: 15px;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
         }
 
-        .user-name {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .btn-logout {
-            background: none;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: var(--text-dim);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .btn-logout:hover {
-            background: var(--danger);
-            border-color: var(--danger);
-            color: white;
-        }
-
-        @keyframes fadeIn {
+        @keyframes slideLeft {
             from {
-                opacity: 0;
-                transform: translateY(-20px);
+                transform: translateX(100%);
             }
 
             to {
-                opacity: 1;
-                transform: translateY(0);
+                transform: translateX(0);
             }
-        }
-
-        .google-btn {
-            background: white;
-            color: #444;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-            font-weight: 600;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <header class="page-header glass">
-            <div style="display:flex; align-items:center; gap:20px">
-                <div
-                    style="font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; display:flex; align-items:center; gap:10px">
-                    <span
-                        style="background: var(--accent-primary); width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:white">🗃️</span>
-                    StockMaster <span style="opacity:0.3; font-weight:300">PRO</span>
-                </div>
-                <div id="sync-status" style="display: flex; align-items: center; gap: 8px;">
-                    <span id="sync-dot"
-                        style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
-                    <span id="sync-text" style="font-size: 0.7rem; color: var(--text-dim);">Conectando...</span>
-                </div>
-            </div>
+        <!-- Header -->
+        <header class="store-header glass">
+            <a href="#" class="logo">Masabushi Store</a>
 
-            <div style="display: flex; align-items: center;">
-                <div id="user-info" class="user-menu-container" style="display: none;">
-                    <button class="user-dropdown-trigger" onclick="App.UI.toggleUserDropdown(event)">
-                        <span id="display-name">Usuário</span>
-                        <span style="font-size: 0.8rem; opacity: 0.5;">▼</span>
-                    </button>
-                    <div id="user-dropdown" class="dropdown-menu">
-                        <button class="dropdown-item" onclick="App.UI.toggleVisualMode()">
-                            <span>✨</span> Alternar Visual
-                        </button>
-                        <button class="dropdown-item" onclick="App.UI.toggleSettings(true)">
-                            <span>⚙️</span> Configurações de Conta
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item danger" onclick="App.Auth.logout()">
-                            <span>🚪</span> Sair da Conta
-                        </button>
-                    </div>
+            <div class="nav-actions">
+                <div class="search-box">
+                    <span style="font-size: 1.2rem;">🔍</span>
+                    <input type="text" class="search-input" placeholder="Buscar produtos...">
+                </div>
+
+                <div class="cart-btn" onclick="Store.toggleCart()">
+                    🛒
+                    <span class="cart-badge" id="cart-count">0</span>
                 </div>
             </div>
         </header>
 
-        <div id="auth-overlay">
-            <div class="auth-card glass">
-                <div id="login-view">
-                    <h2>Bem-vindo</h2>
-                    <div class="auth-form">
-                        <input type="email" id="login-email" placeholder="Usuário ou E-mail">
-                        <input type="password" id="login-pass" placeholder="Senha">
-                        <button class="btn btn-auth" onclick="App.Auth.login()">Entrar</button>
-                        <button class="btn google-btn" onclick="App.Auth.loginWithGoogle()">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-                            Entrar com Google
-                        </button>
-                    </div>
-                    <div class="auth-footer">
-                        Não tem conta? <a onclick="App.UI.toggleAuthView(true)">Cadastre-se</a>
-                    </div>
-                </div>
+        <!-- Hero -->
+        <section class="hero">
+            <h1>Hardware de Alta Performance</h1>
+            <p>As melhores placas de vídeo, processadores e setups completos para o seu próximo nível.</p>
+        </section>
 
-                <div id="register-view" style="display: none;">
-                    <h2>Criar Registro</h2>
-                    <div class="auth-form">
-                        <input type="text" id="reg-user-name" placeholder="Nome Completo / Usuário">
-                        <input type="email" id="reg-email" placeholder="Definir E-mail">
-                        <input type="password" id="reg-pass" placeholder="Definir Senha">
-                        <button class="btn btn-auth" onclick="App.Auth.register()">Concluir Cadastro</button>
-                    </div>
-                    <div class="auth-footer">
-                        Já é cadastrado? <a onclick="App.UI.toggleAuthView(false)">Fazer Login</a>
-                    </div>
-                </div>
-            </div>
+        <!-- Products -->
+        <h2 class="section-title">Destaques</h2>
+        <div class="product-grid" id="product-list">
+            <!-- Products will be injected here JS -->
         </div>
 
-        <div id="settings-overlay" class="glass-overlay" style="display: none;">
-            <div class="auth-card glass">
-                <div class="settings-header">
-                    <h2>Configurações</h2>
-                    <button class="btn-close" onclick="App.UI.toggleSettings(false)">×</button>
-                </div>
-                <div class="auth-form">
-                    <div class="input-group">
-                        <label>Nome de Usuário (Exclusivo)</label>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="set-user-name" placeholder="Seu novo nome">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label>Nova Senha</label>
-                        <input type="password" id="set-pass" placeholder="Mudar senha">
-                    </div>
-                    <div class="input-group">
-                        <label>Confirmar Senha</label>
-                        <input type="password" id="set-pass-confirm" placeholder="Repita a senha">
-                    </div>
-                    <button class="btn btn-auth" onclick="App.Auth.updateAccountSettings()"
-                        style="margin-top: 10px;">Salvar Alterações</button>
+        <footer>
+            <p>© 2026 Masabushi Store. Todos os direitos reservados.</p>
+        </footer>
+    </div>
 
-                    <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                        <button class="btn" onclick="App.UI.viewRegisteredUsers()"
-                            style="background: rgba(255,255,255,0.05); font-size: 0.8rem; height: 36px; width: 100%;">
-                            🔍 Ver Todos os Usuários Cadastrados
-                        </button>
-                        <div id="debug-user-list" style="display: none; margin-top: 10px;"></div>
-                    </div>
-                </div>
+    <!-- Cart Modal -->
+    <div id="cart-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h2>Seu Carrinho</h2>
+                <button class="btn-close" onclick="Store.toggleCart()">×</button>
             </div>
-        </div>
-
-        <div class="dashboard-grid" id="dashboard-container"></div>
-
-        <div class="smart-form-container glass">
-            <div class="form-header">
-                <h2 style="margin:0; font-size:1.1rem; color:var(--text-secondary)">Nova Transação</h2>
-                <div class="type-selector">
-                    <button class="type-btn active" onclick="App.UI.setFormType('venda')" data-type="venda">🛍️
-                        Venda</button>
-                    <button class="type-btn" onclick="App.UI.setFormType('gasto')" data-type="gasto">💸 Despesa</button>
-                    <button class="type-btn" onclick="App.UI.setFormType('kit')" data-type="kit">📦 Lote/Kit</button>
-                </div>
+            <div id="cart-items" class="cart-items-container">
+                <!-- Items injected by JS -->
             </div>
-
-            <div class="form-grid">
-                <div class="input-group" id="group-desc" style="grid-column: span 6">
-                    <label id="lbl-desc">Descrição do Item</label>
-                    <input type="text" id="reg-desc" placeholder="Ex: RTX 3060 Ti">
+            <div class="modal-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span id="cart-total-value">R$ 0,00</span>
                 </div>
-                <div class="input-group" id="group-recebeu" style="grid-column: span 6; display:none">
-                    <label>Recebido na Troca</label>
-                    <input type="text" id="reg-recebeu" placeholder="Ex: GTX 1660 + R$ 200">
-                </div>
-                <div class="input-group" style="grid-column: span 3">
-                    <label>Categoria</label>
-                    <input type="text" id="reg-cat" list="sugestoes-cat" placeholder="Hardware">
-                </div>
-                <div class="input-group" style="grid-column: span 3">
-                    <label>Data</label>
-                    <input type="date" id="reg-data">
-                </div>
-
-                <div class="input-group" id="group-custo" style="grid-column: span 3">
-                    <label id="lbl-custo">Custo (R$)</label>
-                    <input type="number" id="reg-custo" placeholder="0.00" step="0.01">
-                </div>
-                <div class="input-group" id="group-valor" style="grid-column: span 3">
-                    <label id="lbl-valor">Venda (R$)</label>
-                    <input type="number" id="reg-valor" placeholder="0.00" step="0.01">
-                </div>
-                <div class="input-group" id="group-receita" style="grid-column: span 3; display:none">
-                    <label>Bônus/Receita Extra</label>
-                    <input type="number" id="reg-receita" placeholder="0.00">
-                </div>
-                <div class="input-group" id="group-volta" style="grid-column: span 3; display:none">
-                    <label>Volta em Dinheiro</label>
-                    <input type="number" id="reg-volta" placeholder="0.00">
-                </div>
-                <div class="input-group" id="group-kit-pai" style="grid-column: span 6">
-                    <label>Vincular a Projeto/Kit</label>
-                    <select id="reg-kit-pai">
-                        <option value="">-- Avulso --</option>
-                    </select>
-                </div>
-
-                <div style="grid-column: span 12; display: flex; gap: 12px; margin-top: 10px;">
-                    <button id="btn-main-action" class="btn btn-primary" onclick="App.Actions.submitForm()">Registrar
-                        Venda</button>
-                    <button id="btn-cancel-edit" class="btn" style="display:none; background:rgba(255,255,255,0.05)"
-                        onclick="App.UI.cancelEdit()">Cancelar</button>
-                </div>
+                <button class="btn btn-primary" style="width: 100%;" onclick="alert('Checkout em breve!')">Finalizar
+                    Compra</button>
             </div>
-        </div>
-
-        <datalist id="sugestoes-cat">
-            <option value="Hardware">
-            <option value="Periférico">
-            <option value="PC Gamer">
-            <option value="Serviço">
-        </datalist>
-
-        <div class="toolbar glass">
-            <div class="filter-controls">
-                <select id="filtro-tipo" onchange="App.UI.render()">
-                    <option value="todos">Tudo</option>
-                    <option value="kits">Kits/Projetos</option>
-                    <option value="avulsos">Avulsos</option>
-                </select>
-                <select id="filtro-categoria" onchange="App.UI.render()">
-                    <option value="Todos">Categorias</option>
-                </select>
-                <div class="search-box" onclick="App.UI.toggleSearch(this)">
-                    <span style="font-size: 1.2rem;">🔍</span>
-                    <input type="text" id="filtro-busca" class="search-input" placeholder="Buscar item..."
-                        onkeyup="App.UI.render()" onclick="event.stopPropagation()">
-                </div>
-            </div>
-            <div class="backup-controls" style="align-items:center;">
-                <button id="btn-selection-mode" onclick="App.Actions.toggleSelectionMode()" class="btn-icon"
-                    title="Modo Seleção (Ativar/Desativar Checkboxes)">☑</button>
-                <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
-                <button onclick="App.Actions.undo()" class="btn-icon" title="Desfazer (Ctrl+Z)"
-                    style="border-color:var(--accent-primary); color:var(--accent-primary)">↶</button>
-                <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
-                <button onclick="App.Actions.exportData()" class="btn-icon" title="Exportar Backup">💾</button>
-                <button onclick="document.getElementById('input-import').click()" class="btn-icon"
-                    title="Importar Backup">📂</button>
-                <input type="file" id="input-import" style="display:none" onchange="App.Actions.importData(this)">
-            </div>
-        </div>
-
-        <div id="bulk-actions" class="bulk-actions-bar glass">
-            <span id="bulk-count" style="font-weight: 700; color: var(--accent-primary)">0 itens selecionados</span>
-            <button class="btn btn-danger" onclick="App.Actions.bulkDelete()"
-                style="height: 36px; padding: 0 16px; font-size: 0.8rem;">Excluir Selecionados</button>
-            <button class="btn" onclick="App.Actions.clearSelection()"
-                style="height: 36px; padding: 0 16px; font-size: 0.8rem; background: rgba(255,255,255,0.05)">Cancelar</button>
-        </div>
-
-        <div class="transactions-card glass">
-            <div class="t-header" id="table-header">
-                <div class="select-col">
-                    <input type="checkbox" id="select-all" class="checkbox-custom"
-                        onclick="App.Actions.toggleAll(this)">
-                </div>
-                <div onclick="App.Actions.sortBy('desc')" data-col="desc">Descrição <span class="sort-icon">↕</span>
-                </div>
-                <div onclick="App.Actions.sortBy('categoria')" data-col="categoria">Categoria <span
-                        class="sort-icon">↕</span></div>
-                <div onclick="App.Actions.sortBy('custo')" data-col="custo">Custo <span class="sort-icon">↕</span></div>
-                <div onclick="App.Actions.sortBy('saldo')" data-col="saldo">Valor/Saldo <span class="sort-icon">↕</span>
-                </div>
-                <div onclick="App.Actions.sortBy('tipo')" data-col="tipo">Tipo <span class="sort-icon">↕</span></div>
-                <div onclick="App.Actions.sortBy('data')" data-col="data">Data <span class="sort-icon">↕</span></div>
-                <div style="text-align:right; cursor:default; pointer-events:none">Ações</div>
-            </div>
-            <div id="lista-transacoes"></div>
         </div>
     </div>
 
-    <div id="toast-container"></div>
-
+    <!-- Scripts -->
     <script>
-        window.App = {
-            State: {
-                dbKey: 'hw_transacoes_v3',
-                data: [],
-                formType: 'venda',
-                editingId: null,
-                sort: { col: 'data', dir: 'desc' },
-                dashboardOrder: ['investido', 'recebido', 'lucro'],
-                history: [],
-                selectedIds: new Set(),
-                selectionMode: false,
-                lastSelectedId: null,
-                user: null
+        const Store = {
+            state: {
+                cart: []
             },
 
-            Utils: {
-                formatCurrency: (v) => Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
-                formatDate: (s) => {
-                    if (!s) return '-';
-                    try {
-                        const d = new Date(s + 'T12:00:00');
-                        return isNaN(d.getTime()) ? 'Data Inválida' : d.toLocaleDateString('pt-BR');
-                    } catch (e) { return 'Erro Data'; }
-                },
-                getToday: () => {
-                    const d = new Date();
-                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                },
-                generateId: () => Date.now(),
-                toast: (m, t = 'success') => {
-                    const c = document.getElementById('toast-container');
-                    const e = document.createElement('div');
-                    e.className = `toast ${t}`; e.innerText = m;
-                    c.appendChild(e); setTimeout(() => e.remove(), 4000);
+            products: [
+                { id: 1, name: 'RTX 3060 Ti Eagle OC', category: 'GPU', price: 2199.00, emoji: '🎮' },
+                { id: 2, name: 'Ryzen 7 5700X', category: 'CPU', price: 1150.00, emoji: '⚡' },
+                { id: 3, name: 'Kit Upgrade B550 + 16GB', category: 'Kit', price: 1450.00, emoji: '📦' },
+                { id: 4, name: 'SSD NVMe 1TB Kingston', category: 'Storage', price: 380.00, emoji: '💾' },
+                { id: 5, name: 'Fonte XPG 650W Gold', category: 'Power', price: 420.00, emoji: '🔌' },
+                { id: 6, name: 'Gabinete Lian Li Lancool', category: 'Case', price: 550.00, emoji: '🖥️' }
+            ],
+
+            init: () => {
+                Store.renderProducts();
+            },
+
+            renderProducts: () => {
+                const container = document.getElementById('product-list');
+                container.innerHTML = Store.products.map(p => `
+                    <div class="product-card glass">
+                        <div class="product-image">\${p.emoji}</div>
+                        <div class="product-info">
+                            <span class="product-category">\${p.category}</span>
+                            <h3 class="product-title">\${p.name}</h3>
+                            <div class="product-price">R$ \${p.price.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+                            <button class="btn btn-primary add-btn" onclick="Store.addToCart(\${p.id})">
+                                Adicionar ao Carrinho
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            addToCart: (id) => {
+                const product = Store.products.find(p => p.id === id);
+                Store.state.cart.push(product);
+                Store.updateCartUI();
+                Store.renderCartItems(); // Update modal if open
+
+                // Temp Toast
+                const btn = event.target.closest('button');
+                const originalText = btn.innerText;
+                const originalBg = btn.style.background;
+
+                btn.innerText = "Adicionado! ✓";
+                btn.style.background = "var(--success)";
+
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = originalBg;
+                    btn.style.background = "";
+                }, 1000);
+            },
+
+            removeFromCart: (index) => {
+                Store.state.cart.splice(index, 1);
+                Store.updateCartUI();
+                Store.renderCartItems();
+            },
+
+            updateCartUI: () => {
+                const count = document.getElementById('cart-count');
+                count.innerText = Store.state.cart.length;
+
+                // Animation pop
+                count.style.transform = 'scale(1.2)';
+                setTimeout(() => count.style.transform = 'scale(1)', 200);
+
+                // Update Total in Modal
+                const total = Store.state.cart.reduce((acc, item) => acc + item.price, 0);
+                const totalEl = document.getElementById('cart-total-value');
+                if (totalEl) totalEl.innerText = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            },
+
+            toggleCart: () => {
+                const modal = document.getElementById('cart-modal');
+                const isHidden = modal.style.display === 'none';
+                modal.style.display = isHidden ? 'flex' : 'none';
+                if (isHidden) Store.renderCartItems();
+            },
+
+            renderCartItems: () => {
+                const container = document.getElementById('cart-items');
+                if (!container) return;
+
+                if (Store.state.cart.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding: 40px; color: var(--text-secondary)">Seu carrinho está vazio.</div>';
+                    return;
                 }
-            },
 
-            Data: {
-                load: () => {
-                    try {
-                        App.State.data = JSON.parse(localStorage.getItem(App.State.dbKey) || '[]');
-                        const savedOrder = localStorage.getItem('hw_dashboard_order');
-                        if (savedOrder) {
-                            const parsed = JSON.parse(savedOrder);
-                            if (Array.isArray(parsed) && parsed.length > 0) App.State.dashboardOrder = parsed;
-                        }
-                    } catch (e) { console.error("Erro ao carregar dados", e); App.State.data = []; }
-                    App.UI.render();
-                },
-                save: (skipHistory = false) => {
-                    if (!skipHistory) {
-                        App.State.history.push(JSON.stringify(App.State.data));
-                        if (App.State.history.length > 30) App.State.history.shift();
-                    }
-                    localStorage.setItem(App.State.dbKey, JSON.stringify(App.State.data));
-                    App.UI.render();
-                },
-                add: (i) => {
-                    if (App.State.editingId) {
-                        const idx = App.State.data.findIndex(x => x.id == App.State.editingId);
-
-                        // Atualiza localmente
-                        App.State.data[idx] = { ...i, id: App.State.editingId };
-
-                        // Sincroniza Edição
-                        if (window.atualizarVendaNoFirebase) window.atualizarVendaNoFirebase(App.State.editingId, i);
-
-                        App.State.editingId = null;
-                    } else {
-                        App.State.data.unshift(i);
-
-                        // Sincroniza Criação
-                        if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(i);
-                    }
-                    App.Data.save(); App.UI.resetForms();
-                },
-                remove: (id) => {
-                    if (confirm("Remover?")) {
-                        // Sincroniza Exclusão
-                        if (window.removerVendaDoFirebase) window.removerVendaDoFirebase(id);
-
-                        App.State.data = App.State.data.filter(x => x.id != id && x.kitParentId != id);
-                        App.Data.save();
-                    }
-                },
-                relink: (oldId, newId, targetArray = null) => {
-                    if (!oldId || !newId || String(oldId) === String(newId)) return;
-                    const arr = targetArray || App.State.data;
-                    let count = 0;
-                    arr.forEach(item => {
-                        if (String(item.kitParentId) === String(oldId)) {
-                            item.kitParentId = newId;
-                            count++;
-                        }
-                    });
-                    // Silenciado para evitar poluição no console
-                },
-                clearAll: () => { if (confirm("Limpar TUDO?")) { App.State.data = []; App.Data.save(); } }
-            },
-
-            UI: {
-                setFormType: (t) => {
-                    App.State.formType = t;
-                    document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === t));
-                    const show = (id, types) => document.getElementById(id).style.display = types.includes(t) ? 'flex' : 'none';
-                    show('group-custo', ['venda', 'gasto', 'troca', 'kit']);
-                    show('group-valor', ['venda', 'troca', 'kit']);
-                    show('group-recebeu', ['troca']);
-                    show('group-receita', ['kit']);
-                    show('group-volta', ['troca']);
-                    show('group-kit-pai', ['venda', 'gasto', 'troca']);
-
-                    document.getElementById('lbl-custo').innerText = t === 'kit' ? 'Custo Inicial (R$)' : 'Custo (R$)';
-                    document.getElementById('lbl-valor').innerText = t === 'kit' ? 'Receita Final (R$)' : (t === 'troca' ? 'Sobra/Saldo (R$)' : 'Venda (R$)');
-
-                    const btn = document.getElementById('btn-main-action');
-                    btn.innerText = App.State.editingId ? 'Salvar Alterações' : 'Registrar ' + t.charAt(0).toUpperCase() + t.slice(1);
-                    btn.className = t === 'gasto' ? 'btn btn-danger' : 'btn btn-primary';
-                },
-
-                render: () => {
-                    try {
-                        App.UI.updateDashboard();
-                        App.UI.renderTable();
-                        App.UI.updateSelects();
-                        App.UI.updateFilters();
-                        App.UI.updateSortIndicators();
-                    } catch (e) {
-                        console.error("Erro de Renderização", e);
-                        App.Utils.toast("Erro ao atualizar tela", "error");
-                    }
-                },
-
-                updateDashboard: () => {
-                    const items = App.State.data || [];
-
-                    // Se estiver logado, garante que filtre apenas dados do usuário? 
-                    // (A sincronização v11/v12 já deve garantir isso na carga)
-
-                    const income = items.reduce((a, t) => {
-                        const v = (t.tipo === 'venda' || t.tipo === 'troca' ? (parseFloat(t.valor) || 0) : (t.tipo === 'kit' ? (parseFloat(t.valor) || 0) + (parseFloat(t.receita) || 0) : 0));
-                        return a + (Math.abs(v) > 1e8 ? 0 : v);
-                    }, 0);
-                    const expenses = items.reduce((a, t) => {
-                        const v = (t.tipo === 'gasto' || t.tipo === 'venda' || t.tipo === 'troca' || t.tipo === 'kit' ? (parseFloat(t.custo) || 0) : 0);
-                        return a + (Math.abs(v) > 1e8 ? 0 : v);
-                    }, 0);
-
-                    const cards = {
-                        investido: { title: 'Total Investido', val: expenses, color: 'var(--danger)' },
-                        recebido: { title: 'Total Recebido', val: income, color: 'var(--success)' },
-                        lucro: { title: 'Lucro Estimado', val: income - expenses, color: 'var(--accent-primary)' }
-                    };
-
-                    const container = document.getElementById('dashboard-container');
-                    if (!container) return;
-
-
-                    let order = App.State.dashboardOrder || [];
-                    const defaults = ['investido', 'recebido', 'lucro'];
-                    if (order.length < 3) order = defaults;
-
-                    defaults.forEach(k => { if (!order.includes(k)) order.push(k); });
-
-                    container.innerHTML = order.map(key => {
-                        const c = cards[key];
-                        if (!c) return '';
-                        return `
-                        <div class="stat-card glass" id="card-${key}" draggable="true" style="--stat-color: ${c.color}; cursor:grab;" 
-                             data-key="${key}" ondragstart="App.Actions.onDragStart(event)" 
-                             ondragover="event.preventDefault()" ondrop="App.Actions.onDrop(event)">
-                            <div class="stat-label">${c.title}</div>
-                            <div class="stat-value">R$ ${App.Utils.formatCurrency(c.val)}</div>
-                        </div>`;
-                    }).join('');
-
-                },
-
-                renderTable: () => {
-                    const list = document.getElementById('lista-transacoes');
-                    const container = document.querySelector('.transactions-card');
-                    if (!list || !container) return;
-
-                    container.classList.toggle('selection-active', App.State.selectionMode);
-
-                    const fType = document.getElementById('filtro-tipo').value;
-                    const fCat = document.getElementById('filtro-categoria').value;
-                    const fBusca = (document.getElementById('filtro-busca').value || "").toLowerCase().trim();
-                    const searchTerms = fBusca.split(' ').filter(x => x);
-
-                    // 1. Pré-processamento: Mapear filhos e calcular totais (O(N))
-                    const dataWithMeta = App.State.data.map(t => {
-                        const kids = App.State.data
-                            .filter(c => String(c.kitParentId) === String(t.id))
-                            .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
-                        const kitInitialCusto = parseFloat(t.custo) || 0;
-                        const kitInitialReceita = parseFloat(t.valor) || 0;
-                        const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
-                        const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-                        const bonusExtra = parseFloat(t.receita) || 0;
-
-                        const totalCusto = kitInitialCusto + kidsCusto;
-                        const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
-
-                        return {
-                            ...t,
-                            _children: kids,
-                            _totalCusto: totalCusto,
-                            _totalReceita: totalReceita,
-                            _saldo: totalReceita - totalCusto
-                        };
-                    });
-
-                    const allIds = new Set(App.State.data.map(x => String(x.id)));
-
-                    // 2. Filtragem
-                    const filtered = dataWithMeta.filter(t => {
-                        // Mostrar apenas se for root (sem kitParentId) OU se o pai não existe (órfão)
-                        const hasParent = t.kitParentId && t.kitParentId !== "null" && t.kitParentId !== "";
-                        const parentExists = hasParent && allIds.has(String(t.kitParentId));
-
-                        if (hasParent && parentExists) return false;
-
-                        if (fType === 'kits' && t.tipo !== 'kit') return false;
-                        if (fType === 'avulsos' && t.tipo === 'kit') return false;
-                        if (fCat !== 'Todos' && t.categoria !== fCat) return false;
-
-                        if (searchTerms.length > 0) {
-                            const match = (txt) => searchTerms.every(term => (txt || '').toLowerCase().includes(term));
-                            const selfMatch = match(t.desc) || match(t.categoria);
-                            const childMatch = t.tipo === 'kit' && t._children.some(c => match(c.desc) || match(c.categoria));
-                            if (!selfMatch && !childMatch) return false;
-                        }
-
-                        return true;
-                    });
-
-                    // 3. Ordenação (Usa metadados pré-calculados)
-                    const s = App.State.sort;
-                    const sortCol = s.col || 'data';
-                    const sortDir = s.col ? s.dir : 'desc';
-
-                    filtered.sort((a, b) => {
-                        let valA, valB;
-                        if (sortCol === 'saldo') { valA = a._saldo; valB = b._saldo; }
-                        else if (sortCol === 'custo') { valA = a._totalCusto; valB = b._totalCusto; }
-                        else if (sortCol === 'data') {
-                            valA = new Date(a.data || 0).getTime();
-                            valB = new Date(b.data || 0).getTime();
-                        } else {
-                            valA = (a[sortCol] || '').toString().toLowerCase();
-                            valB = (b[sortCol] || '').toString().toLowerCase();
-                        }
-
-                        if (typeof valA === 'number') {
-                            return sortDir === 'asc' ? valA - valB : valB - valA;
-                        }
-                        return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                    });
-
-                    list.innerHTML = filtered.map(t => {
-                        const isKit = t.tipo === 'kit';
-                        const children = t._children;
-                        const itemsCount = children.filter(c => c.tipo !== 'separator').length;
-                        const totals = { custo: t._totalCusto, saldo: t._saldo };
-
-                        return `
-                            <div class="row-group">
-                                <div class="t-row ${isKit ? 'row-kit' : ''}" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${t.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${t.id}')" ondragend="App.Actions.onRowDragEnd(event)">
-                                    <div class="select-col">
-                                        <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${t.id}" ${App.State.selectedIds.has(String(t.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${t.id}')">
-                                    </div>
-                                    <div style="display:flex; align-items:center; gap:8px">
-                                        ${isKit ? '<button class="btn-toggle" onclick="this.closest(\'.row-group\').classList.toggle(\'open\')">▶</button>' : ''}
-                                        <span style="font-weight:600">${t.desc}</span>
-                                        ${isKit ? `<span style="font-size:0.7rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:10px; opacity:0.6">${itemsCount} itens</span>` : ''}
-                                    </div>
-                                    <div>${t.categoria || '-'}</div>
-                                    <div>R$ ${App.Utils.formatCurrency(totals.custo)}</div>
-                                    <div style="color:${totals.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">R$ ${App.Utils.formatCurrency(totals.saldo)}</div>
-                                    <div><span class="badge badge-${t.tipo}">${t.tipo}</span></div>
-                                    <div>${App.Utils.formatDate(t.data)}</div>
-                                    <div style="text-align:right; display:flex; gap:4px; justify-content:flex-end">
-                                        <button class="btn-icon" onclick="App.Actions.edit('${t.id}')">✎</button>
-                                        <button class="btn-icon" onclick="App.Data.remove('${t.id}')">×</button>
-                                    </div>
-                                </div>
-                                ${isKit ? `
-                                    <div class="sub-row-container">
-                                        ${children.map(c => {
-                            if (c.tipo === 'separator') {
-                                return `<div class="t-row" style="grid-template-columns: var(--select-col-width, 0px) 1fr auto; padding: 8px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05)" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
-                                                            <div class="select-col">
-                                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
-                                                            </div>
-                                                            <div style="text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
-                                                                <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
-                                                             </div>
-                                                             <div style="display:flex; gap:4px">
-                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.editSection('${c.id}')">✎</button>
-                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
-                                                             </div>
-                                                         </div>`;
-                            }
-                            return `
-                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8; grid-template-columns: var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
-                                                 <div class="select-col">
-                                                     <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
-                                                 </div>
-                                                 <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left:8px; display:flex; align-items:center; gap:8px">
-                                                     <span style="opacity:0.5">↳</span> ${c.desc}
-                                                  </div>
-                                                  <div>${c.categoria || '-'}</div><div>R$ ${App.Utils.formatCurrency(c.custo)}</div>
-                                                  <div style="color:${(c.tipo === 'venda' || c.tipo === 'troca') ? 'var(--success)' : 'var(--danger)'}">
-                                                      R$ ${App.Utils.formatCurrency((c.tipo === 'venda' || c.tipo === 'troca') ? c.valor : c.custo)}
-                                                  </div>
-                                                  <div><span class="badge badge-${c.tipo}">${c.tipo}</span></div>
-                                                  <div>${App.Utils.formatDate(c.data)}</div>
-                                                  <div style="text-align:right; display:flex; gap:4px; justify-content:flex-end">
-                                                      <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.edit('${c.id}')">✎</button>
-                                                      <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
-                                                  </div>
-                                              </div>`;
-                        }).join('')}
-                                        <div style="padding: 10px 48px; display:flex; gap:10px">
-                                            <button class="btn-sm" onclick="App.Actions.addSection('${t.id}')">+ Adicionar Sessão</button>
-                                            <button class="btn-sm" onclick="App.Actions.addQuickItem('${t.id}')">+ Adicionar Item</button>
-                                        </div>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    }).join('');
-                },
-
-                updateSelects: () => {
-                    const kits = App.State.data.filter(t => t.tipo === 'kit');
-                    const sel = document.getElementById('reg-kit-pai');
-                    const cur = sel.value;
-                    sel.innerHTML = '<option value="">-- Avulso --</option>' + kits.map(k => `<option value="${k.id}">${k.desc}</option>`).join('');
-                    sel.value = cur;
-                },
-
-                updateFilters: () => {
-                    const cats = [...new Set(App.State.data.map(t => t.categoria).filter(c => c && c !== '-'))];
-                    const sel = document.getElementById('filtro-categoria');
-                    const cur = sel.value;
-                    sel.innerHTML = '<option value="Todos">Categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-                    sel.value = cur;
-                },
-
-                toggleAuthView: (isRegister) => {
-                    document.getElementById('login-view').style.display = isRegister ? 'none' : 'block';
-                    document.getElementById('register-view').style.display = isRegister ? 'block' : 'none';
-                },
-
-                toggleUserDropdown: (event) => {
-                    if (event) event.stopPropagation();
-                    const dropdown = document.getElementById('user-dropdown');
-                    dropdown.classList.toggle('active');
-
-                    // Listener para fechar ao clicar fora
-                    if (dropdown.classList.contains('active')) {
-                        const closeMenu = (e) => {
-                            if (!dropdown.contains(e.target)) {
-                                dropdown.classList.remove('active');
-                                document.removeEventListener('click', closeMenu);
-                            }
-                        };
-                        setTimeout(() => document.addEventListener('click', closeMenu), 0);
-                    }
-                },
-
-                toggleSettings: (show) => {
-                    const overlay = document.getElementById('settings-overlay');
-                    if (show) {
-                        document.getElementById('user-dropdown').classList.remove('active');
-                        overlay.style.display = 'flex';
-                        overlay.style.opacity = '1';
-                        // Preenche com o nome atual
-                        document.getElementById('set-user-name').value = App.State.user.displayName || "";
-                        // Limpa lista de usuários ao abrir se necessário
-                        const userList = document.getElementById('debug-user-list');
-                        if (userList) userList.style.display = 'none';
-                    } else {
-                        overlay.style.display = 'none';
-                    }
-                },
-
-                viewRegisteredUsers: async () => {
-                    const container = document.getElementById('debug-user-list');
-                    if (!container) return;
-
-                    if (container.style.display === 'block') {
-                        container.style.display = 'none';
-                        return;
-                    }
-
-                    container.innerHTML = "<div style='padding:10px; opacity:0.6'>Carregando usuários...</div>";
-                    container.style.display = 'block';
-
-                    try {
-                        const q = collection(db, "perfis");
-                        const snap = await getDocs(q);
-                        const users = [];
-                        snap.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
-
-                        if (users.length === 0) {
-                            container.innerHTML = "<div style='padding:10px; opacity:0.6'>Nenhum usuário encontrado no Firestore.</div>";
-                            return;
-                        }
-
-                        users.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
-
-                        container.innerHTML = `
-                            <div style="margin-top:10px; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; text-align: left; font-size: 0.8rem;">
-                                <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; display: flex; justify-content: space-between;">
-                                    <span>Usuários Cadastrados</span>
-                                    <span>Total: ${users.length}</span>
-                                </div>
-                                ${users.map(u => `
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                        <div>
-                                            <span style="color: var(--accent-primary); font-weight: 600;">${u.nome || 'Sem Nome'}</span>
-                                            <br>
-                                            <span style="opacity: 0.5; font-size: 0.7rem;">${u.email || '-'}</span>
-                                        </div>
-                                        <div style="display: flex; gap: 5px;">
-                                             <button class="btn-icon" style="width:20px; height:20px; font-size:0.6rem;" onclick="App.Actions.deleteProfile('${u.id}', '${u.nome}')" title="Excluir Perfil">×</button>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
-                    } catch (e) {
-                        console.error("Erro ao carregar usuários:", e);
-                        container.innerHTML = "<div style='padding:10px; color:var(--danger)'>Erro ao carregar.</div>";
-                    }
-                },
-
-                toggleVisualMode: () => {
-                    document.body.classList.toggle('compact-view');
-                    const isCompact = document.body.classList.contains('compact-view');
-                    document.getElementById('btn-theme').innerText = isCompact ? '🔍' : '✨';
-                    App.Utils.toast(isCompact ? "Modo Compacto" : "Modo Premium");
-                },
-
-                resetForms: () => {
-                    document.getElementById('reg-desc').value = '';
-                    document.getElementById('reg-cat').value = '';
-                    document.getElementById('reg-data').value = App.Utils.getToday();
-                    document.getElementById('reg-valor').value = '';
-                    document.getElementById('reg-custo').value = '';
-                    document.getElementById('reg-receita').value = '';
-                    document.getElementById('reg-volta').value = '';
-                    document.getElementById('reg-recebeu').value = '';
-                    document.getElementById('reg-kit-pai').value = '';
-
-                    App.State.editingId = null;
-                    const cancelBtn = document.getElementById('btn-cancel-edit');
-                    if (cancelBtn) cancelBtn.style.display = 'none';
-                    App.UI.setFormType('venda');
-                },
-
-                cancelEdit: () => {
-                    App.UI.resetForms();
-                    App.Utils.toast("Edição cancelada", "info");
-                },
-
-                updateSortIndicators: () => {
-                    const s = App.State.sort;
-                    document.querySelectorAll('#table-header div[data-col]').forEach(el => {
-                        const col = el.dataset.col;
-                        el.classList.toggle('sort-active', col === s.col);
-                        const icon = el.querySelector('.sort-icon');
-                        if (col === s.col) {
-                            icon.innerText = s.dir === 'asc' ? '▲' : '▼';
-                        } else {
-                            icon.innerText = '↕';
-                        }
-                    });
-                },
-
-                toggleSearch: (el) => {
-                    el.classList.add('active');
-                    document.getElementById('filtro-busca').focus();
-                },
-
-                updateBulkActions: () => {
-                    const bar = document.getElementById('bulk-actions');
-                    const countEl = document.getElementById('bulk-count');
-                    const count = App.State.selectedIds.size;
-
-                    if (count > 0 && App.State.selectionMode) {
-                        bar.style.display = 'flex';
-                        countEl.innerText = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'}`;
-                    } else {
-                        bar.style.display = 'none';
-                    }
-                }
-            },
-
-            Actions: {
-                submitForm: () => {
-                    const get = (id) => document.getElementById(id).value;
-                    const parse = (id) => {
-                        const val = get(id).replace(',', '.');
-                        return parseFloat(val) || 0;
-                    };
-                    const type = App.State.formType;
-                    const desc = get('reg-desc');
-                    const data = get('reg-data');
-                    if (!desc || !data) return App.Utils.toast("Preencha Descrição e Data", "error");
-
-                    const kitPai = get('reg-kit-pai');
-                    const item = {
-                        id: App.Utils.generateId(),
-                        desc, data, categoria: get('reg-cat'),
-                        valor: parse('reg-valor'),
-                        custo: parse('reg-custo'),
-                        receita: parse('reg-receita'),
-                        tipo: type,
-                        kitParentId: (type === 'venda' || type === 'gasto' || type === 'troca') ? kitPai : null
-                    };
-
-                    if (type === 'troca' && !App.State.editingId) {
-                        const kid = item.id;
-                        const vta = parseFloat(get('reg-volta')) || 0;
-                        const descRec = get('reg-recebeu');
-                        if (kitPai) {
-                            App.State.data.unshift({ id: kid + 3, desc: descRec, categoria: 'Hardware', valor: 0, custo: 0, tipo: 'venda', data, kitParentId: kitPai });
-                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc}`, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kitPai });
-                            if (vta > 0) App.State.data.unshift({ id: kid + 1, desc: 'Volta: ' + desc, categoria: 'Financeiro', valor: vta, custo: 0, tipo: 'venda', data, kitParentId: kitPai });
-                            App.State.data.unshift({ id: kid, desc: `TROCA: ${desc} ↔ ${descRec}`, tipo: 'separator', data, kitParentId: kitPai });
-                        } else {
-                            App.State.data.unshift({ id: kid + 3, desc: descRec, categoria: 'Hardware', valor: 0, custo: 0, tipo: 'venda', data, kitParentId: kid });
-                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc}`, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kid });
-                            if (vta > 0) App.State.data.unshift({ id: kid + 1, desc: 'Volta: ' + desc, categoria: 'Financeiro', valor: vta, custo: 0, tipo: 'venda', data, kitParentId: kid });
-                            App.State.data.unshift({ id: kid, desc: `Troca: ${desc} ↔ ${descRec}`, tipo: 'kit', receita: 0, data, categoria: item.categoria });
-                        }
-                        App.Data.save(); App.UI.resetForms();
-                    } else {
-                        App.Data.add(item);
-                        // removido salvarVendaNoFirebase(item) duplicado
-                    }
-                },
-
-                edit: (id) => {
-                    const t = App.State.data.find(x => x.id == id);
-                    if (!t) return;
-                    App.State.editingId = id;
-                    App.UI.setFormType(t.tipo || 'venda');
-
-                    const set = (id, v) => {
-                        const el = document.getElementById(id);
-                        if (el) el.value = v === 0 ? 0 : (v || '');
-                    };
-                    set('reg-desc', t.desc); set('reg-cat', t.categoria); set('reg-data', t.data);
-                    set('reg-valor', t.valor); set('reg-custo', t.custo); set('reg-receita', t.receita);
-                    set('reg-kit-pai', t.kitParentId || '');
-
-                    document.getElementById('btn-cancel-edit').style.display = 'block';
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                },
-
-                addSection: (kitId) => {
-                    const desc = prompt("Nome da Sessão (Ex: ENTREGUE, RECEBIDO):");
-                    if (!desc) return;
-                    const item = { id: App.Utils.generateId(), desc, tipo: 'separator', data: App.Utils.getToday(), kitParentId: kitId };
-                    App.State.data.unshift(item);
-                    if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(item);
-                    App.Data.save();
-                },
-
-                editSection: (id) => {
-                    const t = App.State.data.find(x => x.id === id);
-                    if (!t) return;
-                    const newDesc = prompt("Novo nome da sessão:", t.desc);
-                    if (newDesc) {
-                        t.desc = newDesc;
-                        App.Data.save();
-                    }
-                },
-
-                addQuickItem: (kitId) => {
-                    const desc = prompt("Descrição do item:");
-                    if (!desc) return;
-
-                    const categoria = prompt("Categoria:", "Hardware") || "Hardware";
-
-                    const parseInput = (str) => parseFloat((str || '0').replace(',', '.')) || 0;
-
-                    const custoStr = prompt("Custo (R$):", "0");
-                    const custo = parseInput(custoStr);
-
-                    const valorStr = prompt("Venda (R$):", "0");
-                    const valor = parseInput(valorStr);
-
-                    const item = { id: App.Utils.generateId(), desc, categoria, valor: valor, custo: custo, tipo: 'venda', data: App.Utils.getToday(), kitParentId: kitId };
-                    App.State.data.unshift(item);
-                    if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(item);
-                    App.Data.save();
-                },
-
-                onDragStart: (e) => { e.dataTransfer.setData('key', e.currentTarget.dataset.key); },
-                onDrop: (e) => {
-                    e.preventDefault();
-                    const fromKey = e.dataTransfer.getData('key');
-                    const toKey = e.currentTarget.dataset.key;
-                    if (fromKey === toKey) return;
-
-                    const order = [...App.State.dashboardOrder];
-                    const fromIdx = order.indexOf(fromKey);
-                    const toIdx = order.indexOf(toKey);
-                    order.splice(fromIdx, 1);
-                    order.splice(toIdx, 0, fromKey);
-
-                    App.State.dashboardOrder = order;
-                    localStorage.setItem('hw_dashboard_order', JSON.stringify(order));
-                    App.UI.updateDashboard();
-                },
-
-                onRowDragStart: (e, id) => {
-                    e.dataTransfer.setData('rowId', id);
-                    e.currentTarget.classList.add('dragging');
-                },
-                onRowDragEnd: (e) => {
-                    e.currentTarget.classList.remove('dragging');
-                },
-                onRowDrop: (e, targetId) => {
-                    e.preventDefault();
-                    const fromId = parseInt(e.dataTransfer.getData('rowId'));
-                    if (fromId === targetId) return;
-
-                    const data = [...App.State.data];
-                    const fromIdx = data.findIndex(x => x.id === fromId);
-                    const toIdx = data.findIndex(x => x.id === targetId);
-                    if (fromIdx === -1 || toIdx === -1) return;
-
-                    const fromItem = data[fromIdx];
-                    const targetItem = data[toIdx];
-
-
-                    if (!fromItem.kitParentId) {
-                        App.Utils.toast("Arraste permitido apenas para itens dentro de Kits", "info");
-                        return;
-                    }
-
-
-                    const isParent = (targetItem.id == fromItem.kitParentId);
-                    const isSibling = (targetItem.kitParentId == fromItem.kitParentId);
-
-                    if (!isParent && !isSibling) {
-                        App.Utils.toast("Arraste permitido apenas dentro do mesmo Kit", "info");
-                        return;
-                    }
-
-                    // Reordena no array
-                    const [item] = data.splice(fromIdx, 1);
-                    const newToIdx = data.findIndex(x => x.id === targetId);
-
-
-                    if (isParent) {
-                        const firstChildIdx = data.findIndex(x => x.kitParentId === targetId);
-                        if (firstChildIdx !== -1) data.splice(firstChildIdx, 0, item);
-                        else data.splice(newToIdx + 1, 0, item);
-                    } else {
-
-                        if (fromIdx < toIdx) {
-                            data.splice(newToIdx + 1, 0, item);
-                        } else {
-                            data.splice(newToIdx, 0, item);
-                        }
-                    }
-
-                    App.State.data = data;
-                    App.State.sort.col = null;
-                    App.Data.save();
-                },
-
-                undo: () => {
-                    if (App.State.history.length === 0) return App.Utils.toast("Nada para desfazer", "info");
-                    const prev = App.State.history.pop();
-                    App.State.data = JSON.parse(prev);
-                    App.Data.save(true);
-                    App.Utils.toast("Ação desfeita", "info");
-                },
-
-                exportData: () => {
-                    const b = new Blob([JSON.stringify(App.State.data)], { type: 'application/json' });
-                    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-                    a.download = `backup_${App.Utils.getToday()}.json`; a.click();
-                },
-                importData: (i) => {
-                    const f = i.files[0]; if (!f) return;
-                    const r = new FileReader(); r.onload = async (e) => {
-                        try {
-                            const dados = JSON.parse(e.target.result);
-                            if (!Array.isArray(dados)) throw new Error("Formato inválido");
-
-                            if (window.importarBackupParaNuvem) {
-                                const mode = confirm("IMPORTAÇÃO PROFISSIONAL:\n\nDeseja SUBSTITUIR todos os dados da nuvem pelos deste arquivo?\n\nOK = Apagar atual e usar backup\nCancelar = Apenas adicionar itens novos") ? 'replace' : 'merge';
-
-                                App.Utils.toast("Iniciando importação...", "info");
-                                await window.importarBackupParaNuvem(dados, mode);
-                                App.Utils.toast("Backup processado! A tela atualizará em breve.", "success");
-                            } else {
-                                App.State.data = dados;
-                                App.Data.save();
-                                App.UI.render();
-                            }
-                        } catch (err) {
-                            App.Utils.toast("Erro ao ler backup", "error");
-                        }
-                    }; r.readAsText(f);
-                },
-
-                sortBy: (col) => {
-                    if (App.State.sort.col === col) {
-                        App.State.sort.dir = App.State.sort.dir === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        App.State.sort.col = col;
-                        App.State.sort.dir = 'asc';
-                    }
-                    App.UI.render();
-                },
-
-                toggleSearch: (el) => {
-                    el.classList.add('active');
-                    document.getElementById('filtro-busca').focus();
-                },
-
-                toggleSelect: (event, id) => {
-                    id = String(id);
-                    const isSelected = App.State.selectedIds.has(id);
-
-                    if (event && event.shiftKey && App.State.lastSelectedId) {
-                        const checkboxes = Array.from(document.querySelectorAll('.row-checkbox'));
-                        const startIdx = checkboxes.findIndex(cb => cb.dataset.id === App.State.lastSelectedId);
-                        const endIdx = checkboxes.findIndex(cb => cb.dataset.id === id);
-
-                        if (startIdx !== -1 && endIdx !== -1) {
-                            const [min, max] = [Math.min(startIdx, endIdx), Math.max(startIdx, endIdx)];
-                            const shouldSelect = !isSelected; // Segue o estado do clique atual
-
-                            for (let i = min; i <= max; i++) {
-                                const targetId = String(checkboxes[i].dataset.id);
-                                if (shouldSelect) App.State.selectedIds.add(targetId);
-                                else App.State.selectedIds.delete(targetId);
-                            }
-                            App.UI.renderTable(); // Re-renderiza para atualizar os checks visualmente
-                        }
-                    } else {
-                        if (isSelected) {
-                            App.State.selectedIds.delete(id);
-                        } else {
-                            App.State.selectedIds.add(id);
-                        }
-                    }
-
-                    App.State.lastSelectedId = id;
-                    App.UI.updateBulkActions();
-                },
-
-                toggleAll: (checkbox) => {
-                    const rows = document.querySelectorAll('.row-checkbox');
-                    App.State.selectedIds.clear();
-                    rows.forEach(cb => {
-                        cb.checked = checkbox.checked;
-                        if (checkbox.checked) App.State.selectedIds.add(String(cb.dataset.id));
-                    });
-                    App.UI.updateBulkActions();
-                },
-
-                clearSelection: () => {
-                    App.State.selectedIds.clear();
-                    const allCb = document.getElementById('select-all');
-                    if (allCb) allCb.checked = false;
-                    App.UI.render();
-                },
-
-                bulkDelete: async () => {
-                    const idsCount = App.State.selectedIds.size;
-                    if (idsCount === 0) return;
-                    if (!confirm(`Deseja excluir permanentemente ${idsCount} itens?`)) return;
-
-                    App.Utils.toast(`Excluindo ${idsCount} itens...`, "info");
-
-                    const idsToRemove = Array.from(App.State.selectedIds);
-
-                    // Exclusão local e nuvem
-                    for (const id of idsToRemove) {
-                        if (window.removerVendaDoFirebase) {
-                            await window.removerVendaDoFirebase(id);
-                        }
-                    }
-
-                    App.State.data = App.State.data.filter(x => !App.State.selectedIds.has(String(x.id)));
-                    App.State.selectedIds.clear();
-
-                    App.Data.save();
-                    App.Utils.toast(`${idsCount} itens removidos com sucesso!`, "success");
-                    App.Actions.toggleSelectionMode(); // Sai do modo após excluir
-                },
-
-                toggleSelectionMode: () => {
-                    App.State.selectionMode = !App.State.selectionMode;
-                    const btn = document.getElementById('btn-selection-mode');
-
-                    if (!App.State.selectionMode) {
-                        App.State.selectedIds.clear();
-                        const allCb = document.getElementById('select-all');
-                        if (allCb) allCb.checked = false;
-                        btn.classList.remove('active');
-                        btn.style.background = '';
-                    } else {
-                        btn.classList.add('active');
-                        btn.style.background = 'var(--accent-primary)';
-                    }
-
-                    App.UI.renderTable();
-                    App.UI.updateBulkActions();
-                },
-
-                deleteProfile: async (id, name) => {
-                    if (!confirm(`Deseja excluir permanentemente o perfil de "${name}"? Isso não exclui a conta de login, apenas o nome no diretório.`)) return;
-                    try {
-                        await deleteDoc(doc(db, "perfis", id));
-                        App.Utils.toast("Perfil removido", "success");
-                        App.UI.viewRegisteredUsers(); // Atualiza lista
-                    } catch (e) {
-                        console.error("Erro ao deletar perfil:", e);
-                        App.Utils.toast("Erro ao deletar", "error");
-                    }
-                }
+                container.innerHTML = Store.state.cart.map((item, index) => `
+                    <div class="cart-item">
+                        <div class="cart-item-emoji">\${item.emoji}</div>
+                        <div class="cart-item-info">
+                            <div class="cart-item-title">\${item.name}</div>
+                            <div class="cart-item-price">\${item.price.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}</div>
+                        </div>
+                        <button class="btn-remove" onclick="Store.removeFromCart(\${index})">🗑️</button>
+                    </div>
+                `).join('');
             }
         };
 
-        window.onload = () => {
-            App.Data.load();
-            App.UI.resetForms();
-
-            window.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
-                    e.preventDefault();
-                    App.Actions.undo();
-                }
-            });
-
-            setInterval(() => {
-                const el = document.getElementById('real-time-clock');
-                if (el) el.innerText = new Date().toLocaleString('pt-BR');
-            }, 1000);
-        };
-    </script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider, sendEmailVerification, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCpHlbH7m66pm0E_GA-faf-zKor2lq49Gk",
-            authDomain: "cash-szx777.firebaseapp.com",
-            projectId: "cash-szx777",
-            storageBucket: "cash-szx777.firebasestorage.app",
-            messagingSenderId: "872218893277",
-            appId: "1:872218893277:web:8f4647d821a61ac0437434",
-            measurementId: "G-956KPEZ4PH"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const googleProvider = new GoogleAuthProvider();
-
-        async function testarConexao() {
-            try {
-                const docRef = await addDoc(collection(db, "teste_vendas"), {
-                    item: "Peça de Teste",
-                    valor: 50.00,
-                    data: new Date()
-                });
-                console.log("Sucesso! Documento salvo com ID: ", docRef.id);
-                alert("Conexão com Firebase funcionando! Verifique o painel do Firestore.");
-            } catch (e) {
-                console.error("Erro ao salvar: ", e);
-                alert("Erro na conexão. Verifique se o Firestore está em 'Modo de Teste'.");
-            }
-        }
-
-        window.testarConexao = testarConexao;
-        // Função para salvar uma venda REAL vinda do seu formulário
-        // ======= FUNÇÕES DE SINCRONIZAÇÃO CRUD (Create, Read, Update, Delete) =======
-
-        // 1. SALVAR (Create)
-        const activeUploads = new Set();
-        async function salvarVendaNoFirebase(dadosDaVenda) {
-            // Travas de Segurança:
-            // 1. Já tem ID de servidor? Ignora.
-            if (typeof dadosDaVenda.id === 'string' && dadosDaVenda.id.length > 5) return;
-            // 2. Já está sendo enviado agora? Ignora.
-            if (activeUploads.has(dadosDaVenda.id)) return;
-
-            activeUploads.add(dadosDaVenda.id);
-
-            try {
-                // Remove o ID temporário gerado localmente antes de enviar
-                const { id, ...dadosParaSalvar } = dadosDaVenda;
-
-                const docRef = await addDoc(collection(db, "vendas"), {
-                    descricao: dadosParaSalvar.desc || "Item sem nome",
-                    custo: Number(dadosParaSalvar.custo || 0),
-                    valor: Number(dadosParaSalvar.valor || 0),
-                    categoria: dadosParaSalvar.categoria || "Geral",
-                    tipo: dadosParaSalvar.tipo || "venda",
-                    data: dadosParaSalvar.data,
-                    kitParentId: dadosParaSalvar.kitParentId || null,
-                    userId: auth.currentUser.uid,
-                    updatedAt: new Date()
-                });
-
-                console.log("Item salvo na nuvem. ID Firebase:", docRef.id);
-
-                // IMPORTANTE: Atualiza o item local com o ID real do Firebase
-                // Isso permite que o usuário edite/exclua este item imediatamente sem recarregar
-                const itemLocal = App.State.data.find(x => x.id === dadosDaVenda.id);
-                if (itemLocal) {
-                    const oldId = itemLocal.id;
-                    itemLocal.id = docRef.id;
-                    App.Data.relink(oldId, docRef.id); // Atualiza filhos para o novo ID String
-                    App.Data.save(true);
-                }
-
-            } catch (e) {
-                console.error("Erro ao salvar na nuvem:", e);
-                App.Utils.toast("Erro de conexão (Salvar)", "error");
-            } finally {
-                activeUploads.delete(dadosDaVenda.id);
-            }
-        }
-
-        // 2. ATUALIZAR (Update)
-        async function atualizarVendaNoFirebase(id, dadosDaVenda) {
-            // Se o ID for numérico (timestamp), o item ainda não sincronizou ou é local antigo.
-            // Nesse caso, não dá pra atualizar no Firebase direto pelo ID.
-            if (typeof id === 'number' || !id) return;
-
-            try {
-                const docRef = doc(db, "vendas", id);
-                await updateDoc(docRef, {
-                    descricao: dadosDaVenda.desc,
-                    custo: Number(dadosDaVenda.custo || 0),
-                    valor: Number(dadosDaVenda.valor || 0),
-                    categoria: dadosDaVenda.categoria,
-                    tipo: dadosDaVenda.tipo,
-                    data: dadosDaVenda.data,
-                    updatedAt: new Date()
-                });
-                console.log("Item atualizado na nuvem:", id);
-            } catch (e) {
-                console.error("Erro ao atualizar na nuvem:", e);
-            }
-        }
-
-        // 3. REMOVER (Delete)
-        async function removerVendaDoFirebase(id) {
-            if (typeof id === 'number' || !id) return;
-
-            try {
-                await deleteDoc(doc(db, "vendas", id));
-                console.log("Item removido da nuvem:", id);
-            } catch (e) {
-                console.error("Erro ao remover da nuvem:", e);
-                App.Utils.toast("Erro ao remover da nuvem", "error");
-            }
-        }
-
-        // 4. RESETAR NUVEM (Wipe & Sync)
-        async function resetarNuvemComDadosLocais() {
-            if (!confirm("ATENÇÃO: Isso vai APAGAR tudo na nuvem e enviar os dados que estão na sua tela agora.\n\nUse isso se o seu Backup Local estiver correto e a Nuvem estiver errada.\n\nDeseja continuar?")) return;
-
-            console.log("Iniciando Reset da Nuvem...");
-            App.Utils.toast("Iniciando reparo da nuvem...", "info");
-
-            try {
-                // 1. Apagar apenas itens do usuário na nuvem
-                const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
-                const snapshot = await getDocs(q);
-                const totalDocs = snapshot.size;
-                console.log(`Excluindo ${totalDocs} itens do usuário...`);
-
-                const deletePromises = [];
-                snapshot.forEach(doc => {
-                    deletePromises.push(deleteDoc(doc.ref));
-                });
-                await Promise.all(deletePromises);
-                console.log("Nuvem limpa.");
-
-                // 2. Enviar dados locais
-                const localItems = App.State.data;
-                console.log(`Enviando ${localItems.length} itens locais...`);
-
-                const uploadPromises = localItems.map(item => {
-                    // Usa setDoc para forçar o ID que já existe (String ou Number -> String)
-                    // Isso preserva os IDs numéricos antigos e os relacionamentos de Kits
-                    const docId = String(item.id);
-                    return setDoc(doc(db, "vendas", docId), {
-                        descricao: item.desc || "Sem nome",
-                        custo: Number(item.custo || 0),
-                        valor: Number(item.valor || 0),
-                        categoria: item.categoria || "Geral",
-                        tipo: item.tipo || "venda",
-                        data: item.data,
-                        kitParentId: item.kitParentId || null,
-                        userId: auth.currentUser.uid,
-                        updatedAt: new Date()
-                    });
-                });
-
-                await Promise.all(uploadPromises);
-
-                console.log("Upload concluído!");
-                App.Utils.toast("Nuvem reparada com sucesso!", "success");
-
-                // Opcional: Recarregar para garantir
-                setTimeout(() => location.reload(), 1500);
-
-            } catch (e) {
-                console.error("Erro ao resetar nuvem:", e);
-                App.Utils.toast("Erro crítico ao reparar nuvem", "error");
-            }
-        }
-
-        // Função para Importar Backup em Lote (Professional Version)
-        async function importarBackupParaNuvem(lista, mode = 'merge') {
-            if (!auth.currentUser) return;
-            const setStatus = (sts, color) => {
-                const dot = document.getElementById('sync-dot');
-                const text = document.getElementById('sync-text');
-                if (dot) dot.style.background = color;
-                if (text) text.innerText = sts;
-            };
-
-            try {
-                setStatus("Importando...", "#3b82f6");
-
-                if (mode === 'replace') {
-                    const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
-                    const snap = await getDocs(q);
-                    // Deleta em lotes de 500 (limite do Firestore)
-                    let batch = writeBatch(db);
-                    let count = 0;
-                    for (const d of snap.docs) {
-                        batch.delete(d.ref);
-                        count++;
-                        if (count === 400) { await batch.commit(); batch = writeBatch(db); count = 0; }
-                    }
-                    if (count > 0) await batch.commit();
-                }
-
-                // Upload em lotes
-                let batch = writeBatch(db);
-                let count = 0;
-                for (const item of lista) {
-                    const docId = String(item.id || Date.now() + Math.random());
-                    const ref = doc(db, "vendas", docId);
-
-                    // Mapeamento de campos LEGADOS (v1/v2 -> v3)
-                    const dataToSave = {
-                        descricao: item.desc || item.descricao || "Item sem nome",
-                        custo: Number(item.custo || item.cost || 0),
-                        valor: Number(item.valor || item.amount || 0),
-                        categoria: item.categoria || "Geral",
-                        tipo: item.tipo || "venda",
-                        data: item.data || new Date().toISOString().split('T')[0],
-                        kitParentId: item.kitParentId || null,
-                        userId: auth.currentUser.uid,
-                        updatedAt: new Date()
-                    };
-
-                    batch.set(ref, dataToSave, { merge: true });
-                    count++;
-
-                    if (count === 400) {
-                        await batch.commit();
-                        batch = writeBatch(db);
-                        count = 0;
-                    }
-                }
-
-                if (count > 0) await batch.commit();
-
-                setStatus("Nuvem Ativa", "#10b981");
-            } catch (e) {
-                console.error("Erro no upload do backup:", e);
-                setStatus("Erro Import", "#ef4444");
-                throw e;
-            }
-        }
-
-        // Expondo para o App
-        window.salvarVendaNoFirebase = salvarVendaNoFirebase;
-        window.atualizarVendaNoFirebase = atualizarVendaNoFirebase;
-        window.removerVendaDoFirebase = removerVendaDoFirebase;
-        window.importarBackupParaNuvem = importarBackupParaNuvem;
-
-
-
-        let syncListener = null;
-
-        function carregarVendasDoFirebase() {
-            if (syncListener) syncListener(); // Limpa listener anterior se existir
-
-            const setStatus = (sts, color) => {
-                const dot = document.getElementById('sync-dot');
-                const text = document.getElementById('sync-text');
-                if (dot) dot.style.background = color;
-                if (text) text.innerText = sts;
-            };
-
-            if (!auth.currentUser) return;
-
-            setStatus("Sincronizando...", "#f59e0b");
-
-            const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
-
-            syncListener = onSnapshot(q, (snapshot) => {
-                const cloudItems = [];
-                snapshot.forEach((doc) => {
-                    const d = doc.data();
-                    cloudItems.push({
-                        id: doc.id,
-                        desc: d.descricao || "Item sem nome",
-                        valor: Number(d.valor || 0),
-                        custo: Number(d.custo || 0),
-                        categoria: d.categoria || "Geral",
-                        tipo: d.tipo || "venda",
-                        data: d.data || new Date().toISOString().split('T')[0],
-                        kitParentId: d.kitParentId || null
-                    });
-                });
-
-                // Ordenação e atualização local imediata
-                cloudItems.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-                window.App.State.data = cloudItems;
-                window.App.Data.save(true); // Persiste no LocalStorage isolado
-                window.App.UI.render();
-
-                setStatus("Nuvem Ativa", "#10b981");
-            }, (error) => {
-                console.error("Erro no Listener Real-time:", error);
-                setStatus("Erro Sync", "#ef4444");
-            });
-        }
-
-
-        // ======= AUXILIARES DE PERFIL =======
-        async function salvarOuAtualizarPerfil(user) {
-            if (!user) return;
-            const perfilRef = doc(db, "perfis", user.uid);
-            const perfilSnap = await getDoc(perfilRef);
-
-            const dadosPerfil = {
-                email: user.email,
-                ultimoAcesso: new Date()
-            };
-
-            // Preserva o nome se já existir (Prioridade para o Cadastro Manual)
-            if (!perfilSnap.exists() || !perfilSnap.data().nome) {
-                dadosPerfil.nome = user.displayName;
-            }
-
-            await setDoc(perfilRef, dadosPerfil, { merge: true });
-        }
-
-        // ======= SISTEMA DE AUTENTICAÇÃO (APP.AUTH) =======
-        window.App.Auth = {
-            monitor: () => {
-                // Trata o resultado do redirecionamento (Login Google Profissional)
-                getRedirectResult(auth).then(async (result) => {
-                    if (result && result.user) {
-                        await salvarOuAtualizarPerfil(result.user);
-                        window.App.Utils.toast("Bem-vindo!", "success");
-                    }
-                }).catch((error) => {
-                    console.error("Erro no Redirecionamento:", error);
-                });
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        window.App.State.user = user;
-                        document.getElementById('auth-overlay').style.opacity = '0';
-                        setTimeout(() => {
-                            document.getElementById('auth-overlay').style.display = 'none';
-                        }, 300);
-                        document.getElementById('user-info').style.display = 'flex';
-                        document.getElementById('display-name').innerText = user.displayName || user.email.split('@')[0];
-
-                        // Segrega o banco de dados local por usuário para evitar vazamento entre contas
-                        window.App.State.dbKey = `hw_transacoes_v3_${user.uid}`;
-                        window.App.Data.load(); // Carrega o banco específico deste usuário
-
-                        carregarVendasDoFirebase();
-                    } else {
-                        window.App.State.user = null;
-                        window.App.State.dbKey = 'hw_transacoes_v3'; // Retorna ao padrão guest
-                        document.getElementById('auth-overlay').style.display = 'flex';
-                        document.getElementById('auth-overlay').style.opacity = '1';
-                        document.getElementById('user-info').style.display = 'none';
-
-                        // Limpa dados locais se deslogar
-                        if (syncListener) syncListener(); // Desliga o listener tempo real
-                        window.App.State.data = [];
-                        window.App.UI.render();
-                    }
-                });
-            },
-
-            login: async () => {
-                const email = document.getElementById('login-email').value;
-                const pass = document.getElementById('login-pass').value;
-                if (!email || !pass) return window.App.Utils.toast("Preencha email e senha", "warning");
-
-                try {
-                    await signInWithEmailAndPassword(auth, email, pass);
-
-                    // SEGURANÇA: Verifica se o e-mail está validado
-                    if (!auth.currentUser.emailVerified) {
-                        await signOut(auth);
-                        return window.App.Utils.toast("Por favor, verifique seu e-mail antes de logar. Enviamos um link para você.", "warning");
-                    }
-
-                    window.App.Utils.toast("Bem-vindo!", "success");
-                } catch (e) {
-                    console.error("Erro Login:", e);
-                    if (e.code === 'auth/configuration-not-found') {
-                        window.App.Utils.toast("Erro: Login por E-mail não ativado no Firebase.", "error");
-                    } else if (e.code === 'auth/invalid-credential') {
-                        window.App.Utils.toast("E-mail ou senha incorretos.", "error");
-                    } else {
-                        window.App.Utils.toast("Erro no login: " + e.code, "error");
-                    }
-                }
-            },
-
-            register: async () => {
-                const name = document.getElementById('reg-user-name').value;
-                const email = document.getElementById('reg-email').value;
-                const pass = document.getElementById('reg-pass').value;
-                if (!name || !email || !pass) return window.App.Utils.toast("Preencha todos os campos", "warning");
-                if (pass.length < 6) return window.App.Utils.toast("A senha deve ter pelo menos 6 caracteres", "warning");
-
-                // VINCULAÇÃO PROFISSIONAL: Se logado via Google, "anexa" a senha
-                if (auth.currentUser && auth.currentUser.email === email) {
-                    try {
-                        const credential = EmailAuthProvider.credential(email, pass);
-                        await linkWithCredential(auth.currentUser, credential);
-                        window.App.Utils.toast("Senha vinculada à sua conta Google!", "success");
-                        App.UI.toggleAuthView(false); // Volta para login
-                        return;
-                    } catch (e) {
-                        console.error("Erro Link:", e);
-                        if (e.code === 'auth/credential-already-in-use') {
-                            return window.App.Utils.toast("Este e-mail já possui uma senha vinculada.", "warning");
-                        }
-                        return window.App.Utils.toast("Erro na vinculação: " + e.code, "error");
-                    }
-                }
-
-                try {
-                    // Verificação de Unicidade ANTES do cadastro
-                    const isUnique = await App.Auth.checkUsernameUnique(name);
-                    if (!isUnique) {
-                        return window.App.Utils.toast("Este nome já está em uso", "error");
-                    }
-
-                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                    await updateProfile(cred.user, { displayName: name });
-
-                    // ENVIAR VERIFICAÇÃO (2FA SIMULADO/SEGURANÇA)
-                    await sendEmailVerification(cred.user);
-
-                    await setDoc(doc(db, "perfis", cred.user.uid), {
-                        nome: name,
-                        email: email,
-                        criadoEm: new Date()
-                    });
-
-                    window.App.Utils.toast("Cadastro realizado! Verifique seu e-mail para ativar a conta.", "info");
-                    App.UI.toggleAuthView(false); // Volta para tela de login
-                    signOut(auth); // Desloga para ele ter que validar e logar de novo
-                } catch (e) {
-                    console.error("Erro Cadastro:", e);
-                    if (e.code === 'auth/configuration-not-found') {
-                        window.App.Utils.toast("Erro: Cadastro por E-mail não ativado no Firebase.", "error");
-                    } else if (e.code === 'auth/email-already-in-use') {
-                        window.App.Utils.toast("E-mail já está sendo usado. Se você usa Google, faça login e vincule nas configurações.", "warning");
-                    } else {
-                        window.App.Utils.toast("Erro no cadastro: " + e.code, "error");
-                    }
-                }
-            },
-
-            loginWithGoogle: async () => {
-                if (window.location.protocol === 'file:') {
-                    return window.App.Utils.toast("O Login Google não funciona abrindo o arquivo direto. Use o Live Server ou publique no GitHub.", "warning");
-                }
-                try {
-                    // MUDANÇA PROFISSIONAL: Redirect não gera erro de COOP no console
-                    await signInWithRedirect(auth, googleProvider);
-                } catch (e) {
-                    console.error("Erro Google Auth:", e);
-                    if (e.code === 'auth/configuration-not-found') {
-                        window.App.Utils.toast("Erro: Google Auth não ativado no Firebase Console.", "error");
-                    } else if (e.code === 'auth/operation-not-allowed') {
-                        window.App.Utils.toast("Erro: Operação não permitida.", "error");
-                    } else {
-                        window.App.Utils.toast("Erro ao iniciar login Google", "error");
-                    }
-                }
-            },
-
-            logout: () => {
-                if (confirm("Sair do sistema?")) signOut(auth);
-            },
-
-            checkUsernameUnique: async (name) => {
-                const q = query(collection(db, "perfis"), where("nome", "==", name));
-                const snap = await getDocs(q);
-                // É único se não houver ninguém OU se o único que existe for eu mesmo
-                return snap.empty || (snap.docs.length === 1 && snap.docs[0].id === auth.currentUser.uid);
-            },
-
-            updateAccountSettings: async () => {
-                const newName = document.getElementById('set-user-name').value.trim();
-                const newPass = document.getElementById('set-pass').value;
-                const confirmPass = document.getElementById('set-pass-confirm').value;
-
-                if (!newName) return App.Utils.toast("O nome não pode ser vazio", "warning");
-
-                try {
-                    App.Utils.toast("Processando alterações...", "info");
-
-                    // 1. Verificação de Unicidade do Nome
-                    const isUnique = await App.Auth.checkUsernameUnique(newName);
-                    if (!isUnique) {
-                        return App.Utils.toast("Este nome já está em uso por outro usuário", "error");
-                    }
-
-                    // 2. Atualiza Perfil (Nome) se mudou
-                    if (newName !== auth.currentUser.displayName) {
-                        await updateProfile(auth.currentUser, { displayName: newName });
-                        await setDoc(doc(db, "perfis", auth.currentUser.uid), {
-                            nome: newName
-                        }, { merge: true });
-                        document.getElementById('display-name').innerText = newName;
-                    }
-
-                    // 3. Atualiza Senha se preenchida
-                    if (newPass) {
-                        if (newPass !== confirmPass) return App.Utils.toast("As senhas não coincidem", "error");
-                        if (newPass.length < 6) return App.Utils.toast("A senha deve ter 6+ digitos", "warning");
-                        await updatePassword(auth.currentUser, newPass);
-                    }
-
-                    App.Utils.toast("Configurações atualizadas!", "success");
-                    App.UI.toggleSettings(false);
-                } catch (e) {
-                    console.error("Erro ao atualizar conta:", e);
-                    if (e.code === 'auth/requires-recent-login') {
-                        App.Utils.toast("Para mudar a senha, faça login novamente por segurança.", "warning");
-                        signOut(auth);
-                    } else {
-                        App.Utils.toast("Erro ao atualizar: " + e.code, "error");
-                    }
-                }
-            }
-        };
-
-        window.App.Auth.monitor();
-
-        window.addEventListener('load', () => {
-            // carregarVendasDoFirebase() será chamado pelo monitor de Auth
-        });
-
+        // Start
+        document.addEventListener('DOMContentLoaded', Store.init);
     </script>
 </body>
 

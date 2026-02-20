@@ -7,18 +7,18 @@
     <title>Gestão Vendas & Hardware v3.0</title>
     <style>
         :root {
-            --bg-body: #0a0f1d;
-            --bg-glass: rgba(30, 41, 59, 0.7);
-            --bg-card: #1e293b;
-            --bg-input: #0f172a;
+            --bg-body: #0d0d0d;
+            --bg-glass: rgba(20, 20, 20, 0.8);
+            --bg-card: #151515;
+            --bg-input: #050505;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --accent-primary: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.4);
+            --accent-primary: #7c3aed;
+            --accent-glow: rgba(124, 58, 237, 0.4);
             --success: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            --purple: #a855f7;
+            --purple: #7c3aed;
             --border-radius: 16px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --select-col-width: 0px;
@@ -30,7 +30,7 @@
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: radial-gradient(circle at top right, #1e293b, #0a0f1d);
+            background: radial-gradient(circle at top right, #1a1a1a, #0d0d0d);
             color: var(--text-primary);
             margin: 0;
             padding: 24px;
@@ -63,6 +63,10 @@
             align-items: center;
             position: relative;
             z-index: 100;
+            background: #7c3aed !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
         }
 
         h1 {
@@ -255,7 +259,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary), #2563eb);
+            background: var(--accent-primary);
             color: white;
             box-shadow: 0 4px 15px var(--accent-glow);
             width: 100%;
@@ -539,7 +543,7 @@
         }
 
         .user-dropdown-trigger {
-            background: rgba(255, 255, 255, 0.05);
+            background: #0d0d0d !important;
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--text-primary);
             padding: 8px 16px;
@@ -737,13 +741,17 @@
 
 <body>
     <div class="container">
-        <header class="page-header glass">
+        <header class="page-header">
             <div style="display:flex; align-items:center; gap:20px">
                 <div
-                    style="font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; display:flex; align-items:center; gap:10px">
-                    <span
-                        style="background: var(--accent-primary); width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:white">🗃️</span>
-                    StockMaster <span style="opacity:0.3; font-weight:300">PRO</span>
+                    style="background: #000; padding: 4px 16px 4px 4px; border-radius: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+                    <img src="1.png" alt="Logo"
+                        style="width:36px; height:36px; object-fit:contain; border-radius: 8px;">
+                    <div
+                        style="font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; color: #fff; display: flex; align-items: center; gap: 6px;">
+                        Masabushi <span
+                            style="font-weight:800; opacity: 0.9; font-style: italic; text-decoration: underline;">Sell</span>
+                    </div>
                 </div>
                 <div id="sync-status" style="display: flex; align-items: center; gap: 8px;">
                     <span id="sync-dot"
@@ -864,7 +872,7 @@
             <div class="form-grid">
                 <div class="input-group" id="group-desc" style="grid-column: span 6">
                     <label id="lbl-desc">Descrição do Item</label>
-                    <input type="text" id="reg-desc" placeholder="Ex: RTX 3060 Ti">
+                    <input type="text" id="reg-desc" placeholder="">
                 </div>
                 <div class="input-group" id="group-recebeu" style="grid-column: span 6; display:none">
                     <label>Recebido na Troca</label>
@@ -872,7 +880,7 @@
                 </div>
                 <div class="input-group" style="grid-column: span 3">
                     <label>Categoria</label>
-                    <input type="text" id="reg-cat" list="sugestoes-cat" placeholder="Hardware">
+                    <input type="text" id="reg-cat" placeholder="">
                 </div>
                 <div class="input-group" style="grid-column: span 3">
                     <label>Data</label>
@@ -881,11 +889,11 @@
 
                 <div class="input-group" id="group-custo" style="grid-column: span 3">
                     <label id="lbl-custo">Custo (R$)</label>
-                    <input type="number" id="reg-custo" placeholder="0.00" step="0.01">
+                    <input type="number" id="reg-custo" step="0.01">
                 </div>
                 <div class="input-group" id="group-valor" style="grid-column: span 3">
                     <label id="lbl-valor">Venda (R$)</label>
-                    <input type="number" id="reg-valor" placeholder="0.00" step="0.01">
+                    <input type="number" id="reg-valor" step="0.01">
                 </div>
                 <div class="input-group" id="group-receita" style="grid-column: span 3; display:none">
                     <label>Bônus/Receita Extra</label>
@@ -898,7 +906,7 @@
                 <div class="input-group" id="group-kit-pai" style="grid-column: span 6">
                     <label>Vincular a Projeto/Kit</label>
                     <select id="reg-kit-pai">
-                        <option value="">-- Avulso --</option>
+                        <option value="">Avulso</option>
                     </select>
                 </div>
 
@@ -911,12 +919,7 @@
             </div>
         </div>
 
-        <datalist id="sugestoes-cat">
-            <option value="Hardware">
-            <option value="Periférico">
-            <option value="PC Gamer">
-            <option value="Serviço">
-        </datalist>
+
 
         <div class="toolbar glass">
             <div class="filter-controls">
@@ -1319,7 +1322,7 @@
                     const kits = App.State.data.filter(t => t.tipo === 'kit');
                     const sel = document.getElementById('reg-kit-pai');
                     const cur = sel.value;
-                    sel.innerHTML = '<option value="">-- Avulso --</option>' + kits.map(k => `<option value="${k.id}">${k.desc}</option>`).join('');
+                    sel.innerHTML = '<option value="">Avulso</option>' + kits.map(k => `<option value="${k.id}">${k.desc}</option>`).join('');
                     sel.value = cur;
                 },
 

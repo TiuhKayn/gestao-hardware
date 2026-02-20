@@ -20,7 +20,12 @@
             --warning: #f59e0b;
             --purple: #a855f7;
             --border-radius: 16px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --select-col-width: 0px;
+        }
+
+        .selection-active {
+            --select-col-width: 40px;
         }
 
         body {
@@ -283,15 +288,29 @@
         .t-header,
         .t-row {
             display: grid;
-            grid-template-columns: 40px 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
+            grid-template-columns: var(--select-col-width) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
             padding: 14px 24px;
             align-items: center;
             transition: var(--transition);
+            overflow: hidden;
+        }
+
+        .selection-active .t-header,
+        .selection-active .t-row {
+            grid-template-columns: 40px 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
         }
 
         .select-col {
             display: flex;
             justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .selection-active .select-col {
+            opacity: 1;
+            pointer-events: all;
         }
 
         .checkbox-custom {
@@ -590,6 +609,9 @@
                 </div>
             </div>
             <div class="backup-controls" style="align-items:center;">
+                <button id="btn-selection-mode" onclick="App.Actions.toggleSelectionMode()" class="btn-icon"
+                    title="Modo Seleção (Ativar/Desativar Checkboxes)">☑</button>
+                <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
                 <button onclick="App.Actions.undo()" class="btn-icon" title="Desfazer (Ctrl+Z)"
                     style="border-color:var(--accent-primary); color:var(--accent-primary)">↶</button>
                 <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
@@ -641,7 +663,9 @@
                 sort: { col: null, dir: 'desc' },
                 dashboardOrder: ['investido', 'recebido', 'lucro'],
                 history: [],
-                selectedIds: new Set()
+                selectedIds: new Set(),
+                selectionMode: false,
+                lastSelectedId: null
             },
 
             Utils: {
@@ -792,7 +816,10 @@
 
                 renderTable: () => {
                     const list = document.getElementById('lista-transacoes');
-                    if (!list) return;
+                    const container = document.querySelector('.transactions-card');
+                    if (!list || !container) return;
+
+                    container.classList.toggle('selection-active', App.State.selectionMode);
 
                     const fType = document.getElementById('filtro-tipo').value;
                     const fCat = document.getElementById('filtro-categoria').value;
@@ -877,7 +904,7 @@
                             <div class="row-group">
                                 <div class="t-row ${isKit ? 'row-kit' : ''}" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${t.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${t.id}')" ondragend="App.Actions.onRowDragEnd(event)">
                                     <div class="select-col">
-                                        <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${t.id}" ${App.State.selectedIds.has(String(t.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect('${t.id}')">
+                                        <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${t.id}" ${App.State.selectedIds.has(String(t.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${t.id}')">
                                     </div>
                                     <div style="display:flex; align-items:center; gap:8px">
                                         ${isKit ? '<button class="btn-toggle" onclick="this.closest(\'.row-group\').classList.toggle(\'open\')">▶</button>' : ''}
@@ -898,9 +925,9 @@
                                     <div class="sub-row-container">
                                         ${children.map(c => {
                             if (c.tipo === 'separator') {
-                                return `<div class="t-row" style="grid-template-columns: 40px 1fr auto; padding: 8px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05)" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                return `<div class="t-row" style="grid-template-columns: var(--select-col-width, 0px) 1fr auto; padding: 8px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05)" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
                                                             <div class="select-col">
-                                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect('${c.id}')">
+                                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
                                                             </div>
                                                             <div style="text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
                                                                 <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
@@ -912,9 +939,9 @@
                                                          </div>`;
                             }
                             return `
-                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8; grid-template-columns: 40px 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8; grid-template-columns: var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
                                                  <div class="select-col">
-                                                     <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect('${c.id}')">
+                                                     <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
                                                  </div>
                                                  <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left:8px; display:flex; align-items:center; gap:8px">
                                                      <span style="opacity:0.5">↳</span> ${c.desc}
@@ -1004,7 +1031,7 @@
                     const countEl = document.getElementById('bulk-count');
                     const count = App.State.selectedIds.size;
 
-                    if (count > 0) {
+                    if (count > 0 && App.State.selectionMode) {
                         bar.style.display = 'flex';
                         countEl.innerText = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'}`;
                     } else {
@@ -1222,12 +1249,35 @@
                     document.getElementById('filtro-busca').focus();
                 },
 
-                toggleSelect: (id) => {
-                    if (App.State.selectedIds.has(String(id))) {
-                        App.State.selectedIds.delete(String(id));
+                toggleSelect: (event, id) => {
+                    id = String(id);
+                    const isSelected = App.State.selectedIds.has(id);
+
+                    if (event && event.shiftKey && App.State.lastSelectedId) {
+                        const checkboxes = Array.from(document.querySelectorAll('.row-checkbox'));
+                        const startIdx = checkboxes.findIndex(cb => cb.dataset.id === App.State.lastSelectedId);
+                        const endIdx = checkboxes.findIndex(cb => cb.dataset.id === id);
+
+                        if (startIdx !== -1 && endIdx !== -1) {
+                            const [min, max] = [Math.min(startIdx, endIdx), Math.max(startIdx, endIdx)];
+                            const shouldSelect = !isSelected; // Segue o estado do clique atual
+
+                            for (let i = min; i <= max; i++) {
+                                const targetId = String(checkboxes[i].dataset.id);
+                                if (shouldSelect) App.State.selectedIds.add(targetId);
+                                else App.State.selectedIds.delete(targetId);
+                            }
+                            App.UI.renderTable(); // Re-renderiza para atualizar os checks visualmente
+                        }
                     } else {
-                        App.State.selectedIds.add(String(id));
+                        if (isSelected) {
+                            App.State.selectedIds.delete(id);
+                        } else {
+                            App.State.selectedIds.add(id);
+                        }
                     }
+
+                    App.State.lastSelectedId = id;
                     App.UI.updateBulkActions();
                 },
 
@@ -1269,6 +1319,26 @@
 
                     App.Data.save();
                     App.Utils.toast(`${idsCount} itens removidos com sucesso!`, "success");
+                    App.Actions.toggleSelectionMode(); // Sai do modo após excluir
+                },
+
+                toggleSelectionMode: () => {
+                    App.State.selectionMode = !App.State.selectionMode;
+                    const btn = document.getElementById('btn-selection-mode');
+
+                    if (!App.State.selectionMode) {
+                        App.State.selectedIds.clear();
+                        const allCb = document.getElementById('select-all');
+                        if (allCb) allCb.checked = false;
+                        btn.classList.remove('active');
+                        btn.style.background = '';
+                    } else {
+                        btn.classList.add('active');
+                        btn.style.background = 'var(--accent-primary)';
+                    }
+
+                    App.UI.renderTable();
+                    App.UI.updateBulkActions();
                 }
             }
         };

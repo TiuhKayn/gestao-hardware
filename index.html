@@ -1590,7 +1590,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpHlbH7m66pm0E_GA-faf-zKor2lq49Gk",
@@ -1929,6 +1929,13 @@
 
                 try {
                     await signInWithEmailAndPassword(auth, email, pass);
+
+                    // SEGURANÇA: Verifica se o e-mail está validado
+                    if (!auth.currentUser.emailVerified) {
+                        await signOut(auth);
+                        return window.App.Utils.toast("Por favor, verifique seu e-mail antes de logar. Enviamos um link para você.", "warning");
+                    }
+
                     window.App.Utils.toast("Bem-vindo!", "success");
                 } catch (e) {
                     console.error("Erro Login:", e);
@@ -1970,13 +1977,18 @@
                     const cred = await createUserWithEmailAndPassword(auth, email, pass);
                     await updateProfile(cred.user, { displayName: name });
 
+                    // ENVIAR VERIFICAÇÃO (2FA SIMULADO/SEGURANÇA)
+                    await sendEmailVerification(cred.user);
+
                     await setDoc(doc(db, "perfis", cred.user.uid), {
                         nome: name,
                         email: email,
                         criadoEm: new Date()
                     });
 
-                    window.App.Utils.toast("Conta criada com sucesso!", "success");
+                    window.App.Utils.toast("Cadastro realizado! Verifique seu e-mail para ativar a conta.", "info");
+                    App.UI.toggleAuthView(false); // Volta para tela de login
+                    signOut(auth); // Desloga para ele ter que validar e logar de novo
                 } catch (e) {
                     console.error("Erro Cadastro:", e);
                     if (e.code === 'auth/configuration-not-found') {

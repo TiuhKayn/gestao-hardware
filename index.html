@@ -1638,7 +1638,6 @@
 
                         if (changed) {
                             finalItem = { ...lItem, id: cMatch.id };
-                            console.log(`[Sync-Update] Propagando atualização local: ${lItem.desc}`);
                             updatesToCloud.push({ id: cMatch.id, data: finalItem });
                         } else {
                             if (String(lItem.id) !== String(cMatch.id)) {
@@ -1655,12 +1654,10 @@
                         const isServerId = (typeof lItem.id === 'string' && lItem.id.length > 5);
 
                         if (isServerId && !cloudIsSuspiciouslyEmpty) {
-                            console.log(`[Sync] Removendo local (Excluído na Nuvem): ${lItem.desc}`);
                             continue;
                         } else {
                             // Se for órfão ou novo, garante que kitParentId não é "null" string
                             if (lItem.kitParentId === "null") lItem.kitParentId = null;
-                            console.log(`[Sync] Novo Local -> Enviando: ${lItem.desc}`);
                             finalItems.push(lItem);
                             uploadsToCloud.push(lItem);
                         }
@@ -1672,7 +1669,6 @@
                     if (!cloudProcessedIds.has(String(cItem.id))) {
                         const hasContentMatch = localItems.some(l => getSig(l) === getSig(cItem));
                         if (!hasContentMatch) {
-                            console.log(`[Sync] Novo da Nuvem -> Baixando: ${cItem.desc}`);
                             finalItems.push(cItem);
                         }
                     }
@@ -1684,7 +1680,6 @@
                         const newParentId = idTranslationMap.get(String(item.kitParentId));
                         if (String(item.kitParentId) !== String(newParentId)) {
                             item.kitParentId = newParentId;
-                            console.log(`[Sync-Relink] Corrigindo vínculo cloud: ${item.desc}`);
                         }
                     }
                 });

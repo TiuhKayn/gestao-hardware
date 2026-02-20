@@ -660,7 +660,7 @@
                 data: [],
                 formType: 'venda',
                 editingId: null,
-                sort: { col: null, dir: 'desc' },
+                sort: { col: 'data', dir: 'desc' },
                 dashboardOrder: ['investido', 'recebido', 'lucro'],
                 history: [],
                 selectedIds: new Set(),
@@ -842,7 +842,9 @@
 
                     // 1. Pré-processamento: Mapear filhos e calcular totais (O(N))
                     const dataWithMeta = App.State.data.map(t => {
-                        const kids = App.State.data.filter(c => String(c.kitParentId) === String(t.id));
+                        const kids = App.State.data
+                            .filter(c => String(c.kitParentId) === String(t.id))
+                            .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
                         const kitInitialCusto = parseFloat(t.custo) || 0;
                         const kitInitialReceita = parseFloat(t.valor) || 0;
                         const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
@@ -1573,7 +1575,7 @@
                 if (text) text.innerText = sts;
             };
 
-            console.log("--- Sync Engine v8.0 ---");
+            console.log("--- Sync Engine v9.0 (Harmony) ---");
             setStatus("Sincronizando...", "#f59e0b");
 
             try {
@@ -1626,11 +1628,17 @@
                         const cCompleto = (cMatch.valor > 0 || cMatch.custo > 0);
                         const lCompleto = (lItem.valor > 0 || lItem.custo > 0);
 
-                        let finalItem = { ...cMatch };
+                        // Detecta qualquer mudança relevante
+                        const changed = (!cCompleto && lCompleto) ||
+                            (String(lItem.kitParentId) !== String(cMatch.kitParentId)) ||
+                            (lItem.desc !== cMatch.desc) ||
+                            (lItem.categoria !== cMatch.categoria);
 
-                        if (!cCompleto && lCompleto) {
+                        let finalItem = { ...cMatch }; // Inicializa finalItem com a versão da nuvem
+
+                        if (changed) {
                             finalItem = { ...lItem, id: cMatch.id };
-                            console.log(`[Sync] Atualizando nuvem (item local mais completo): ${lItem.desc}`);
+                            console.log(`[Sync-Update] Propagando atualização local: ${lItem.desc}`);
                             updatesToCloud.push({ id: cMatch.id, data: finalItem });
                         } else {
                             if (String(lItem.id) !== String(cMatch.id)) {
@@ -1680,6 +1688,9 @@
                         }
                     }
                 });
+
+                // 4. Ordenação Estável e Salva
+                finalItems.sort((a, b) => new Date(b.data) - new Date(a.data));
 
                 App.State.data = finalItems;
                 App.Data.save(true);

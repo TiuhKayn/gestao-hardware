@@ -748,7 +748,7 @@
                     </button>
                     <div id="user-dropdown" class="dropdown-menu">
                         <button class="dropdown-item" onclick="App.UI.toggleVisualMode()">
-                            <span>✨</span> Alternar Visual
+                            <span id="btn-theme">✨</span> Alternar Visual
                         </button>
                         <button class="dropdown-item" onclick="App.UI.toggleSettings(true)">
                             <span>⚙️</span> Configurações de Conta
@@ -1343,7 +1343,8 @@
                 toggleVisualMode: () => {
                     document.body.classList.toggle('compact-view');
                     const isCompact = document.body.classList.contains('compact-view');
-                    document.getElementById('btn-theme').innerText = isCompact ? '🔍' : '✨';
+                    const btnTheme = document.getElementById('btn-theme');
+                    if (btnTheme) btnTheme.innerText = isCompact ? '🔍' : '✨';
                     App.Utils.toast(isCompact ? "Modo Compacto" : "Modo Premium");
                 },
 
@@ -2233,8 +2234,17 @@
             checkUsernameUnique: async (name) => {
                 const q = query(collection(db, "perfis"), where("nome", "==", name));
                 const snap = await getDocs(q);
-                // É único se não houver ninguém OU se o único que existe for eu mesmo
-                return snap.empty || (snap.docs.length === 1 && snap.docs[0].id === auth.currentUser.uid);
+
+                // Se não existe o nome, está livre
+                if (snap.empty) return true;
+
+                // Se existe o nome, só permitimos se for o PRÓPRIO usuário logado tentando mudar o nome dele (caso de edição)
+                if (auth.currentUser) {
+                    return snap.docs.some(doc => doc.id === auth.currentUser.uid);
+                }
+
+                // Se não estiver logado (Registro), e o nome já existe, então está ocupado
+                return false;
             },
 
             updateAccountSettings: async () => {

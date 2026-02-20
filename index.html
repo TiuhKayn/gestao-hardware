@@ -2078,17 +2078,14 @@
         async function salvarOuAtualizarPerfil(user) {
             if (!user) return;
             const perfilRef = doc(db, "perfis", user.uid);
-            const perfilSnap = await getDoc(perfilRef);
 
+            // Atualiza apenas e-mail e último acesso. 
+            // O nome NUNCA é preenchido aqui automaticamente para Google.
+            // O nome vem ou do Cadastro Manual ou do Prompt do Google.
             const dadosPerfil = {
                 email: user.email,
                 ultimoAcesso: new Date()
             };
-
-            // Preserva o nome se já existir (Prioridade para o Cadastro Manual)
-            if (!perfilSnap.exists() || !perfilSnap.data().nome) {
-                dadosPerfil.nome = user.displayName;
-            }
 
             await setDoc(perfilRef, dadosPerfil, { merge: true });
         }
@@ -2099,6 +2096,8 @@
                 console.log("Monitor de Autenticação Ativado.");
 
                 onAuthStateChanged(auth, (user) => {
+                    // Limpa erros residuais do console se necessário
+                    if (!user) console.info("Sistema pronto: Aguardando login ou processando nova sessão.");
                     console.log("Estado Auth Mudou:", user ? `Logado como ${user.email}` : "Deslogado");
 
                     if (user) {
@@ -2293,11 +2292,10 @@
                     return window.App.Utils.toast("O Login Google não funciona abrindo o arquivo direto. Use o Live Server ou publique no GitHub.", "warning");
                 }
                 try {
-                    // Usando Popup em vez de Redirect para melhor feedback visual no GitHub Pages
                     const result = await signInWithPopup(auth, googleProvider);
                     if (result.user) {
-                        await salvarOuAtualizarPerfil(result.user);
-                        window.App.Utils.toast("Login realizado com sucesso!", "success");
+                        // O monitor de Autenticação (onAuthStateChanged) cuidará do restante.
+                        console.log("Login Google sucesso para:", result.user.email);
                     }
                 } catch (e) {
                     console.error("Erro Google Auth:", e);
@@ -2332,16 +2330,18 @@
             },
 
             setInitialUsername: async () => {
-                const name = document.getElementById('prompt-user-name').value.trim();
+                const nameInput = document.getElementById('prompt-user-name');
+                const name = nameInput.value.trim();
                 if (!name) return App.Utils.toast("Escolha um nome primeiro", "warning");
 
                 try {
-                    App.Utils.toast("Verificando nome...", "info");
                     const isUnique = await App.Auth.checkUsernameUnique(name);
                     if (!isUnique) return App.Utils.toast("Este nome já está em uso", "error");
 
                     const user = auth.currentUser;
-                    await updateProfile(user, { displayName: name });
+                    if (!user) throw new Error("Usuário não autenticado");
+
+                    // 1. Salva no Firestore
                     await setDoc(doc(db, "perfis", user.uid), {
                         nome: name,
                         email: user.email,
@@ -2349,16 +2349,25 @@
                         criadoEm: new Date()
                     }, { merge: true });
 
-                    document.getElementById('username-prompt-overlay').style.display = 'none';
+                    // 2. Atualiza perfil no Auth (Opcional, mas bom para consistência)
+                    await updateProfile(user, { displayName: name });
 
-                    // REGRA: Depois de escolher o nome via Google, joga para o Login (como solicitado)
+                    // 3. Esconde overlay
+                    const promptOverlay = document.getElementById('username-prompt-overlay');
+                    if (promptOverlay) promptOverlay.style.display = 'none';
+
+                    // 4. Fluxo solicitado: Desloga para forçar login novo
                     await signOut(auth);
-                    App.UI.toggleAuthView(false);
 
-                    window.App.Utils.toast("Nome definido! Agora você pode logar com seu e-mail ou nome.", "success");
+                    // 5. Volta para tela de Login
+                    if (window.App.UI && window.App.UI.toggleAuthView) {
+                        window.App.UI.toggleAuthView(false);
+                    }
+
+                    window.App.Utils.toast("Nome definido com sucesso! Entre agora com seu novo usuário.", "success");
                 } catch (e) {
-                    console.error("Erro ao definir nome:", e);
-                    App.Utils.toast("Erro ao salvar nome", "error");
+                    console.error("Erro completo ao definir nome:", e);
+                    App.Utils.toast("Erro ao salvar nome. Tente novamente ou use e-mail.", "error");
                 }
             },
 

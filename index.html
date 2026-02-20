@@ -738,6 +738,17 @@
                         App.Data.save();
                     }
                 },
+                relink: (oldId, newId) => {
+                    if (!oldId || !newId || oldId === newId) return;
+                    let count = 0;
+                    App.State.data.forEach(item => {
+                        if (String(item.kitParentId) === String(oldId)) {
+                            item.kitParentId = newId;
+                            count++;
+                        }
+                    });
+                    if (count > 0) console.log(`[Relink] ${count} sub-items vinculados ao novo ID: ${newId}`);
+                },
                 clearAll: () => { if (confirm("Limpar TUDO?")) { App.State.data = []; App.Data.save(); } }
             },
 
@@ -812,6 +823,8 @@
                             <div class="stat-value">R$ ${App.Utils.formatCurrency(c.val)}</div>
                         </div>`;
                     }).join('');
+
+                    console.log(`[Dashboard] Investido: R$ ${cards.investido.val.toFixed(2)} | Recebido: R$ ${cards.recebido.val.toFixed(2)} | Lucro: R$ ${cards.lucro.val.toFixed(2)}`);
                 },
 
                 renderTable: () => {
@@ -1106,7 +1119,9 @@
                 addSection: (kitId) => {
                     const desc = prompt("Nome da Sessão (Ex: ENTREGUE, RECEBIDO):");
                     if (!desc) return;
-                    App.State.data.unshift({ id: App.Utils.generateId(), desc, tipo: 'separator', data: App.Utils.getToday(), kitParentId: kitId });
+                    const item = { id: App.Utils.generateId(), desc, tipo: 'separator', data: App.Utils.getToday(), kitParentId: kitId };
+                    App.State.data.unshift(item);
+                    if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(item);
                     App.Data.save();
                 },
 
@@ -1134,7 +1149,9 @@
                     const valorStr = prompt("Venda (R$):", "0");
                     const valor = parseInput(valorStr);
 
-                    App.State.data.unshift({ id: App.Utils.generateId(), desc, categoria, valor: valor, custo: custo, tipo: 'venda', data: App.Utils.getToday(), kitParentId: kitId });
+                    const item = { id: App.Utils.generateId(), desc, categoria, valor: valor, custo: custo, tipo: 'venda', data: App.Utils.getToday(), kitParentId: kitId };
+                    App.State.data.unshift(item);
+                    if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(item);
                     App.Data.save();
                 },
 
@@ -1428,8 +1445,10 @@
                 // Isso permite que o usuário edite/exclua este item imediatamente sem recarregar
                 const itemLocal = App.State.data.find(x => x.id === dadosDaVenda.id);
                 if (itemLocal) {
-                    itemLocal.id = docRef.id; // Substitui ID timestamp pelo ID alfanumérico
-                    App.Data.save(true); // Salva localmente com o novo ID
+                    const oldId = itemLocal.id;
+                    itemLocal.id = docRef.id;
+                    App.Data.relink(oldId, docRef.id); // Atualiza filhos para o novo ID String
+                    App.Data.save(true);
                 }
 
             } catch (e) {
@@ -1609,9 +1628,17 @@
 
                         if (!cCompleto && lCompleto) {
                             finalItem = { ...lItem, id: cMatch.id };
+                            console.log(`[Sync] Atualizando nuvem (item local mais completo): ${lItem.desc}`);
                             updatesToCloud.push({ id: cMatch.id, data: finalItem });
                         } else {
-                            lItem.id = cMatch.id;
+                            if (String(lItem.id) !== String(cMatch.id)) {
+                                const oldId = lItem.id;
+                                lItem.id = cMatch.id;
+                                // Relink imediato no array que estamos construindo/usando
+                                localItems.forEach(child => {
+                                    if (String(child.kitParentId) === String(oldId)) child.kitParentId = cMatch.id;
+                                });
+                            }
                         }
                         finalItems.push(finalItem);
                     } else {
@@ -1619,11 +1646,12 @@
                         const isServerId = (typeof lItem.id === 'string' && lItem.id.length > 5);
 
                         if (isServerId && !cloudIsSuspiciouslyEmpty) {
-                            console.log(`[Sync] Removendo excluído: ${lItem.desc}`);
+                            console.log(`[Sync] Removendo local (Excluído na Nuvem): ${lItem.desc}`);
                             continue;
                         } else {
                             // Se for órfão ou novo, garante que kitParentId não é "null" string
                             if (lItem.kitParentId === "null") lItem.kitParentId = null;
+                            console.log(`[Sync] Novo Local -> Enviando: ${lItem.desc}`);
                             finalItems.push(lItem);
                             uploadsToCloud.push(lItem);
                         }
@@ -1635,6 +1663,7 @@
                     if (!cloudProcessedIds.has(String(cItem.id))) {
                         const hasContentMatch = localItems.some(l => getSig(l) === getSig(cItem));
                         if (!hasContentMatch) {
+                            console.log(`[Sync] Novo da Nuvem -> Baixando: ${cItem.desc}`);
                             finalItems.push(cItem);
                         }
                     }
@@ -1683,6 +1712,9 @@
         }
 
         window.addEventListener('load', carregarVendasDoFirebase);
+
+        // Auto-Sync a cada 60 segundos para manter tudo atualizado sem F5
+        setInterval(carregarVendasDoFirebase, 60000);
 
     </script>
 </body>

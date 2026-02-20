@@ -923,7 +923,7 @@
                             count++;
                         }
                     });
-                    if (count > 0) console.log(`[Relink] ${count} sub-items atualizados (${oldId} -> ${newId})`);
+                    // Silenciado para evitar poluição no console
                 },
                 clearAll: () => { if (confirm("Limpar TUDO?")) { App.State.data = []; App.Data.save(); } }
             },
@@ -1004,7 +1004,6 @@
                         </div>`;
                     }).join('');
 
-                    console.log(`[Dashboard] Investido: R$ ${cards.investido.val.toFixed(2)} | Recebido: R$ ${cards.recebido.val.toFixed(2)} | Lucro: R$ ${cards.lucro.val.toFixed(2)}`);
                 },
 
                 renderTable: () => {
@@ -1573,7 +1572,7 @@
     </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -1633,6 +1632,7 @@
                     tipo: dadosParaSalvar.tipo || "venda",
                     data: dadosParaSalvar.data,
                     kitParentId: dadosParaSalvar.kitParentId || null,
+                    userId: auth.currentUser.uid,
                     updatedAt: new Date()
                 });
 
@@ -1700,12 +1700,12 @@
             App.Utils.toast("Iniciando reparo da nuvem...", "info");
 
             try {
-                // 1. Apagar tudo na nuvem
-                const snapshot = await getDocs(collection(db, "vendas"));
+                // 1. Apagar apenas itens do usuário na nuvem
+                const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
+                const snapshot = await getDocs(q);
                 const totalDocs = snapshot.size;
-                console.log(`Excluindo ${totalDocs} itens antigos...`);
+                console.log(`Excluindo ${totalDocs} itens do usuário...`);
 
-                // Exclusão em lote (paralela)
                 const deletePromises = [];
                 snapshot.forEach(doc => {
                     deletePromises.push(deleteDoc(doc.ref));
@@ -1729,6 +1729,7 @@
                         tipo: item.tipo || "venda",
                         data: item.data,
                         kitParentId: item.kitParentId || null,
+                        userId: auth.currentUser.uid,
                         updatedAt: new Date()
                     });
                 });
@@ -1751,17 +1752,14 @@
         window.salvarVendaNoFirebase = salvarVendaNoFirebase;
         window.atualizarVendaNoFirebase = atualizarVendaNoFirebase;
         window.removerVendaDoFirebase = removerVendaDoFirebase;
-        window.resetarNuvemComDadosLocais = resetarNuvemComDadosLocais;
 
 
 
-        // Função de Sincronização v8 (Final Collaborative Sync)
-        // Regras:
-        // 1. Novos locais (ID numérico) sobem para a nuvem.
-        // 2. Novos na nuvem (ID string inexistente local) baixam para o local.
-        // 3. Excluídos na nuvem (ID string local que sumiu da nuvem) são removidos do local.
-        // 4. Se a nuvem estiver vazia, assumimos que é uma falha e NÃO deletamos nada para segurança.
-        async function carregarVendasDoFirebase() {
+        let syncListener = null;
+
+        function carregarVendasDoFirebase() {
+            if (syncListener) syncListener(); // Limpa listener anterior se existir
+
             const setStatus = (sts, color) => {
                 const dot = document.getElementById('sync-dot');
                 const text = document.getElementById('sync-text');
@@ -1769,20 +1767,21 @@
                 if (text) text.innerText = sts;
             };
 
-            console.log("--- Sync Engine v9.0 (Harmony) ---");
+            if (!auth.currentUser) return;
+
             setStatus("Sincronizando...", "#f59e0b");
 
-            try {
-                // 1. Baixar Nuvem
-                const querySnapshot = await getDocs(collection(db, "vendas"));
-                let cloudItems = [];
-                querySnapshot.forEach((doc) => {
+            const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
+
+            syncListener = onSnapshot(q, (snapshot) => {
+                const cloudItems = [];
+                snapshot.forEach((doc) => {
                     const d = doc.data();
                     cloudItems.push({
                         id: doc.id,
-                        desc: d.descricao || d.desc || "Item sem nome",
-                        valor: Number(d.valor || d.amount || 0),
-                        custo: Number(d.custo || d.cost || 0),
+                        desc: d.descricao || "Item sem nome",
+                        valor: Number(d.valor || 0),
+                        custo: Number(d.custo || 0),
                         categoria: d.categoria || "Geral",
                         tipo: d.tipo || "venda",
                         data: d.data || new Date().toISOString().split('T')[0],
@@ -1790,148 +1789,18 @@
                     });
                 });
 
-                // Se a nuvem estiver 100% vazia, pode ser erro. 
-                // Evitamos apagar o local se o usuário tiver dados sérios (ex: > 10 itens).
-                const cloudIsSuspiciouslyEmpty = cloudItems.length === 0;
+                // Ordenação e atualização local imediata
+                cloudItems.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-                // 2. Ler Local
-                let localItems = [];
-                try {
-                    localItems = JSON.parse(localStorage.getItem(App.State.dbKey) || '[]');
-                } catch (e) { localItems = []; }
+                window.App.State.data = cloudItems;
+                window.App.Data.save(true); // Persiste no LocalStorage isolado
+                window.App.UI.render();
 
-                // 3. Mesclagem Inteligente
-                const finalItems = [];
-                const cloudMapId = new Map(cloudItems.map(i => [String(i.id), i]));
-                const getSig = (i) => `${i.desc}|${Number(i.valor).toFixed(2)}|${i.data}`;
-                const cloudMapSig = new Map(cloudItems.map(i => [getSig(i), i]));
-
-                const cloudProcessedIds = new Set();
-                const idTranslationMap = new Map(); // Para traduzir IDs de backup em IDs de servidor
-                const updatesToCloud = [];
-                const uploadsToCloud = [];
-
-                // A. Processa Local
-                for (const lItem of localItems) {
-                    const lSig = getSig(lItem);
-                    let cMatch = cloudMapId.get(String(lItem.id)) || cloudMapSig.get(lSig);
-
-                    if (cMatch) {
-                        cloudProcessedIds.add(String(cMatch.id));
-
-                        const cCompleto = (cMatch.valor > 0 || cMatch.custo > 0);
-                        const lCompleto = (lItem.valor > 0 || lItem.custo > 0);
-
-                        // Detecta qualquer mudança relevante
-                        const changed = (!cCompleto && lCompleto) ||
-                            (String(lItem.kitParentId) !== String(cMatch.kitParentId)) ||
-                            (lItem.desc !== cMatch.desc) ||
-                            (lItem.categoria !== cMatch.categoria);
-
-                        let finalItem = { ...cMatch }; // Inicializa finalItem com a versão da nuvem
-
-                        if (changed) {
-                            finalItem = { ...lItem, id: cMatch.id };
-                            updatesToCloud.push({ id: cMatch.id, data: finalItem });
-                        } else {
-                            if (String(lItem.id) !== String(cMatch.id)) {
-                                const oldId = lItem.id;
-                                idTranslationMap.set(String(oldId), String(cMatch.id));
-                                lItem.id = cMatch.id;
-                                App.Data.relink(oldId, cMatch.id, localItems);
-                                App.Data.relink(oldId, cMatch.id, finalItems);
-                            }
-                        }
-                        finalItems.push(finalItem);
-                    } else {
-                        // Item Local SEM correspondente na nuvem
-                        const isServerId = (typeof lItem.id === 'string' && lItem.id.length > 5);
-
-                        if (isServerId && !cloudIsSuspiciouslyEmpty) {
-                            continue;
-                        } else {
-                            // Se for órfão ou novo, garante que kitParentId não é "null" string
-                            if (lItem.kitParentId === "null") lItem.kitParentId = null;
-                            finalItems.push(lItem);
-                            uploadsToCloud.push(lItem);
-                        }
-                    }
-                }
-
-                // B. Itens novos da nuvem
-                for (const cItem of cloudItems) {
-                    if (!cloudProcessedIds.has(String(cItem.id))) {
-                        const hasContentMatch = localItems.some(l => getSig(l) === getSig(cItem));
-                        if (!hasContentMatch) {
-                            finalItems.push(cItem);
-                        }
-                    }
-                }
-
-                // C. POST-PROCESS: Relink final (Trata casos onde o filho da nuvem veio com ID numérico do pai)
-                finalItems.forEach(item => {
-                    if (item.kitParentId && idTranslationMap.has(String(item.kitParentId))) {
-                        const newParentId = idTranslationMap.get(String(item.kitParentId));
-                        if (String(item.kitParentId) !== String(newParentId)) {
-                            item.kitParentId = newParentId;
-                        }
-                    }
-                });
-
-                // 4. Ordenação Estável e Salva
-                finalItems.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-                App.State.data = finalItems;
-                App.Data.save(true);
-                App.UI.render();
-
-                // 5. Background Sync
-                if (updatesToCloud.length > 0 || uploadsToCloud.length > 0) {
-                    (async () => {
-                        // A. Updates (Items que já têm ID de servidor)
-                        for (const u of updatesToCloud) {
-                            try {
-                                await updateDoc(doc(db, "vendas", u.id), {
-                                    descricao: u.data.desc, custo: Number(u.data.custo), valor: Number(u.data.valor),
-                                    categoria: u.data.categoria, tipo: u.data.tipo, data: u.data.data,
-                                    kitParentId: u.data.kitParentId || null, updatedAt: new Date()
-                                });
-                            } catch (e) { }
-                        }
-
-                        // B. Uploads (Items novos - Ordenar Kits primeiro para relink funcionar)
-                        const sortedUploads = [...uploadsToCloud].sort((a, b) => (b.tipo === 'kit' ? 1 : -1));
-
-                        for (const item of sortedUploads) {
-                            try {
-                                const oldId = item.id;
-                                const { id, ...rest } = item;
-                                const ref = await addDoc(collection(db, "vendas"), {
-                                    descricao: rest.desc, custo: Number(rest.custo || 0), valor: Number(rest.valor || 0),
-                                    categoria: rest.categoria, tipo: rest.tipo, data: rest.data,
-                                    kitParentId: item.kitParentId || null, // Importante: usar valor atualizado!
-                                    updatedAt: new Date()
-                                });
-
-                                // Atualiza IDs no array final para persistência local
-                                item.id = ref.id;
-                                App.Data.relink(oldId, ref.id, finalItems);
-                                // Salva a cada upload bem sucedido para evitar perda em caso de queda
-                                App.Data.save(true);
-                            } catch (e) { }
-                        }
-
-                        setStatus("Nuvem Ativa", "#10b981");
-                    })();
-                } else {
-                    setStatus("Nuvem Ativa", "#10b981");
-                }
-
-            } catch (e) {
-                console.error("Erro Sync v8:", e);
-                setStatus("Link Off", "#ef4444");
-                App.UI.render();
-            }
+                setStatus("Nuvem Ativa", "#10b981");
+            }, (error) => {
+                console.error("Erro no Listener Real-time:", error);
+                setStatus("Erro Sync", "#ef4444");
+            });
         }
 
 
@@ -1948,14 +1817,20 @@
                         document.getElementById('user-info').style.display = 'flex';
                         document.getElementById('display-name').innerText = user.displayName || user.email.split('@')[0];
 
+                        // Segrega o banco de dados local por usuário para evitar vazamento entre contas
+                        window.App.State.dbKey = `hw_transacoes_v3_${user.uid}`;
+                        window.App.Data.load(); // Carrega o banco específico deste usuário
+
                         carregarVendasDoFirebase();
                     } else {
                         window.App.State.user = null;
+                        window.App.State.dbKey = 'hw_transacoes_v3'; // Retorna ao padrão guest
                         document.getElementById('auth-overlay').style.display = 'flex';
                         document.getElementById('auth-overlay').style.opacity = '1';
                         document.getElementById('user-info').style.display = 'none';
 
                         // Limpa dados locais se deslogar
+                        if (syncListener) syncListener(); // Desliga o listener tempo real
                         window.App.State.data = [];
                         window.App.UI.render();
                     }

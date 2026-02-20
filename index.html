@@ -1590,7 +1590,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpHlbH7m66pm0E_GA-faf-zKor2lq49Gk",
@@ -1889,9 +1889,38 @@
         }
 
 
+        // ======= AUXILIARES DE PERFIL =======
+        async function salvarOuAtualizarPerfil(user) {
+            if (!user) return;
+            const perfilRef = doc(db, "perfis", user.uid);
+            const perfilSnap = await getDoc(perfilRef);
+
+            const dadosPerfil = {
+                email: user.email,
+                ultimoAcesso: new Date()
+            };
+
+            // Preserva o nome se já existir (Prioridade para o Cadastro Manual)
+            if (!perfilSnap.exists() || !perfilSnap.data().nome) {
+                dadosPerfil.nome = user.displayName;
+            }
+
+            await setDoc(perfilRef, dadosPerfil, { merge: true });
+        }
+
         // ======= SISTEMA DE AUTENTICAÇÃO (APP.AUTH) =======
         window.App.Auth = {
             monitor: () => {
+                // Trata o resultado do redirecionamento (Login Google Profissional)
+                getRedirectResult(auth).then(async (result) => {
+                    if (result && result.user) {
+                        await salvarOuAtualizarPerfil(result.user);
+                        window.App.Utils.toast("Bem-vindo!", "success");
+                    }
+                }).catch((error) => {
+                    console.error("Erro no Redirecionamento:", error);
+                });
+
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         window.App.State.user = user;
@@ -2006,33 +2035,16 @@
                     return window.App.Utils.toast("O Login Google não funciona abrindo o arquivo direto. Use o Live Server ou publique no GitHub.", "warning");
                 }
                 try {
-                    const result = await signInWithPopup(auth, googleProvider);
-
-                    // Verifica se já existe um perfil para NÃO sobrescrever o nome
-                    const perfilRef = doc(db, "perfis", result.user.uid);
-                    const perfilSnap = await getDoc(perfilRef);
-
-                    const dadosPerfil = {
-                        email: result.user.email,
-                        ultimoAcesso: new Date()
-                    };
-
-                    // Só define o nome se o perfil for NOVO ou não tiver nome
-                    if (!perfilSnap.exists() || !perfilSnap.data().nome) {
-                        dadosPerfil.nome = result.user.displayName;
-                    }
-
-                    await setDoc(perfilRef, dadosPerfil, { merge: true });
-
-                    window.App.Utils.toast("Logado!", "success");
+                    // MUDANÇA PROFISSIONAL: Redirect não gera erro de COOP no console
+                    await signInWithRedirect(auth, googleProvider);
                 } catch (e) {
                     console.error("Erro Google Auth:", e);
                     if (e.code === 'auth/configuration-not-found') {
                         window.App.Utils.toast("Erro: Google Auth não ativado no Firebase Console.", "error");
                     } else if (e.code === 'auth/operation-not-allowed') {
-                        window.App.Utils.toast("Erro: Operação não permitida. Verifique o console do Firebase.", "error");
+                        window.App.Utils.toast("Erro: Operação não permitida.", "error");
                     } else {
-                        window.App.Utils.toast("Erro ao logar com Google", "error");
+                        window.App.Utils.toast("Erro ao iniciar login Google", "error");
                     }
                 }
             },

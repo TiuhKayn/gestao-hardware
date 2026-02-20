@@ -795,6 +795,19 @@
             </div>
         </div>
 
+        <div id="username-prompt-overlay" class="glass-overlay" style="display: none; z-index: 3000;">
+            <div class="auth-card glass">
+                <h2>Escolha seu Nome</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                    Notei que você ainda não tem um nome de usuário único. Escolha um agora para continuar!
+                </p>
+                <div class="auth-form">
+                    <input type="text" id="prompt-user-name" placeholder="Ex: Yugoh, Kayn123...">
+                    <button class="btn btn-auth" onclick="App.Auth.setInitialUsername()">Salvar e Entrar</button>
+                </div>
+            </div>
+        </div>
+
         <div id="settings-overlay" class="glass-overlay" style="display: none;">
             <div class="auth-card glass">
                 <div class="settings-header">
@@ -2097,8 +2110,28 @@
                         // Inicia sincronização com nuvem
                         carregarVendasDoFirebase();
 
-                        // Tenta salvar/atualizar perfil silenciosamente
-                        salvarOuAtualizarPerfil(user).catch(e => console.warn("Erro ao salvar perfil:", e));
+                        // Sincroniza Perfil e garante Precedência do Nome
+                        (async () => {
+                            try {
+                                const perfilRef = doc(db, "perfis", user.uid);
+                                const snap = await getDoc(perfilRef);
+
+                                if (snap.exists() && snap.data().nome) {
+                                    // PRECEDÊNCIA: Prioriza o nome do Firestore se ele existir
+                                    const firestoreName = snap.data().nome;
+                                    document.getElementById('display-name').innerText = firestoreName;
+                                    console.log("Nome carregado do Firestore (Precedência):", firestoreName);
+                                } else {
+                                    // Se não tiver nome no Firestore, pede para escolher
+                                    document.getElementById('username-prompt-overlay').style.display = 'flex';
+                                }
+
+                                // Atualiza dados básicos silenciosamente (mantendo o nome se já existir)
+                                await salvarOuAtualizarPerfil(user);
+                            } catch (e) {
+                                console.warn("Erro ao carregar perfil:", e);
+                            }
+                        })();
                     } else {
                         window.App.State.user = null;
                         window.App.State.dbKey = 'hw_transacoes_v3';
@@ -2245,6 +2278,33 @@
 
                 // Se não estiver logado (Registro), e o nome já existe, então está ocupado
                 return false;
+            },
+
+            setInitialUsername: async () => {
+                const name = document.getElementById('prompt-user-name').value.trim();
+                if (!name) return App.Utils.toast("Escolha um nome primeiro", "warning");
+
+                try {
+                    App.Utils.toast("Verificando nome...", "info");
+                    const isUnique = await App.Auth.checkUsernameUnique(name);
+                    if (!isUnique) return App.Utils.toast("Este nome já está em uso", "error");
+
+                    const user = auth.currentUser;
+                    await updateProfile(user, { displayName: name });
+                    await setDoc(doc(db, "perfis", user.uid), {
+                        nome: name,
+                        email: user.email,
+                        ultimoAcesso: new Date(),
+                        criadoEm: new Date()
+                    }, { merge: true });
+
+                    document.getElementById('display-name').innerText = name;
+                    document.getElementById('username-prompt-overlay').style.display = 'none';
+                    App.Utils.toast("Nome definido com sucesso!", "success");
+                } catch (e) {
+                    console.error("Erro ao definir nome:", e);
+                    App.Utils.toast("Erro ao salvar nome", "error");
+                }
             },
 
             updateAccountSettings: async () => {

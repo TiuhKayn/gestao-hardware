@@ -61,6 +61,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+            z-index: 100;
         }
 
         h1 {
@@ -519,21 +521,83 @@
             transition: opacity 0.3s;
         }
 
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        .user-menu-container {
+            position: relative;
+            display: inline-block;
         }
 
-        .btn-close {
-            background: none;
-            border: none;
-            color: var(--text-dim);
-            font-size: 1.5rem;
+        .user-dropdown-trigger {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
             cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .user-dropdown-trigger:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-primary);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 220px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.2s ease-out;
+        }
+
+        .dropdown-menu.active {
+            display: flex;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 4px 0;
+        }
+
+        .dropdown-item.danger {
+            color: #ef4444;
+        }
+
+        .dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
         }
 
         .btn-close:hover {
@@ -552,6 +616,7 @@
             font-size: 2rem;
             margin-bottom: 30px;
             background: linear-gradient(135deg, #fff 0%, var(--accent-primary) 100%);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -660,7 +725,7 @@
 
 <body>
     <div class="container">
-        <header class="header glass">
+        <header class="page-header glass">
             <div style="display:flex; align-items:center; gap:20px">
                 <div
                     style="font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; display:flex; align-items:center; gap:10px">
@@ -676,14 +741,24 @@
             </div>
 
             <div style="display: flex; align-items: center;">
-                <div id="user-info" class="user-profile" style="display: none;">
-                    <span class="user-name" id="display-name">Carregando...</span>
-                    <button class="btn-logout" onclick="App.Auth.logout()">Sair</button>
+                <div id="user-info" class="user-menu-container" style="display: none;">
+                    <button class="user-dropdown-trigger" onclick="App.UI.toggleUserDropdown(event)">
+                        <span id="display-name">Usuário</span>
+                        <span style="font-size: 0.8rem; opacity: 0.5;">▼</span>
+                    </button>
+                    <div id="user-dropdown" class="dropdown-menu">
+                        <button class="dropdown-item" onclick="App.UI.toggleVisualMode()">
+                            <span>✨</span> Alternar Visual
+                        </button>
+                        <button class="dropdown-item" onclick="App.UI.toggleSettings(true)">
+                            <span>⚙️</span> Configurações de Conta
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item danger" onclick="App.Auth.logout()">
+                            <span>🚪</span> Sair da Conta
+                        </button>
+                    </div>
                 </div>
-                <button class="btn-icon" onclick="App.UI.toggleVisualMode()" id="btn-theme"
-                    title="Alternar Visual">✨</button>
-                <button class="btn-icon" onclick="App.UI.toggleSettings(true)" id="btn-settings"
-                    title="Configurações de Conta">⚙️</button>
             </div>
         </header>
 
@@ -743,6 +818,14 @@
                     </div>
                     <button class="btn btn-auth" onclick="App.Auth.updateAccountSettings()"
                         style="margin-top: 10px;">Salvar Alterações</button>
+
+                    <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        <button class="btn" onclick="App.UI.viewRegisteredUsers()"
+                            style="background: rgba(255,255,255,0.05); font-size: 0.8rem; height: 36px; width: 100%;">
+                            🔍 Ver Todos os Usuários Cadastrados
+                        </button>
+                        <div id="debug-user-list" style="display: none; margin-top: 10px;"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1235,15 +1318,87 @@
                     document.getElementById('register-view').style.display = isRegister ? 'block' : 'none';
                 },
 
+                toggleUserDropdown: (event) => {
+                    if (event) event.stopPropagation();
+                    const dropdown = document.getElementById('user-dropdown');
+                    dropdown.classList.toggle('active');
+
+                    // Listener para fechar ao clicar fora
+                    if (dropdown.classList.contains('active')) {
+                        const closeMenu = (e) => {
+                            if (!dropdown.contains(e.target)) {
+                                dropdown.classList.remove('active');
+                                document.removeEventListener('click', closeMenu);
+                            }
+                        };
+                        setTimeout(() => document.addEventListener('click', closeMenu), 0);
+                    }
+                },
+
                 toggleSettings: (show) => {
                     const overlay = document.getElementById('settings-overlay');
                     if (show) {
+                        document.getElementById('user-dropdown').classList.remove('active');
                         overlay.style.display = 'flex';
                         overlay.style.opacity = '1';
                         // Preenche com o nome atual
                         document.getElementById('set-user-name').value = App.State.user.displayName || "";
+                        // Limpa lista de usuários ao abrir se necessário
+                        const userList = document.getElementById('debug-user-list');
+                        if (userList) userList.style.display = 'none';
                     } else {
                         overlay.style.display = 'none';
+                    }
+                },
+
+                viewRegisteredUsers: async () => {
+                    const container = document.getElementById('debug-user-list');
+                    if (!container) return;
+
+                    if (container.style.display === 'block') {
+                        container.style.display = 'none';
+                        return;
+                    }
+
+                    container.innerHTML = "<div style='padding:10px; opacity:0.6'>Carregando usuários...</div>";
+                    container.style.display = 'block';
+
+                    try {
+                        const q = collection(db, "perfis");
+                        const snap = await getDocs(q);
+                        const users = [];
+                        snap.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
+
+                        if (users.length === 0) {
+                            container.innerHTML = "<div style='padding:10px; opacity:0.6'>Nenhum usuário encontrado no Firestore.</div>";
+                            return;
+                        }
+
+                        users.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+
+                        container.innerHTML = `
+                            <div style="margin-top:10px; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px; text-align: left; font-size: 0.8rem;">
+                                <div style="font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; display: flex; justify-content: space-between;">
+                                    <span>Usuários Cadastrados</span>
+                                    <span>Total: ${users.length}</span>
+                                </div>
+                                ${users.map(u => `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                        <div>
+                                            <span style="color: var(--accent-primary); font-weight: 600;">${u.nome || 'Sem Nome'}</span>
+                                            <br>
+                                            <span style="opacity: 0.5; font-size: 0.7rem;">${u.email || '-'}</span>
+                                        </div>
+                                        <div style="display: flex; gap: 5px;">
+                                             <button class="btn-icon" style="width:20px; height:20px; font-size:0.6rem;" onclick="App.Actions.deleteProfile('${u.id}', '${u.nome}')" title="Excluir Perfil">×</button>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    } catch (e) {
+                        console.error("Erro ao carregar usuários:", e);
+                        container.innerHTML = "<div style='padding:10px; color:var(--danger)'>Erro ao carregar.</div>";
                     }
                 },
 
@@ -1629,6 +1784,18 @@
 
                     App.UI.renderTable();
                     App.UI.updateBulkActions();
+                },
+
+                deleteProfile: async (id, name) => {
+                    if (!confirm(`Deseja excluir permanentemente o perfil de "${name}"? Isso não exclui a conta de login, apenas o nome no diretório.`)) return;
+                    try {
+                        await deleteDoc(doc(db, "perfis", id));
+                        App.Utils.toast("Perfil removido", "success");
+                        App.UI.viewRegisteredUsers(); // Atualiza lista
+                    } catch (e) {
+                        console.error("Erro ao deletar perfil:", e);
+                        App.Utils.toast("Erro ao deletar", "error");
+                    }
                 }
             }
         };
@@ -2066,6 +2233,12 @@
                 }
 
                 try {
+                    // Verificação de Unicidade ANTES do cadastro
+                    const isUnique = await App.Auth.checkUsernameUnique(name);
+                    if (!isUnique) {
+                        return window.App.Utils.toast("Este nome já está em uso", "error");
+                    }
+
                     const cred = await createUserWithEmailAndPassword(auth, email, pass);
                     await updateProfile(cred.user, { displayName: name });
 

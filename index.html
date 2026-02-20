@@ -504,21 +504,33 @@
             }
         }
 
-        /* --- LOGIN OVERLAY --- */
-        #auth-overlay,
-        #settings-overlay {
+        /* --- GLASS OVERLAYS (UNIFICADOS) --- */
+        .glass-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.85);
+            -webkit-backdrop-filter: blur(15px);
             backdrop-filter: blur(15px);
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 2000;
             transition: opacity 0.3s;
+        }
+
+        #auth-overlay {
+            z-index: 2100;
+        }
+
+        #username-prompt-overlay {
+            z-index: 2200;
+        }
+
+        #settings-overlay {
+            z-index: 2300;
         }
 
         .user-menu-container {
@@ -762,7 +774,7 @@
             </div>
         </header>
 
-        <div id="auth-overlay">
+        <div id="auth-overlay" class="glass-overlay">
             <div class="auth-card glass">
                 <div id="login-view">
                     <h2>Bem-vindo</h2>
@@ -795,7 +807,7 @@
             </div>
         </div>
 
-        <div id="username-prompt-overlay" class="glass-overlay" style="display: none; z-index: 3000;">
+        <div id="username-prompt-overlay" class="glass-overlay" style="display: none;">
             <div class="auth-card glass">
                 <h2>Escolha seu Nome</h2>
                 <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
@@ -805,6 +817,18 @@
                     <input type="text" id="prompt-user-name" placeholder="Ex: Yugoh, Kayn123...">
                     <button class="btn btn-auth" onclick="App.Auth.setInitialUsername()">Salvar e Entrar</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="verify-email-overlay" class="glass-overlay" style="display: none;">
+            <div class="auth-card glass">
+                <div style="font-size: 3rem; margin-bottom: 20px;">📧</div>
+                <h2>Verifique seu E-mail</h2>
+                <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 25px;">
+                    Enviamos um link de ativação para o seu e-mail. <br>
+                    <strong>Por favor, clique no link antes de tentar logar.</strong>
+                </p>
+                <button class="btn btn-auth" onclick="App.UI.toggleAuthView(false)">Entendi, Voltar para Login</button>
             </div>
         </div>
 
@@ -1321,6 +1345,8 @@
                 toggleAuthView: (isRegister) => {
                     document.getElementById('login-view').style.display = isRegister ? 'none' : 'block';
                     document.getElementById('register-view').style.display = isRegister ? 'block' : 'none';
+                    document.getElementById('verify-email-overlay').style.display = 'none';
+                    document.getElementById('auth-overlay').style.display = 'flex';
                 },
 
                 toggleUserDropdown: (event) => {
@@ -2153,17 +2179,36 @@
             },
 
             login: async () => {
-                const email = document.getElementById('login-email').value;
+                let identifier = document.getElementById('login-email').value.trim();
                 const pass = document.getElementById('login-pass').value;
-                if (!email || !pass) return window.App.Utils.toast("Preencha email e senha", "warning");
+                if (!identifier || !pass) return window.App.Utils.toast("Preencha campos e senha", "warning");
 
                 try {
-                    await signInWithEmailAndPassword(auth, email, pass);
+                    App.Utils.toast("Iniciando login...", "info");
+
+                    let emailParaLogin = identifier;
+
+                    // Se não tiver @, assume que é um NOME DE USUÁRIO e busca o e-mail no Firestore
+                    if (!identifier.includes('@')) {
+                        console.log("Resolvendo usuário:", identifier);
+                        const q = query(collection(db, "perfis"), where("nome", "==", identifier));
+                        const snap = await getDocs(q);
+
+                        if (snap.empty) {
+                            return window.App.Utils.toast("Usuário não encontrado.", "error");
+                        }
+
+                        emailParaLogin = snap.docs[0].data().email;
+                        console.log("E-mail resolvido:", emailParaLogin);
+                    }
+
+                    await signInWithEmailAndPassword(auth, emailParaLogin, pass);
 
                     // SEGURANÇA: Verifica se o e-mail está validado
                     if (!auth.currentUser.emailVerified) {
+                        const user = auth.currentUser;
                         await signOut(auth);
-                        return window.App.Utils.toast("Por favor, verifique seu e-mail antes de logar. Enviamos um link para você.", "warning");
+                        return window.App.Utils.toast("Por favor, verifique seu e-mail antes de logar.", "warning");
                     }
 
                     window.App.Utils.toast("Bem-vindo!", "success");
@@ -2213,18 +2258,20 @@
                     const cred = await createUserWithEmailAndPassword(auth, email, pass);
                     await updateProfile(cred.user, { displayName: name });
 
-                    // ENVIAR VERIFICAÇÃO (2FA SIMULADO/SEGURANÇA)
-                    await sendEmailVerification(cred.user);
-
+                    // SALVA IMEDIATAMENTE NO FIRESTORE (Garante persistência do nome manual)
                     await setDoc(doc(db, "perfis", cred.user.uid), {
                         nome: name,
                         email: email,
+                        ultimoAcesso: new Date(),
                         criadoEm: new Date()
                     });
 
-                    window.App.Utils.toast("Cadastro realizado! Verifique seu e-mail para ativar a conta.", "info");
-                    App.UI.toggleAuthView(false); // Volta para tela de login
-                    signOut(auth); // Desloga para ele ter que validar e logar de novo
+                    // ENVIAR VERIFICAÇÃO 
+                    await sendEmailVerification(cred.user);
+
+                    document.getElementById('register-view').style.display = 'none';
+                    document.getElementById('verify-email-overlay').style.display = 'flex';
+                    signOut(auth);
                 } catch (e) {
                     console.error("Erro Cadastro:", e);
                     if (e.code === 'auth/configuration-not-found') {

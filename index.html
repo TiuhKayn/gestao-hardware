@@ -2068,40 +2068,50 @@
         // ======= SISTEMA DE AUTENTICAÇÃO (APP.AUTH) =======
         window.App.Auth = {
             monitor: () => {
-                // Trata o resultado do redirecionamento (Login Google Profissional)
-                getRedirectResult(auth).then(async (result) => {
-                    if (result && result.user) {
-                        await salvarOuAtualizarPerfil(result.user);
-                        window.App.Utils.toast("Bem-vindo!", "success");
-                    }
-                }).catch((error) => {
-                    console.error("Erro no Redirecionamento:", error);
-                });
+                console.log("Monitor de Autenticação Ativado.");
 
                 onAuthStateChanged(auth, (user) => {
+                    console.log("Estado Auth Mudou:", user ? `Logado como ${user.email}` : "Deslogado");
+
                     if (user) {
                         window.App.State.user = user;
-                        document.getElementById('auth-overlay').style.opacity = '0';
-                        setTimeout(() => {
-                            document.getElementById('auth-overlay').style.display = 'none';
-                        }, 300);
-                        document.getElementById('user-info').style.display = 'flex';
-                        document.getElementById('display-name').innerText = user.displayName || user.email.split('@')[0];
+                        // Esconde o overlay de login
+                        const overlay = document.getElementById('auth-overlay');
+                        if (overlay) {
+                            overlay.style.opacity = '0';
+                            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                        }
 
-                        // Segrega o banco de dados local por usuário para evitar vazamento entre contas
+                        // Mostra info do usuário
+                        const userInfo = document.getElementById('user-info');
+                        if (userInfo) userInfo.style.display = 'flex';
+
+                        const displayEl = document.getElementById('display-name');
+                        if (displayEl) displayEl.innerText = user.displayName || user.email.split('@')[0];
+
+                        // Configura banco local e carrega dados
                         window.App.State.dbKey = `hw_transacoes_v3_${user.uid}`;
-                        window.App.Data.load(); // Carrega o banco específico deste usuário
+                        window.App.Data.load();
 
+                        // Inicia sincronização com nuvem
                         carregarVendasDoFirebase();
+
+                        // Tenta salvar/atualizar perfil silenciosamente
+                        salvarOuAtualizarPerfil(user).catch(e => console.warn("Erro ao salvar perfil:", e));
                     } else {
                         window.App.State.user = null;
-                        window.App.State.dbKey = 'hw_transacoes_v3'; // Retorna ao padrão guest
-                        document.getElementById('auth-overlay').style.display = 'flex';
-                        document.getElementById('auth-overlay').style.opacity = '1';
-                        document.getElementById('user-info').style.display = 'none';
+                        window.App.State.dbKey = 'hw_transacoes_v3';
 
-                        // Limpa dados locais se deslogar
-                        if (syncListener) syncListener(); // Desliga o listener tempo real
+                        const overlay = document.getElementById('auth-overlay');
+                        if (overlay) {
+                            overlay.style.display = 'flex';
+                            overlay.style.opacity = '1';
+                        }
+
+                        const userInfo = document.getElementById('user-info');
+                        if (userInfo) userInfo.style.display = 'none';
+
+                        if (syncListener) syncListener();
                         window.App.State.data = [];
                         window.App.UI.render();
                     }
@@ -2198,8 +2208,12 @@
                     return window.App.Utils.toast("O Login Google não funciona abrindo o arquivo direto. Use o Live Server ou publique no GitHub.", "warning");
                 }
                 try {
-                    // MUDANÇA PROFISSIONAL: Redirect não gera erro de COOP no console
-                    await signInWithRedirect(auth, googleProvider);
+                    // Usando Popup em vez de Redirect para melhor feedback visual no GitHub Pages
+                    const result = await signInWithPopup(auth, googleProvider);
+                    if (result.user) {
+                        await salvarOuAtualizarPerfil(result.user);
+                        window.App.Utils.toast("Login realizado com sucesso!", "success");
+                    }
                 } catch (e) {
                     console.error("Erro Google Auth:", e);
                     if (e.code === 'auth/configuration-not-found') {

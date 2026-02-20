@@ -2147,9 +2147,17 @@
                                     const firestoreName = snap.data().nome;
                                     document.getElementById('display-name').innerText = firestoreName;
                                     console.log("Nome carregado do Firestore (Precedência):", firestoreName);
+                                    document.getElementById('username-prompt-overlay').style.display = 'none';
                                 } else {
                                     // Se não tiver nome no Firestore, pede para escolher
-                                    document.getElementById('username-prompt-overlay').style.display = 'flex';
+                                    const promptOverlay = document.getElementById('username-prompt-overlay');
+                                    if (promptOverlay) {
+                                        promptOverlay.style.display = 'flex';
+                                        promptOverlay.style.opacity = '1';
+                                        // Garante que o de login somme se o de prompt aparecer
+                                        const authOverlay = document.getElementById('auth-overlay');
+                                        if (authOverlay) authOverlay.style.display = 'none';
+                                    }
                                 }
 
                                 // Atualiza dados básicos silenciosamente (mantendo o nome se já existir)

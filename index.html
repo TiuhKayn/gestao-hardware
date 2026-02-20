@@ -503,19 +503,41 @@
         }
 
         /* --- LOGIN OVERLAY --- */
-        #auth-overlay {
+        #auth-overlay,
+        #settings-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 9000;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: var(--transition);
+            z-index: 1000;
+            transition: opacity 0.3s;
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+
+        .btn-close:hover {
+            color: var(--text-primary);
         }
 
         .auth-card {
@@ -660,6 +682,8 @@
                 </div>
                 <button class="btn-icon" onclick="App.UI.toggleVisualMode()" id="btn-theme"
                     title="Alternar Visual">✨</button>
+                <button class="btn-icon" onclick="App.UI.toggleSettings(true)" id="btn-settings"
+                    title="Configurações de Conta">⚙️</button>
             </div>
         </header>
 
@@ -692,6 +716,33 @@
                     <div class="auth-footer">
                         Já é cadastrado? <a onclick="App.UI.toggleAuthView(false)">Fazer Login</a>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings-overlay" class="glass-overlay" style="display: none;">
+            <div class="auth-card glass">
+                <div class="settings-header">
+                    <h2>Configurações</h2>
+                    <button class="btn-close" onclick="App.UI.toggleSettings(false)">×</button>
+                </div>
+                <div class="auth-form">
+                    <div class="input-group">
+                        <label>Nome de Usuário (Exclusivo)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="set-user-name" placeholder="Seu novo nome">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Nova Senha</label>
+                        <input type="password" id="set-pass" placeholder="Mudar senha">
+                    </div>
+                    <div class="input-group">
+                        <label>Confirmar Senha</label>
+                        <input type="password" id="set-pass-confirm" placeholder="Repita a senha">
+                    </div>
+                    <button class="btn btn-auth" onclick="App.Auth.updateAccountSettings()"
+                        style="margin-top: 10px;">Salvar Alterações</button>
                 </div>
             </div>
         </div>
@@ -1184,6 +1235,18 @@
                     document.getElementById('register-view').style.display = isRegister ? 'block' : 'none';
                 },
 
+                toggleSettings: (show) => {
+                    const overlay = document.getElementById('settings-overlay');
+                    if (show) {
+                        overlay.style.display = 'flex';
+                        overlay.style.opacity = '1';
+                        // Preenche com o nome atual
+                        document.getElementById('set-user-name').value = App.State.user.displayName || "";
+                    } else {
+                        overlay.style.display = 'none';
+                    }
+                },
+
                 toggleVisualMode: () => {
                     document.body.classList.toggle('compact-view');
                     const isCompact = document.body.classList.contains('compact-view');
@@ -1590,7 +1653,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider, sendEmailVerification, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpHlbH7m66pm0E_GA-faf-zKor2lq49Gk",
@@ -2051,6 +2114,58 @@
 
             logout: () => {
                 if (confirm("Sair do sistema?")) signOut(auth);
+            },
+
+            checkUsernameUnique: async (name) => {
+                const q = query(collection(db, "perfis"), where("nome", "==", name));
+                const snap = await getDocs(q);
+                // É único se não houver ninguém OU se o único que existe for eu mesmo
+                return snap.empty || (snap.docs.length === 1 && snap.docs[0].id === auth.currentUser.uid);
+            },
+
+            updateAccountSettings: async () => {
+                const newName = document.getElementById('set-user-name').value.trim();
+                const newPass = document.getElementById('set-pass').value;
+                const confirmPass = document.getElementById('set-pass-confirm').value;
+
+                if (!newName) return App.Utils.toast("O nome não pode ser vazio", "warning");
+
+                try {
+                    App.Utils.toast("Processando alterações...", "info");
+
+                    // 1. Verificação de Unicidade do Nome
+                    const isUnique = await App.Auth.checkUsernameUnique(newName);
+                    if (!isUnique) {
+                        return App.Utils.toast("Este nome já está em uso por outro usuário", "error");
+                    }
+
+                    // 2. Atualiza Perfil (Nome) se mudou
+                    if (newName !== auth.currentUser.displayName) {
+                        await updateProfile(auth.currentUser, { displayName: newName });
+                        await setDoc(doc(db, "perfis", auth.currentUser.uid), {
+                            nome: newName
+                        }, { merge: true });
+                        document.getElementById('display-name').innerText = newName;
+                    }
+
+                    // 3. Atualiza Senha se preenchida
+                    if (newPass) {
+                        if (newPass !== confirmPass) return App.Utils.toast("As senhas não coincidem", "error");
+                        if (newPass.length < 6) return App.Utils.toast("A senha deve ter 6+ digitos", "warning");
+                        await updatePassword(auth.currentUser, newPass);
+                    }
+
+                    App.Utils.toast("Configurações atualizadas!", "success");
+                    App.UI.toggleSettings(false);
+                } catch (e) {
+                    console.error("Erro ao atualizar conta:", e);
+                    if (e.code === 'auth/requires-recent-login') {
+                        App.Utils.toast("Para mudar a senha, faça login novamente por segurança.", "warning");
+                        signOut(auth);
+                    } else {
+                        App.Utils.toast("Erro ao atualizar: " + e.code, "error");
+                    }
+                }
             }
         };
 

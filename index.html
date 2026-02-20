@@ -283,10 +283,46 @@
         .t-header,
         .t-row {
             display: grid;
-            grid-template-columns: 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
+            grid-template-columns: 40px 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
             padding: 14px 24px;
             align-items: center;
             transition: var(--transition);
+        }
+
+        .select-col {
+            display: flex;
+            justify-content: center;
+        }
+
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-primary);
+        }
+
+        .bulk-actions-bar {
+            background: var(--bg-card);
+            padding: 12px 24px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--accent-glow);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .t-header {
@@ -564,8 +600,20 @@
             </div>
         </div>
 
+        <div id="bulk-actions" class="bulk-actions-bar glass">
+            <span id="bulk-count" style="font-weight: 700; color: var(--accent-primary)">0 itens selecionados</span>
+            <button class="btn btn-danger" onclick="App.Actions.bulkDelete()"
+                style="height: 36px; padding: 0 16px; font-size: 0.8rem;">Excluir Selecionados</button>
+            <button class="btn" onclick="App.Actions.clearSelection()"
+                style="height: 36px; padding: 0 16px; font-size: 0.8rem; background: rgba(255,255,255,0.05)">Cancelar</button>
+        </div>
+
         <div class="transactions-card glass">
             <div class="t-header" id="table-header">
+                <div class="select-col">
+                    <input type="checkbox" id="select-all" class="checkbox-custom"
+                        onclick="App.Actions.toggleAll(this)">
+                </div>
                 <div onclick="App.Actions.sortBy('desc')" data-col="desc">Descrição <span class="sort-icon">↕</span>
                 </div>
                 <div onclick="App.Actions.sortBy('categoria')" data-col="categoria">Categoria <span
@@ -592,7 +640,8 @@
                 editingId: null,
                 sort: { col: null, dir: 'desc' },
                 dashboardOrder: ['investido', 'recebido', 'lucro'],
-                history: []
+                history: [],
+                selectedIds: new Set()
             },
 
             Utils: {
@@ -743,67 +792,68 @@
 
                 renderTable: () => {
                     const list = document.getElementById('lista-transacoes');
+                    if (!list) return;
+
                     const fType = document.getElementById('filtro-tipo').value;
                     const fCat = document.getElementById('filtro-categoria').value;
-                    const fBusca = document.getElementById('filtro-busca').value.toLowerCase().trim();
+                    const fBusca = (document.getElementById('filtro-busca').value || "").toLowerCase().trim();
                     const searchTerms = fBusca.split(' ').filter(x => x);
 
-                    const filtered = App.State.data.filter(t => {
-                        if (t.kitParentId) return false;
+                    // 1. Pré-processamento: Mapear filhos e calcular totais (O(N))
+                    const dataWithMeta = App.State.data.map(t => {
+                        const kids = App.State.data.filter(c => String(c.kitParentId) === String(t.id));
+                        const kitInitialCusto = parseFloat(t.custo) || 0;
+                        const kitInitialReceita = parseFloat(t.valor) || 0;
+                        const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
+                        const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                        const bonusExtra = parseFloat(t.receita) || 0;
+
+                        const totalCusto = kitInitialCusto + kidsCusto;
+                        const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
+
+                        return {
+                            ...t,
+                            _children: kids,
+                            _totalCusto: totalCusto,
+                            _totalReceita: totalReceita,
+                            _saldo: totalReceita - totalCusto
+                        };
+                    });
+
+                    const allIds = new Set(App.State.data.map(x => String(x.id)));
+
+                    // 2. Filtragem
+                    const filtered = dataWithMeta.filter(t => {
+                        // Mostrar apenas se for root (sem kitParentId) OU se o pai não existe (órfão)
+                        const hasParent = t.kitParentId && t.kitParentId !== "null" && t.kitParentId !== "";
+                        const parentExists = hasParent && allIds.has(String(t.kitParentId));
+
+                        if (hasParent && parentExists) return false;
+
                         if (fType === 'kits' && t.tipo !== 'kit') return false;
                         if (fType === 'avulsos' && t.tipo === 'kit') return false;
                         if (fCat !== 'Todos' && t.categoria !== fCat) return false;
 
-
                         if (searchTerms.length > 0) {
                             const match = (txt) => searchTerms.every(term => (txt || '').toLowerCase().includes(term));
                             const selfMatch = match(t.desc) || match(t.categoria);
-                            let childMatch = false;
-
-                            if (t.tipo === 'kit') {
-                                const children = App.State.data.filter(x => x.kitParentId == t.id);
-                                childMatch = children.some(c => match(c.desc) || match(c.categoria));
-                            }
-
+                            const childMatch = t.tipo === 'kit' && t._children.some(c => match(c.desc) || match(c.categoria));
                             if (!selfMatch && !childMatch) return false;
                         }
 
                         return true;
                     });
 
-
+                    // 3. Ordenação (Usa metadados pré-calculados)
                     const s = App.State.sort;
-                    // Ordenação Padrão: Data Decrescente (Mais recentes primeiro)
                     const sortCol = s.col || 'data';
                     const sortDir = s.col ? s.dir : 'desc';
 
                     filtered.sort((a, b) => {
                         let valA, valB;
-                        const getTotals = (x) => {
-                            const kids = App.State.data.filter(c => String(c.kitParentId) === String(x.id));
-                            const kitInitialCusto = parseFloat(x.custo) || 0;
-                            const kitInitialReceita = parseFloat(x.valor) || 0;
-                            const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
-                            const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-                            const bonusExtra = parseFloat(x.receita) || 0;
-
-                            const totalCusto = kitInitialCusto + kidsCusto;
-                            const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
-
-                            return {
-                                custo: totalCusto,
-                                receita: totalReceita,
-                                saldo: totalReceita - totalCusto
-                            };
-                        };
-
-                        if (sortCol === 'saldo') {
-                            valA = getTotals(a).saldo;
-                            valB = getTotals(b).saldo;
-                        } else if (sortCol === 'custo') {
-                            valA = getTotals(a).custo;
-                            valB = getTotals(b).custo;
-                        } else if (sortCol === 'data') {
+                        if (sortCol === 'saldo') { valA = a._saldo; valB = b._saldo; }
+                        else if (sortCol === 'custo') { valA = a._totalCusto; valB = b._totalCusto; }
+                        else if (sortCol === 'data') {
                             valA = new Date(a.data || 0).getTime();
                             valB = new Date(b.data || 0).getTime();
                         } else {
@@ -819,30 +869,16 @@
 
                     list.innerHTML = filtered.map(t => {
                         const isKit = t.tipo === 'kit';
-                        const children = isKit ? App.State.data.filter(x => x.kitParentId == t.id) : [];
+                        const children = t._children;
                         const itemsCount = children.filter(c => c.tipo !== 'separator').length;
-
-                        const getTotals = (x, kids) => {
-                            const kitInitialCusto = parseFloat(x.custo) || 0;
-                            const kitInitialReceita = parseFloat(x.valor) || 0;
-                            const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
-                            const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-                            const bonusExtra = parseFloat(x.receita) || 0;
-
-                            const totalCusto = kitInitialCusto + kidsCusto;
-                            const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
-
-                            return {
-                                custo: totalCusto,
-                                saldo: totalReceita - totalCusto
-                            };
-                        };
-
-                        const totals = getTotals(t, children);
+                        const totals = { custo: t._totalCusto, saldo: t._saldo };
 
                         return `
                             <div class="row-group">
                                 <div class="t-row ${isKit ? 'row-kit' : ''}" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${t.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${t.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                    <div class="select-col">
+                                        <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${t.id}" ${App.State.selectedIds.has(String(t.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect('${t.id}')">
+                                    </div>
                                     <div style="display:flex; align-items:center; gap:8px">
                                         ${isKit ? '<button class="btn-toggle" onclick="this.closest(\'.row-group\').classList.toggle(\'open\')">▶</button>' : ''}
                                         <span style="font-weight:600">${t.desc}</span>
@@ -862,7 +898,10 @@
                                     <div class="sub-row-container">
                                         ${children.map(c => {
                             if (c.tipo === 'separator') {
-                                return `<div class="t-row" style="grid-template-columns: 1fr auto; padding: 8px 48px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05)" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                return `<div class="t-row" style="grid-template-columns: 40px 1fr auto; padding: 8px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05)" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                            <div class="select-col">
+                                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect('${c.id}')">
+                                                            </div>
                                                             <div style="text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
                                                                 <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
                                                              </div>
@@ -873,8 +912,11 @@
                                                          </div>`;
                             }
                             return `
-                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8; grid-template-columns: 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
-                                                 <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left:48px; display:flex; align-items:center; gap:8px">
+                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8; grid-template-columns: 40px 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                 <div class="select-col">
+                                                     <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect('${c.id}')">
+                                                 </div>
+                                                 <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left:8px; display:flex; align-items:center; gap:8px">
                                                      <span style="opacity:0.5">↳</span> ${c.desc}
                                                   </div>
                                                   <div>${c.categoria || '-'}</div><div>R$ ${App.Utils.formatCurrency(c.custo)}</div>
@@ -955,6 +997,19 @@
                 toggleSearch: (el) => {
                     el.classList.add('active');
                     document.getElementById('filtro-busca').focus();
+                },
+
+                updateBulkActions: () => {
+                    const bar = document.getElementById('bulk-actions');
+                    const countEl = document.getElementById('bulk-count');
+                    const count = App.State.selectedIds.size;
+
+                    if (count > 0) {
+                        bar.style.display = 'flex';
+                        countEl.innerText = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'}`;
+                    } else {
+                        bar.style.display = 'none';
+                    }
                 }
             },
 
@@ -999,7 +1054,7 @@
                         App.Data.save(); App.UI.resetForms();
                     } else {
                         App.Data.add(item);
-                        salvarVendaNoFirebase(item);
+                        // removido salvarVendaNoFirebase(item) duplicado
                     }
                 },
 
@@ -1165,6 +1220,55 @@
                 toggleSearch: (el) => {
                     el.classList.add('active');
                     document.getElementById('filtro-busca').focus();
+                },
+
+                toggleSelect: (id) => {
+                    if (App.State.selectedIds.has(String(id))) {
+                        App.State.selectedIds.delete(String(id));
+                    } else {
+                        App.State.selectedIds.add(String(id));
+                    }
+                    App.UI.updateBulkActions();
+                },
+
+                toggleAll: (checkbox) => {
+                    const rows = document.querySelectorAll('.row-checkbox');
+                    App.State.selectedIds.clear();
+                    rows.forEach(cb => {
+                        cb.checked = checkbox.checked;
+                        if (checkbox.checked) App.State.selectedIds.add(String(cb.dataset.id));
+                    });
+                    App.UI.updateBulkActions();
+                },
+
+                clearSelection: () => {
+                    App.State.selectedIds.clear();
+                    const allCb = document.getElementById('select-all');
+                    if (allCb) allCb.checked = false;
+                    App.UI.render();
+                },
+
+                bulkDelete: async () => {
+                    const idsCount = App.State.selectedIds.size;
+                    if (idsCount === 0) return;
+                    if (!confirm(`Deseja excluir permanentemente ${idsCount} itens?`)) return;
+
+                    App.Utils.toast(`Excluindo ${idsCount} itens...`, "info");
+
+                    const idsToRemove = Array.from(App.State.selectedIds);
+
+                    // Exclusão local e nuvem
+                    for (const id of idsToRemove) {
+                        if (window.removerVendaDoFirebase) {
+                            await window.removerVendaDoFirebase(id);
+                        }
+                    }
+
+                    App.State.data = App.State.data.filter(x => !App.State.selectedIds.has(String(x.id)));
+                    App.State.selectedIds.clear();
+
+                    App.Data.save();
+                    App.Utils.toast(`${idsCount} itens removidos com sucesso!`, "success");
                 }
             }
         };
@@ -1223,7 +1327,16 @@
         // ======= FUNÇÕES DE SINCRONIZAÇÃO CRUD (Create, Read, Update, Delete) =======
 
         // 1. SALVAR (Create)
+        const activeUploads = new Set();
         async function salvarVendaNoFirebase(dadosDaVenda) {
+            // Travas de Segurança:
+            // 1. Já tem ID de servidor? Ignora.
+            if (typeof dadosDaVenda.id === 'string' && dadosDaVenda.id.length > 5) return;
+            // 2. Já está sendo enviado agora? Ignora.
+            if (activeUploads.has(dadosDaVenda.id)) return;
+
+            activeUploads.add(dadosDaVenda.id);
+
             try {
                 // Remove o ID temporário gerado localmente antes de enviar
                 const { id, ...dadosParaSalvar } = dadosDaVenda;
@@ -1252,6 +1365,8 @@
             } catch (e) {
                 console.error("Erro ao salvar na nuvem:", e);
                 App.Utils.toast("Erro de conexão (Salvar)", "error");
+            } finally {
+                activeUploads.delete(dadosDaVenda.id);
             }
         }
 
@@ -1417,7 +1532,6 @@
                     if (cMatch) {
                         cloudProcessedIds.add(String(cMatch.id));
 
-                        // Resolução de Zeros/Divergências (Vence o que tiver valor maior de seguro)
                         const cCompleto = (cMatch.valor > 0 || cMatch.custo > 0);
                         const lCompleto = (lItem.valor > 0 || lItem.custo > 0);
 
@@ -1427,19 +1541,19 @@
                             finalItem = { ...lItem, id: cMatch.id };
                             updatesToCloud.push({ id: cMatch.id, data: finalItem });
                         } else {
-                            lItem.id = cMatch.id; // Alinha ID local
+                            lItem.id = cMatch.id;
                         }
                         finalItems.push(finalItem);
                     } else {
                         // Item Local SEM correspondente na nuvem
                         const isServerId = (typeof lItem.id === 'string' && lItem.id.length > 5);
 
-                        // Segurança: Se for ID de servidor mas sumiu da nuvem -> FOI DELETADO em outro lugar
                         if (isServerId && !cloudIsSuspiciouslyEmpty) {
                             console.log(`[Sync] Removendo excluído: ${lItem.desc}`);
-                            continue; // Não adiciona ao finalItems
+                            continue;
                         } else {
-                            // É um item novo local (Upload)
+                            // Se for órfão ou novo, garante que kitParentId não é "null" string
+                            if (lItem.kitParentId === "null") lItem.kitParentId = null;
                             finalItems.push(lItem);
                             uploadsToCloud.push(lItem);
                         }

@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão Vendas & Hardware v3.0</title>
+    <style>
+        :root {
+            --bg-body: #0a0f1d;
+            --bg-glass: rgba(30, 41, 59, 0.7);
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.4);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --purple: #a855f7;
+            --border-radius: 16px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0a0f1d);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 24px;
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .glass {
+            background: var(--bg-glass);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header {
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-left: 4px solid var(--stat-color, var(--accent-primary));
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .smart-form-container {
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 20px;
+        }
+
+        .type-selector {
+            display: flex;
+            background: var(--bg-input);
+            padding: 4px;
+            border-radius: 12px;
+            gap: 4px;
+        }
+
+        .type-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .type-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding-left: 4px;
+        }
+
+        input,
+        select {
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: white;
+            height: 44px;
+            border-radius: 10px;
+            padding: 0 16px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 0 10px;
+            transition: var(--transition);
+            width: 44px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .search-box.active {
+            width: 250px;
+            border-color: var(--accent-primary);
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            margin-left: 8px;
+            color: white;
+            outline: none;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            box-shadow: none !important;
+        }
+
+        .search-input:focus {
+            box-shadow: none !important;
+        }
+
+        .search-box.active .search-input {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 0 24px;
+            height: 46px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), #2563eb);
+            color: white;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            width: 100%;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #b91c1c);
+            color: white;
+        }
+
+        .toolbar {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 20px;
+        }
+
+        .backup-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .transactions-card {
+            overflow: hidden;
+        }
+
+        .t-header,
+        .t-row {
+            display: grid;
+            grid-template-columns: 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
+            padding: 14px 24px;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .t-header {
+            background: rgba(255, 255, 255, 0.02);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0 24px;
+            padding: 0 24px;
+        }
+
+        .t-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .t-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-venda {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-gasto {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-kit {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-primary);
+        }
+
+        .badge-troca {
+            background: rgba(168, 85, 247, 0.1);
+            color: var(--purple);
+        }
+
+        .row-group.open .sub-row-container {
+            display: block;
+        }
+
+        .sub-row-container {
+            display: none;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 5px 0 10px 0;
+        }
+
+        .btn-toggle {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 0.7rem;
+        }
+
+        .t-row[draggable="true"] {
+            cursor: grab;
+        }
+
+        .t-row.dragging {
+            opacity: 0.4;
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .row-group.open .btn-toggle {
+            transform: rotate(90deg);
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 10px;
+            background: #1e293b;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+            border-left: 4px solid var(--success);
+        }
+
+        .t-header div {
+            padding: 14px 4px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .t-header div:hover {
+            color: white;
+        }
+
+        .sort-icon {
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .t-header div:hover .sort-icon,
+        .sort-active .sort-icon {
+            opacity: 1;
+        }
+
+        .sort-active .sort-icon {
+            color: var(--accent-primary);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="page-header glass">
+            <div>
+                <h1>Gestão Vendas & Hardware</h1>
+                <p class="subtitle" id="real-time-clock">--/--/---- --:--:--</p>
+            </div>
+            <div class="subtitle" style="font-weight: 700; color: var(--accent-primary)">v3.0 ULTRA</div>
+        </header>
+
+        <div class="dashboard-grid" id="dashboard-container"></div>
+
+        <div class="smart-form-container glass">
+            <div class="form-header">
+                <h2 style="margin:0; font-size:1.1rem; color:var(--text-secondary)">Nova Transação</h2>
+                <div class="type-selector">
+                    <button class="type-btn active" onclick="App.UI.setFormType('venda')" data-type="venda">🛍️
+                        Venda</button>
+                    <button class="type-btn" onclick="App.UI.setFormType('gasto')" data-type="gasto">💸 Despesa</button>
+                    <button class="type-btn" onclick="App.UI.setFormType('kit')" data-type="kit">📦 Lote/Kit</button>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="input-group" id="group-desc" style="grid-column: span 6">
+                    <label id="lbl-desc">Descrição do Item</label>
+                    <input type="text" id="reg-desc" placeholder="Ex: RTX 3060 Ti">
+                </div>
+                <div class="input-group" id="group-recebeu" style="grid-column: span 6; display:none">
+                    <label>Recebido na Troca</label>
+                    <input type="text" id="reg-recebeu" placeholder="Ex: GTX 1660 + R$ 200">
+                </div>
+                <div class="input-group" style="grid-column: span 3">
+                    <label>Categoria</label>
+                    <input type="text" id="reg-cat" list="sugestoes-cat" placeholder="Hardware">
+                </div>
+                <div class="input-group" style="grid-column: span 3">
+                    <label>Data</label>
+                    <input type="date" id="reg-data">
+                </div>
+
+                <div class="input-group" id="group-custo" style="grid-column: span 3">
+                    <label id="lbl-custo">Custo (R$)</label>
+                    <input type="number" id="reg-custo" placeholder="0.00" step="0.01">
+                </div>
+                <div class="input-group" id="group-valor" style="grid-column: span 3">
+                    <label id="lbl-valor">Venda (R$)</label>
+                    <input type="number" id="reg-valor" placeholder="0.00" step="0.01">
+                </div>
+                <div class="input-group" id="group-receita" style="grid-column: span 3; display:none">
+                    <label>Bônus/Receita Extra</label>
+                    <input type="number" id="reg-receita" placeholder="0.00">
+                </div>
+                <div class="input-group" id="group-volta" style="grid-column: span 3; display:none">
+                    <label>Volta em Dinheiro</label>
+                    <input type="number" id="reg-volta" placeholder="0.00">
+                </div>
+                <div class="input-group" id="group-kit-pai" style="grid-column: span 6">
+                    <label>Vincular a Projeto/Kit</label>
+                    <select id="reg-kit-pai">
+                        <option value="">-- Avulso --</option>
+                    </select>
+                </div>
+
+                <div style="grid-column: span 12; display: flex; gap: 12px; margin-top: 10px;">
+                    <button id="btn-main-action" class="btn btn-primary" onclick="App.Actions.submitForm()">Registrar
+                        Venda</button>
+                    <button id="btn-cancel-edit" class="btn" style="display:none; background:rgba(255,255,255,0.05)"
+                        onclick="App.UI.cancelEdit()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <datalist id="sugestoes-cat">
+            <option value="Hardware">
+            <option value="Periférico">
+            <option value="PC Gamer">
+            <option value="Serviço">
+        </datalist>
+
+        <div class="toolbar glass">
+            <div class="filter-controls">
+                <select id="filtro-tipo" onchange="App.UI.render()">
+                    <option value="todos">Tudo</option>
+                    <option value="kits">Kits/Projetos</option>
+                    <option value="avulsos">Avulsos</option>
+                </select>
+                <select id="filtro-categoria" onchange="App.UI.render()">
+                    <option value="Todos">Categorias</option>
+                </select>
+                <div class="search-box" onclick="App.UI.toggleSearch(this)">
+                    <span style="font-size: 1.2rem;">🔍</span>
+                    <input type="text" id="filtro-busca" class="search-input" placeholder="Buscar item..."
+                        onkeyup="App.UI.render()" onclick="event.stopPropagation()">
+                </div>
+            </div>
+            <div class="backup-controls" style="align-items:center;">
+                <button onclick="App.Actions.undo()" class="btn-icon" title="Desfazer (Ctrl+Z)"
+                    style="border-color:var(--accent-primary); color:var(--accent-primary)">↶</button>
+                <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
+                <button onclick="App.Actions.exportData()" class="btn-icon" title="Exportar Backup">💾</button>
+                <button onclick="document.getElementById('input-import').click()" class="btn-icon"
+                    title="Importar Backup">📂</button>
+                <input type="file" id="input-import" style="display:none" onchange="App.Actions.importData(this)">
+            </div>
+        </div>
+
+        <div class="transactions-card glass">
+            <div class="t-header" id="table-header">
+                <div onclick="App.Actions.sortBy('desc')" data-col="desc">Descrição <span class="sort-icon">↕</span>
+                </div>
+                <div onclick="App.Actions.sortBy('categoria')" data-col="categoria">Categoria <span
+                        class="sort-icon">↕</span></div>
+                <div onclick="App.Actions.sortBy('custo')" data-col="custo">Custo <span class="sort-icon">↕</span></div>
+                <div onclick="App.Actions.sortBy('saldo')" data-col="saldo">Valor/Saldo <span class="sort-icon">↕</span>
+                </div>
+                <div onclick="App.Actions.sortBy('tipo')" data-col="tipo">Tipo <span class="sort-icon">↕</span></div>
+                <div onclick="App.Actions.sortBy('data')" data-col="data">Data <span class="sort-icon">↕</span></div>
+                <div style="text-align:right; cursor:default; pointer-events:none">Ações</div>
+            </div>
+            <div id="lista-transacoes"></div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        const App = {
+            State: {
+                dbKey: 'hw_transacoes_v3',
+                data: [],
+                formType: 'venda',
+                editingId: null,
+                sort: { col: null, dir: 'desc' },
+                dashboardOrder: ['investido', 'recebido', 'lucro'],
+                history: []
+            },
+
+            Utils: {
+                formatCurrency: (v) => Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+                formatDate: (s) => {
+                    if (!s) return '-';
+                    try {
+                        const d = new Date(s + 'T12:00:00');
+                        return isNaN(d.getTime()) ? 'Data Inválida' : d.toLocaleDateString('pt-BR');
+                    } catch (e) { return 'Erro Data'; }
+                },
+                getToday: () => {
+                    const d = new Date();
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                },
+                generateId: () => Date.now(),
+                toast: (m, t = 'success') => {
+                    const c = document.getElementById('toast-container');
+                    const e = document.createElement('div');
+                    e.className = `toast ${t}`; e.innerText = m;
+                    c.appendChild(e); setTimeout(() => e.remove(), 4000);
+                }
+            },
+
+            Data: {
+                load: () => {
+                    try {
+                        App.State.data = JSON.parse(localStorage.getItem(App.State.dbKey) || '[]');
+                        const savedOrder = localStorage.getItem('hw_dashboard_order');
+                        if (savedOrder) {
+                            const parsed = JSON.parse(savedOrder);
+                            if (Array.isArray(parsed) && parsed.length > 0) App.State.dashboardOrder = parsed;
+                        }
+                    } catch (e) { console.error("Erro ao carregar dados", e); App.State.data = []; }
+                    App.UI.render();
+                },
+                save: (skipHistory = false) => {
+                    if (!skipHistory) {
+                        App.State.history.push(JSON.stringify(App.State.data));
+                        if (App.State.history.length > 30) App.State.history.shift();
+                    }
+                    localStorage.setItem(App.State.dbKey, JSON.stringify(App.State.data));
+                    App.UI.render();
+                },
+                add: (i) => {
+                    if (App.State.editingId) {
+                        const idx = App.State.data.findIndex(x => x.id == App.State.editingId);
+
+                        // Atualiza localmente
+                        App.State.data[idx] = { ...i, id: App.State.editingId };
+
+                        // Sincroniza Edição
+                        if (window.atualizarVendaNoFirebase) window.atualizarVendaNoFirebase(App.State.editingId, i);
+
+                        App.State.editingId = null;
+                    } else {
+                        App.State.data.unshift(i);
+
+                        // Sincroniza Criação
+                        if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(i);
+                    }
+                    App.Data.save(); App.UI.resetForms();
+                },
+                remove: (id) => {
+                    if (confirm("Remover?")) {
+                        // Sincroniza Exclusão
+                        if (window.removerVendaDoFirebase) window.removerVendaDoFirebase(id);
+
+                        App.State.data = App.State.data.filter(x => x.id != id && x.kitParentId != id);
+                        App.Data.save();
+                    }
+                },
+                clearAll: () => { if (confirm("Limpar TUDO?")) { App.State.data = []; App.Data.save(); } }
+            },
+
+            UI: {
+                setFormType: (t) => {
+                    App.State.formType = t;
+                    document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === t));
+                    const show = (id, types) => document.getElementById(id).style.display = types.includes(t) ? 'flex' : 'none';
+                    show('group-custo', ['venda', 'gasto', 'troca', 'kit']);
+                    show('group-valor', ['venda', 'troca', 'kit']);
+                    show('group-recebeu', ['troca']);
+                    show('group-receita', ['kit']);
+                    show('group-volta', ['troca']);
+                    show('group-kit-pai', ['venda', 'gasto', 'troca']);
+
+                    document.getElementById('lbl-custo').innerText = t === 'kit' ? 'Custo Inicial (R$)' : 'Custo (R$)';
+                    document.getElementById('lbl-valor').innerText = t === 'kit' ? 'Receita Final (R$)' : (t === 'troca' ? 'Sobra/Saldo (R$)' : 'Venda (R$)');
+
+                    const btn = document.getElementById('btn-main-action');
+                    btn.innerText = App.State.editingId ? 'Salvar Alterações' : 'Registrar ' + t.charAt(0).toUpperCase() + t.slice(1);
+                    btn.className = t === 'gasto' ? 'btn btn-danger' : 'btn btn-primary';
+                },
+
+                render: () => {
+                    try {
+                        App.UI.updateDashboard();
+                        App.UI.renderTable();
+                        App.UI.updateSelects();
+                        App.UI.updateFilters();
+                        App.UI.updateSortIndicators();
+                    } catch (e) {
+                        console.error("Erro de Renderização", e);
+                        App.Utils.toast("Erro ao atualizar tela", "error");
+                    }
+                },
+
+                updateDashboard: () => {
+                    const items = App.State.data || [];
+                    const income = items.reduce((a, t) => {
+                        const v = (t.tipo === 'venda' || t.tipo === 'troca' ? (parseFloat(t.valor) || 0) : (t.tipo === 'kit' ? (parseFloat(t.valor) || 0) + (parseFloat(t.receita) || 0) : 0));
+                        return a + (Math.abs(v) > 1e8 ? 0 : v);
+                    }, 0);
+                    const expenses = items.reduce((a, t) => {
+                        const v = (t.tipo === 'gasto' || t.tipo === 'venda' || t.tipo === 'troca' || t.tipo === 'kit' ? (parseFloat(t.custo) || 0) : 0);
+                        return a + (Math.abs(v) > 1e8 ? 0 : v);
+                    }, 0);
+
+                    const cards = {
+                        investido: { title: 'Total Investido', val: expenses, color: 'var(--danger)' },
+                        recebido: { title: 'Total Recebido', val: income, color: 'var(--success)' },
+                        lucro: { title: 'Lucro Estimado', val: income - expenses, color: 'var(--accent-primary)' }
+                    };
+
+                    const container = document.getElementById('dashboard-container');
+                    if (!container) return;
+
+
+                    let order = App.State.dashboardOrder || [];
+                    const defaults = ['investido', 'recebido', 'lucro'];
+                    if (order.length < 3) order = defaults;
+
+                    defaults.forEach(k => { if (!order.includes(k)) order.push(k); });
+
+                    container.innerHTML = order.map(key => {
+                        const c = cards[key];
+                        if (!c) return '';
+                        return `
+                        <div class="stat-card glass" id="card-${key}" draggable="true" style="--stat-color: ${c.color}; cursor:grab;" 
+                             data-key="${key}" ondragstart="App.Actions.onDragStart(event)" 
+                             ondragover="event.preventDefault()" ondrop="App.Actions.onDrop(event)">
+                            <div class="stat-label">${c.title}</div>
+                            <div class="stat-value">R$ ${App.Utils.formatCurrency(c.val)}</div>
+                        </div>`;
+                    }).join('');
+                },
+
+                renderTable: () => {
+                    const list = document.getElementById('lista-transacoes');
+                    const fType = document.getElementById('filtro-tipo').value;
+                    const fCat = document.getElementById('filtro-categoria').value;
+                    const fBusca = document.getElementById('filtro-busca').value.toLowerCase().trim();
+                    const searchTerms = fBusca.split(' ').filter(x => x);
+
+                    const filtered = App.State.data.filter(t => {
+                        if (t.kitParentId) return false;
+                        if (fType === 'kits' && t.tipo !== 'kit') return false;
+                        if (fType === 'avulsos' && t.tipo === 'kit') return false;
+                        if (fCat !== 'Todos' && t.categoria !== fCat) return false;
+
+
+                        if (searchTerms.length > 0) {
+                            const match = (txt) => searchTerms.every(term => (txt || '').toLowerCase().includes(term));
+                            const selfMatch = match(t.desc) || match(t.categoria);
+                            let childMatch = false;
+
+                            if (t.tipo === 'kit') {
+                                const children = App.State.data.filter(x => x.kitParentId == t.id);
+                                childMatch = children.some(c => match(c.desc) || match(c.categoria));
+                            }
+
+                            if (!selfMatch && !childMatch) return false;
+                        }
+
+                        return true;
+                    });
+
+
+                    const s = App.State.sort;
+                    if (s.col) {
+                        filtered.sort((a, b) => {
+                            let valA, valB;
+                            const getTotals = (x) => {
+                                const kids = App.State.data.filter(c => c.kitParentId == x.id);
+                                const kitInitialCusto = parseFloat(x.custo) || 0;
+                                const kitInitialReceita = parseFloat(x.valor) || 0;
+                                const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
+                                const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                                const bonusExtra = parseFloat(x.receita) || 0;
+
+                                const totalCusto = kitInitialCusto + kidsCusto;
+                                const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
+
+                                return {
+                                    custo: totalCusto,
+                                    receita: totalReceita,
+                                    saldo: totalReceita - totalCusto
+                                };
+                            };
+
+                            if (s.col === 'saldo') {
+                                valA = getTotals(a).saldo;
+                                valB = getTotals(b).saldo;
+                            } else if (s.col === 'custo') {
+                                valA = getTotals(a).custo;
+                                valB = getTotals(b).custo;
+                            } else if (s.col === 'data') {
+                                valA = new Date(a.data || 0).getTime();
+                                valB = new Date(b.data || 0).getTime();
+                            } else {
+                                valA = (a[s.col] || '').toString().toLowerCase();
+                                valB = (b[s.col] || '').toString().toLowerCase();
+                            }
+
+                            if (typeof valA === 'number') {
+                                return s.dir === 'asc' ? valA - valB : valB - valA;
+                            }
+                            return s.dir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                        });
+                    }
+
+                    list.innerHTML = filtered.map(t => {
+                        const isKit = t.tipo === 'kit';
+                        const children = isKit ? App.State.data.filter(x => x.kitParentId == t.id) : [];
+                        const itemsCount = children.filter(c => c.tipo !== 'separator').length;
+
+                        const getTotals = (x, kids) => {
+                            const kitInitialCusto = parseFloat(x.custo) || 0;
+                            const kitInitialReceita = parseFloat(x.valor) || 0;
+                            const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
+                            const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                            const bonusExtra = parseFloat(x.receita) || 0;
+
+                            const totalCusto = kitInitialCusto + kidsCusto;
+                            const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
+
+                            return {
+                                custo: totalCusto,
+                                saldo: totalReceita - totalCusto
+                            };
+                        };
+
+                        const totals = getTotals(t, children);
+
+                        return `
+                            <div class="row-group">
+                                <div class="t-row ${isKit ? 'row-kit' : ''}" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${t.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${t.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                    <div style="display:flex; align-items:center; gap:8px">
+                                        ${isKit ? '<button class="btn-toggle" onclick="this.closest(\'.row-group\').classList.toggle(\'open\')">▶</button>' : ''}
+                                        <span style="font-weight:600">${t.desc}</span>
+                                        ${isKit ? `<span style="font-size:0.7rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:10px; opacity:0.6">${itemsCount} itens</span>` : ''}
+                                    </div>
+                                    <div>${t.categoria || '-'}</div>
+                                    <div>R$ ${App.Utils.formatCurrency(totals.custo)}</div>
+                                    <div style="color:${totals.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">R$ ${App.Utils.formatCurrency(totals.saldo)}</div>
+                                    <div><span class="badge badge-${t.tipo}">${t.tipo}</span></div>
+                                    <div>${App.Utils.formatDate(t.data)}</div>
+                                    <div style="text-align:right; display:flex; gap:4px; justify-content:flex-end">
+                                        <button class="btn-icon" onclick="App.Actions.edit('${t.id}')">✎</button>
+                                        <button class="btn-icon" onclick="App.Data.remove('${t.id}')">×</button>
+                                    </div>
+                                </div>
+                                ${isKit ? `
+                                    <div class="sub-row-container">
+                                        ${children.map(c => {
+                            if (c.tipo === 'separator') {
+                                return `<div class="t-row" style="grid-template-columns: 1fr auto; padding: 8px 48px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05)" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                            <div style="text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
+                                                                <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
+                                                             </div>
+                                                             <div style="display:flex; gap:4px">
+                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.editSection('${c.id}')">✎</button>
+                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
+                                                             </div>
+                                                         </div>`;
+                            }
+                            return `
+                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8; grid-template-columns: 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                 <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left:48px; display:flex; align-items:center; gap:8px">
+                                                     <span style="opacity:0.5">↳</span> ${c.desc}
+                                                  </div>
+                                                  <div>${c.categoria || '-'}</div><div>R$ ${App.Utils.formatCurrency(c.custo)}</div>
+                                                  <div style="color:${(c.tipo === 'venda' || c.tipo === 'troca') ? 'var(--success)' : 'var(--danger)'}">
+                                                      R$ ${App.Utils.formatCurrency((c.tipo === 'venda' || c.tipo === 'troca') ? c.valor : c.custo)}
+                                                  </div>
+                                                  <div><span class="badge badge-${c.tipo}">${c.tipo}</span></div>
+                                                  <div>${App.Utils.formatDate(c.data)}</div>
+                                                  <div style="text-align:right; display:flex; gap:4px; justify-content:flex-end">
+                                                      <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.edit('${c.id}')">✎</button>
+                                                      <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
+                                                  </div>
+                                              </div>`;
+                        }).join('')}
+                                        <div style="padding: 10px 48px; display:flex; gap:10px">
+                                            <button class="btn-sm" onclick="App.Actions.addSection('${t.id}')">+ Adicionar Sessão</button>
+                                            <button class="btn-sm" onclick="App.Actions.addQuickItem('${t.id}')">+ Adicionar Item</button>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                },
+
+                updateSelects: () => {
+                    const kits = App.State.data.filter(t => t.tipo === 'kit');
+                    const sel = document.getElementById('reg-kit-pai');
+                    const cur = sel.value;
+                    sel.innerHTML = '<option value="">-- Avulso --</option>' + kits.map(k => `<option value="${k.id}">${k.desc}</option>`).join('');
+                    sel.value = cur;
+                },
+
+                updateFilters: () => {
+                    const cats = [...new Set(App.State.data.map(t => t.categoria).filter(c => c && c !== '-'))];
+                    const sel = document.getElementById('filtro-categoria');
+                    const cur = sel.value;
+                    sel.innerHTML = '<option value="Todos">Categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+                    sel.value = cur;
+                },
+
+                resetForms: () => {
+                    document.getElementById('reg-desc').value = '';
+                    document.getElementById('reg-cat').value = '';
+                    document.getElementById('reg-data').value = App.Utils.getToday();
+                    document.getElementById('reg-valor').value = '';
+                    document.getElementById('reg-custo').value = '';
+                    document.getElementById('reg-receita').value = '';
+                    document.getElementById('reg-volta').value = '';
+                    document.getElementById('reg-recebeu').value = '';
+                    document.getElementById('reg-kit-pai').value = '';
+
+                    App.State.editingId = null;
+                    const cancelBtn = document.getElementById('btn-cancel-edit');
+                    if (cancelBtn) cancelBtn.style.display = 'none';
+                    App.UI.setFormType('venda');
+                },
+
+                cancelEdit: () => {
+                    App.UI.resetForms();
+                    App.Utils.toast("Edição cancelada", "info");
+                },
+
+                updateSortIndicators: () => {
+                    const s = App.State.sort;
+                    document.querySelectorAll('#table-header div[data-col]').forEach(el => {
+                        const col = el.dataset.col;
+                        el.classList.toggle('sort-active', col === s.col);
+                        const icon = el.querySelector('.sort-icon');
+                        if (col === s.col) {
+                            icon.innerText = s.dir === 'asc' ? '▲' : '▼';
+                        } else {
+                            icon.innerText = '↕';
+                        }
+                    });
+                },
+
+                toggleSearch: (el) => {
+                    el.classList.add('active');
+                    document.getElementById('filtro-busca').focus();
+                }
+            },
+
+            Actions: {
+                submitForm: () => {
+                    const get = (id) => document.getElementById(id).value;
+                    const parse = (id) => {
+                        const val = get(id).replace(',', '.');
+                        return parseFloat(val) || 0;
+                    };
+                    const type = App.State.formType;
+                    const desc = get('reg-desc');
+                    const data = get('reg-data');
+                    if (!desc || !data) return App.Utils.toast("Preencha Descrição e Data", "error");
+
+                    const kitPai = get('reg-kit-pai');
+                    const item = {
+                        id: App.Utils.generateId(),
+                        desc, data, categoria: get('reg-cat'),
+                        valor: parse('reg-valor'),
+                        custo: parse('reg-custo'),
+                        receita: parse('reg-receita'),
+                        tipo: type,
+                        kitParentId: (type === 'venda' || type === 'gasto' || type === 'troca') ? kitPai : null
+                    };
+
+                    if (type === 'troca' && !App.State.editingId) {
+                        const kid = item.id;
+                        const vta = parseFloat(get('reg-volta')) || 0;
+                        const descRec = get('reg-recebeu');
+                        if (kitPai) {
+                            App.State.data.unshift({ id: kid + 3, desc: descRec, categoria: 'Hardware', valor: 0, custo: 0, tipo: 'venda', data, kitParentId: kitPai });
+                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc}`, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kitPai });
+                            if (vta > 0) App.State.data.unshift({ id: kid + 1, desc: 'Volta: ' + desc, categoria: 'Financeiro', valor: vta, custo: 0, tipo: 'venda', data, kitParentId: kitPai });
+                            App.State.data.unshift({ id: kid, desc: `TROCA: ${desc} ↔ ${descRec}`, tipo: 'separator', data, kitParentId: kitPai });
+                        } else {
+                            App.State.data.unshift({ id: kid + 3, desc: descRec, categoria: 'Hardware', valor: 0, custo: 0, tipo: 'venda', data, kitParentId: kid });
+                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc}`, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kid });
+                            if (vta > 0) App.State.data.unshift({ id: kid + 1, desc: 'Volta: ' + desc, categoria: 'Financeiro', valor: vta, custo: 0, tipo: 'venda', data, kitParentId: kid });
+                            App.State.data.unshift({ id: kid, desc: `Troca: ${desc} ↔ ${descRec}`, tipo: 'kit', receita: 0, data, categoria: item.categoria });
+                        }
+                        App.Data.save(); App.UI.resetForms();
+                    } else {
+                        App.Data.add(item);
+                        salvarVendaNoFirebase(item);
+                    }
+                },
+
+                edit: (id) => {
+                    const t = App.State.data.find(x => x.id == id);
+                    if (!t) return;
+                    App.State.editingId = id;
+                    App.UI.setFormType(t.tipo || 'venda');
+
+                    const set = (id, v) => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = v === 0 ? 0 : (v || '');
+                    };
+                    set('reg-desc', t.desc); set('reg-cat', t.categoria); set('reg-data', t.data);
+                    set('reg-valor', t.valor); set('reg-custo', t.custo); set('reg-receita', t.receita);
+                    set('reg-kit-pai', t.kitParentId || '');
+
+                    document.getElementById('btn-cancel-edit').style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
+                addSection: (kitId) => {
+                    const desc = prompt("Nome da Sessão (Ex: ENTREGUE, RECEBIDO):");
+                    if (!desc) return;
+                    App.State.data.unshift({ id: App.Utils.generateId(), desc, tipo: 'separator', data: App.Utils.getToday(), kitParentId: kitId });
+                    App.Data.save();
+                },
+
+                editSection: (id) => {
+                    const t = App.State.data.find(x => x.id === id);
+                    if (!t) return;
+                    const newDesc = prompt("Novo nome da sessão:", t.desc);
+                    if (newDesc) {
+                        t.desc = newDesc;
+                        App.Data.save();
+                    }
+                },
+
+                addQuickItem: (kitId) => {
+                    const desc = prompt("Descrição do item:");
+                    if (!desc) return;
+
+                    const categoria = prompt("Categoria:", "Hardware") || "Hardware";
+
+                    const parseInput = (str) => parseFloat((str || '0').replace(',', '.')) || 0;
+
+                    const custoStr = prompt("Custo (R$):", "0");
+                    const custo = parseInput(custoStr);
+
+                    const valorStr = prompt("Venda (R$):", "0");
+                    const valor = parseInput(valorStr);
+
+                    App.State.data.unshift({ id: App.Utils.generateId(), desc, categoria, valor: valor, custo: custo, tipo: 'venda', data: App.Utils.getToday(), kitParentId: kitId });
+                    App.Data.save();
+                },
+
+                onDragStart: (e) => { e.dataTransfer.setData('key', e.currentTarget.dataset.key); },
+                onDrop: (e) => {
+                    e.preventDefault();
+                    const fromKey = e.dataTransfer.getData('key');
+                    const toKey = e.currentTarget.dataset.key;
+                    if (fromKey === toKey) return;
+
+                    const order = [...App.State.dashboardOrder];
+                    const fromIdx = order.indexOf(fromKey);
+                    const toIdx = order.indexOf(toKey);
+                    order.splice(fromIdx, 1);
+                    order.splice(toIdx, 0, fromKey);
+
+                    App.State.dashboardOrder = order;
+                    localStorage.setItem('hw_dashboard_order', JSON.stringify(order));
+                    App.UI.updateDashboard();
+                },
+
+                onRowDragStart: (e, id) => {
+                    e.dataTransfer.setData('rowId', id);
+                    e.currentTarget.classList.add('dragging');
+                },
+                onRowDragEnd: (e) => {
+                    e.currentTarget.classList.remove('dragging');
+                },
+                onRowDrop: (e, targetId) => {
+                    e.preventDefault();
+                    const fromId = parseInt(e.dataTransfer.getData('rowId'));
+                    if (fromId === targetId) return;
+
+                    const data = [...App.State.data];
+                    const fromIdx = data.findIndex(x => x.id === fromId);
+                    const toIdx = data.findIndex(x => x.id === targetId);
+                    if (fromIdx === -1 || toIdx === -1) return;
+
+                    const fromItem = data[fromIdx];
+                    const targetItem = data[toIdx];
+
+
+                    if (!fromItem.kitParentId) {
+                        App.Utils.toast("Arraste permitido apenas para itens dentro de Kits", "info");
+                        return;
+                    }
+
+
+                    const isParent = (targetItem.id == fromItem.kitParentId);
+                    const isSibling = (targetItem.kitParentId == fromItem.kitParentId);
+
+                    if (!isParent && !isSibling) {
+                        App.Utils.toast("Arraste permitido apenas dentro do mesmo Kit", "info");
+                        return;
+                    }
+
+                    // Reordena no array
+                    const [item] = data.splice(fromIdx, 1);
+                    const newToIdx = data.findIndex(x => x.id === targetId);
+
+
+                    if (isParent) {
+                        const firstChildIdx = data.findIndex(x => x.kitParentId === targetId);
+                        if (firstChildIdx !== -1) data.splice(firstChildIdx, 0, item);
+                        else data.splice(newToIdx + 1, 0, item);
+                    } else {
+
+                        if (fromIdx < toIdx) {
+                            data.splice(newToIdx + 1, 0, item);
+                        } else {
+                            data.splice(newToIdx, 0, item);
+                        }
+                    }
+
+                    App.State.data = data;
+                    App.State.sort.col = null;
+                    App.Data.save();
+                },
+
+                undo: () => {
+                    if (App.State.history.length === 0) return App.Utils.toast("Nada para desfazer", "info");
+                    const prev = App.State.history.pop();
+                    App.State.data = JSON.parse(prev);
+                    App.Data.save(true);
+                    App.Utils.toast("Ação desfeita", "info");
+                },
+
+                exportData: () => {
+                    const b = new Blob([JSON.stringify(App.State.data)], { type: 'application/json' });
+                    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+                    a.download = `backup_${App.Utils.getToday()}.json`; a.click();
+                },
+                importData: (i) => {
+                    const f = i.files[0]; if (!f) return;
+                    const r = new FileReader(); r.onload = (e) => {
+                        App.State.data = JSON.parse(e.target.result); App.Data.save();
+                    }; r.readAsText(f);
+                },
+
+                sortBy: (col) => {
+                    if (App.State.sort.col === col) {
+                        App.State.sort.dir = App.State.sort.dir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        App.State.sort.col = col;
+                        App.State.sort.dir = 'asc';
+                    }
+                    App.UI.render();
+                },
+
+                toggleSearch: (el) => {
+                    el.classList.add('active');
+                    document.getElementById('filtro-busca').focus();
+                }
+            }
+        };
+
+        window.onload = () => {
+            App.Data.load();
+            App.UI.resetForms();
+
+            window.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+                    e.preventDefault();
+                    App.Actions.undo();
+                }
+            });
+
+            setInterval(() => {
+                const el = document.getElementById('real-time-clock');
+                if (el) el.innerText = new Date().toLocaleString('pt-BR');
+            }, 1000);
+        };
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpHlbH7m66pm0E_GA-faf-zKor2lq49Gk",
+            authDomain: "cash-szx777.firebaseapp.com",
+            projectId: "cash-szx777",
+            storageBucket: "cash-szx777.firebasestorage.app",
+            messagingSenderId: "872218893277",
+            appId: "1:872218893277:web:8f4647d821a61ac0437434",
+            measurementId: "G-956KPEZ4PH"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function testarConexao() {
+            try {
+                const docRef = await addDoc(collection(db, "teste_vendas"), {
+                    item: "Peça de Teste",
+                    valor: 50.00,
+                    data: new Date()
+                });
+                console.log("Sucesso! Documento salvo com ID: ", docRef.id);
+                alert("Conexão com Firebase funcionando! Verifique o painel do Firestore.");
+            } catch (e) {
+                console.error("Erro ao salvar: ", e);
+                alert("Erro na conexão. Verifique se o Firestore está em 'Modo de Teste'.");
+            }
+        }
+
+        window.testarConexao = testarConexao;
+        // Função para salvar uma venda REAL vinda do seu formulário
+        // ======= FUNÇÕES DE SINCRONIZAÇÃO CRUD (Create, Read, Update, Delete) =======
+
+        // 1. SALVAR (Create)
+        async function salvarVendaNoFirebase(dadosDaVenda) {
+            try {
+                // Remove o ID temporário gerado localmente antes de enviar
+                const { id, ...dadosParaSalvar } = dadosDaVenda;
+
+                const docRef = await addDoc(collection(db, "vendas"), {
+                    descricao: dadosParaSalvar.desc || "Item sem nome",
+                    custo: Number(dadosParaSalvar.custo || 0),
+                    valor: Number(dadosParaSalvar.valor || 0),
+                    categoria: dadosParaSalvar.categoria || "Geral",
+                    tipo: dadosParaSalvar.tipo || "venda",
+                    data: dadosParaSalvar.data,
+                    kitParentId: dadosParaSalvar.kitParentId || null,
+                    updatedAt: new Date()
+                });
+
+                console.log("Item salvo na nuvem. ID Firebase:", docRef.id);
+
+                // IMPORTANTE: Atualiza o item local com o ID real do Firebase
+                // Isso permite que o usuário edite/exclua este item imediatamente sem recarregar
+                const itemLocal = App.State.data.find(x => x.id === dadosDaVenda.id);
+                if (itemLocal) {
+                    itemLocal.id = docRef.id; // Substitui ID timestamp pelo ID alfanumérico
+                    App.Data.save(true); // Salva localmente com o novo ID
+                }
+
+            } catch (e) {
+                console.error("Erro ao salvar na nuvem:", e);
+                App.Utils.toast("Erro de conexão (Salvar)", "error");
+            }
+        }
+
+        // 2. ATUALIZAR (Update)
+        async function atualizarVendaNoFirebase(id, dadosDaVenda) {
+            // Se o ID for numérico (timestamp), o item ainda não sincronizou ou é local antigo.
+            // Nesse caso, não dá pra atualizar no Firebase direto pelo ID.
+            if (typeof id === 'number' || !id) return;
+
+            try {
+                const docRef = doc(db, "vendas", id);
+                await updateDoc(docRef, {
+                    descricao: dadosDaVenda.desc,
+                    custo: Number(dadosDaVenda.custo || 0),
+                    valor: Number(dadosDaVenda.valor || 0),
+                    categoria: dadosDaVenda.categoria,
+                    tipo: dadosDaVenda.tipo,
+                    data: dadosDaVenda.data,
+                    updatedAt: new Date()
+                });
+                console.log("Item atualizado na nuvem:", id);
+            } catch (e) {
+                console.error("Erro ao atualizar na nuvem:", e);
+            }
+        }
+
+        // 3. REMOVER (Delete)
+        async function removerVendaDoFirebase(id) {
+            if (typeof id === 'number' || !id) return;
+
+            try {
+                await deleteDoc(doc(db, "vendas", id));
+                console.log("Item removido da nuvem:", id);
+            } catch (e) {
+                console.error("Erro ao remover da nuvem:", e);
+                App.Utils.toast("Erro ao remover da nuvem", "error");
+            }
+        }
+
+        // 4. RESETAR NUVEM (Wipe & Sync)
+        async function resetarNuvemComDadosLocais() {
+            if (!confirm("ATENÇÃO: Isso vai APAGAR tudo na nuvem e enviar os dados que estão na sua tela agora.\n\nUse isso se o seu Backup Local estiver correto e a Nuvem estiver errada.\n\nDeseja continuar?")) return;
+
+            console.log("Iniciando Reset da Nuvem...");
+            App.Utils.toast("Iniciando reparo da nuvem...", "info");
+
+            try {
+                // 1. Apagar tudo na nuvem
+                const snapshot = await getDocs(collection(db, "vendas"));
+                const totalDocs = snapshot.size;
+                console.log(`Excluindo ${totalDocs} itens antigos...`);
+
+                // Exclusão em lote (paralela)
+                const deletePromises = [];
+                snapshot.forEach(doc => {
+                    deletePromises.push(deleteDoc(doc.ref));
+                });
+                await Promise.all(deletePromises);
+                console.log("Nuvem limpa.");
+
+                // 2. Enviar dados locais
+                const localItems = App.State.data;
+                console.log(`Enviando ${localItems.length} itens locais...`);
+
+                const uploadPromises = localItems.map(item => {
+                    // Usa setDoc para forçar o ID que já existe (String ou Number -> String)
+                    // Isso preserva os IDs numéricos antigos e os relacionamentos de Kits
+                    const docId = String(item.id);
+                    return setDoc(doc(db, "vendas", docId), {
+                        descricao: item.desc || "Sem nome",
+                        custo: Number(item.custo || 0),
+                        valor: Number(item.valor || 0),
+                        categoria: item.categoria || "Geral",
+                        tipo: item.tipo || "venda",
+                        data: item.data,
+                        kitParentId: item.kitParentId || null,
+                        updatedAt: new Date()
+                    });
+                });
+
+                await Promise.all(uploadPromises);
+
+                console.log("Upload concluído!");
+                App.Utils.toast("Nuvem reparada com sucesso!", "success");
+
+                // Opcional: Recarregar para garantir
+                setTimeout(() => location.reload(), 1500);
+
+            } catch (e) {
+                console.error("Erro ao resetar nuvem:", e);
+                App.Utils.toast("Erro crítico ao reparar nuvem", "error");
+            }
+        }
+
+        // Expondo para o App
+        window.salvarVendaNoFirebase = salvarVendaNoFirebase;
+        window.atualizarVendaNoFirebase = atualizarVendaNoFirebase;
+        window.removerVendaDoFirebase = removerVendaDoFirebase;
+        window.resetarNuvemComDadosLocais = resetarNuvemComDadosLocais;
+
+
+
+        // Função de Sincronização v4 (Local Mirror - "O Local é a Lei")
+        // Estratégia: O que está na tela (LocalStorage) é a verdade absoluta.
+        // A nuvem deve ser apenas um espelho. Se tem na nuvem e não tem no local, apaga da nuvem.
+        async function carregarVendasDoFirebase() {
+            console.log("Iniciando Smart Sync v4 (Local Mirror)...");
+
+            try {
+                // 1. Ler Local (Fonte da Verdade)
+                let localItems = [];
+                try {
+                    localItems = JSON.parse(localStorage.getItem(App.State.dbKey) || '[]');
+                } catch (e) { localItems = []; }
+
+                // Se não tiver nada local, evitamos apagar a nuvem por acidente (segurança)
+                if (localItems.length === 0) {
+                    console.warn("Local vazio. Abortando Mirror para segurança.");
+                    // Fallback: Baixa da nuvem normal
+                    const q = await getDocs(collection(db, "vendas"));
+                    const fromCloud = [];
+                    q.forEach(d => fromCloud.push({ id: d.id, ...d.data() }));
+                    if (fromCloud.length > 0) {
+                        App.State.data = fromCloud;
+                        App.Data.save(true);
+                        App.UI.render();
+                    }
+                    return;
+                }
+
+                // Carrega IMEDIATAMENTE o que é confiável
+                App.State.data = localItems;
+                App.UI.render();
+
+                // 2. Baixar Nuvem para Comparação em Background
+                const querySnapshot = await getDocs(collection(db, "vendas"));
+                let cloudItems = [];
+                querySnapshot.forEach((doc) => {
+                    const d = doc.data();
+                    cloudItems.push({
+                        id: doc.id,
+                        desc: d.descricao || d.desc,
+                        valor: Number(d.valor || d.amount || 0),
+                        custo: Number(d.custo || d.cost || 0),
+                        data: d.data
+                    });
+                });
+
+                // 3. Análise de Diferenças (Background)
+                const ops = { delete: [], update: [], create: [] };
+
+                // Mapa para busca rápida na nuvem
+                const getSig = (i) => `${i.desc || i.descricao}|${Number(i.valor).toFixed(2)}|${i.data}`;
+                const cloudMapId = new Map(cloudItems.map(i => [i.id, i]));
+                const cloudMapSig = new Map(cloudItems.map(i => [getSig(i), i]));
+
+                // A. Verifica cada item Local
+                for (const lItem of localItems) {
+                    let cItem = cloudMapId.get(String(lItem.id));
+
+                    if (!cItem) {
+                        // Tenta achar por conteúdo (recuperar ID perdido/mudado)
+                        cItem = cloudMapSig.get(getSig(lItem));
+                    }
+
+                    if (cItem) {
+                        // Existe nos dois.
+                        // Remove do mapa cloud para marcar como "mantido"
+                        cloudMapId.delete(cItem.id);
+                        cloudMapSig.delete(getSig(cItem)); // garante que não delete duplicata de conteúdo se já deu match
+
+                        // Verifica se precisa atualizar dados na Nuvem
+                        const diffVal = Math.abs(Number(lItem.valor) - Number(cItem.valor)) > 0.01;
+
+                        if (diffVal) {
+                            ops.update.push({ id: cItem.id, data: lItem });
+                        }
+
+                        // Atualiza ID local se necessário (se deu match por sig mas ID era diferente)
+                        if (String(lItem.id) !== cItem.id) {
+                            lItem.id = cItem.id; // Adota ID da nuvem silenciosamente para manter link
+                        }
+                    } else {
+                        // Não existe na nuvem -> Criar
+                        ops.create.push(lItem);
+                    }
+                }
+
+                // B. O que sobrou no cloudMapId são itens que estão na Nuvem mas NÃO no Local
+                // Como é um MIRROR, esses itens são "lixo" ou duplicatas indesejadas. DELETAR.
+                for (const [id, item] of cloudMapId) {
+                    ops.delete.push(id);
+                }
+
+                // 4. Executa Operações
+                const totalOps = ops.delete.length + ops.update.length + ops.create.length;
+                if (totalOps > 0) {
+                    console.log(`Sync v4: Delete ${ops.delete.length}, Create ${ops.create.length}, Update ${ops.update.length}`);
+                    App.Utils.toast(`Otimizando Nuvem: Removendo ${ops.delete.length} duplicatas...`, "info");
+
+                    // Deletes
+                    for (const id of ops.delete) {
+                        try { await deleteDoc(doc(db, "vendas", id)); } catch (e) { }
+                    }
+                    // Updates
+                    for (const u of ops.update) {
+                        try {
+                            await updateDoc(doc(db, "vendas", u.id), {
+                                descricao: u.data.desc,
+                                custo: Number(u.data.custo || 0),
+                                valor: Number(u.data.valor || 0),
+                                categoria: u.data.categoria || "Geral",
+                                tipo: u.data.tipo || "venda",
+                                data: u.data.data,
+                                kitParentId: u.data.kitParentId || null,
+                                updatedAt: new Date()
+                            });
+                        } catch (e) { }
+                    }
+                    // Creates
+                    for (const item of ops.create) {
+                        try {
+                            let ref;
+                            if (item.id && String(item.id).length > 5 && isNaN(Number(item.id))) {
+                                // Tenta manter ID se parecer válido (string longa)
+                                await setDoc(doc(db, "vendas", item.id), {
+                                    descricao: item.desc,
+                                    custo: Number(item.custo || 0),
+                                    valor: Number(item.valor || 0),
+                                    categoria: item.categoria || "Geral",
+                                    tipo: item.tipo || "venda",
+                                    data: item.data,
+                                    kitParentId: item.kitParentId || null,
+                                    updatedAt: new Date()
+                                });
+                                ref = { id: item.id };
+                            } else {
+                                // Cria novo ID
+                                ref = await addDoc(collection(db, "vendas"), {
+                                    descricao: item.desc,
+                                    custo: Number(item.custo || 0),
+                                    valor: Number(item.valor || 0),
+                                    categoria: item.categoria || "Geral",
+                                    tipo: item.tipo || "venda",
+                                    data: item.data,
+                                    kitParentId: item.kitParentId || null,
+                                    updatedAt: new Date()
+                                });
+                            }
+                            // Atualiza local com o ID final
+                            item.id = ref.id;
+                        } catch (e) { }
+                    }
+
+                    // Salva IDs atualizados
+                    App.Data.save(true);
+                    App.Utils.toast("Nuvem limpa e sincronizada!", "success");
+                } else {
+                    console.log("Sync v4: Sincronização concluída!");
+                }
+
+            } catch (e) {
+                console.error("Erro Sync v4:", e);
+                // Fallback
+                App.UI.render();
+            }
+        }
+
+        window.addEventListener('load', carregarVendasDoFirebase);
+
+    </script>
+</body>
+
+</html>

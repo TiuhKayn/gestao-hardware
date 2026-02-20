@@ -1763,6 +1763,7 @@
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
 
         console.log("Firebase Inicializado no Projeto: ", firebaseConfig.projectId);
 

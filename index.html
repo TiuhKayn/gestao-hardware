@@ -1649,7 +1649,7 @@
                     tipo: dadosParaSalvar.tipo || "venda",
                     data: dadosParaSalvar.data,
                     kitParentId: dadosParaSalvar.kitParentId || null,
-                    userId: auth.currentUser.uid,
+                    userId: auth.currentUser.email,
                     updatedAt: new Date()
                 });
 
@@ -1718,7 +1718,7 @@
 
             try {
                 // 1. Apagar apenas itens do usuário na nuvem
-                const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
+                const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.email));
                 const snapshot = await getDocs(q);
                 const totalDocs = snapshot.size;
                 console.log(`Excluindo ${totalDocs} itens do usuário...`);
@@ -1746,7 +1746,7 @@
                         tipo: item.tipo || "venda",
                         data: item.data,
                         kitParentId: item.kitParentId || null,
-                        userId: auth.currentUser.uid,
+                        userId: auth.currentUser.email,
                         updatedAt: new Date()
                     });
                 });
@@ -1808,7 +1808,7 @@
                         tipo: item.tipo || "venda",
                         data: item.data || new Date().toISOString().split('T')[0],
                         kitParentId: item.kitParentId || null,
-                        userId: auth.currentUser.uid,
+                        userId: auth.currentUser.email,
                         updatedAt: new Date()
                     };
 
@@ -1856,7 +1856,7 @@
 
             setStatus("Sincronizando...", "#f59e0b");
 
-            const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
+            const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.email));
 
             syncListener = onSnapshot(q, (snapshot) => {
                 const cloudItems = [];
@@ -1902,8 +1902,8 @@
                         document.getElementById('user-info').style.display = 'flex';
                         document.getElementById('display-name').innerText = user.displayName || user.email.split('@')[0];
 
-                        // Segrega o banco de dados local por usuário para evitar vazamento entre contas
-                        window.App.State.dbKey = `hw_transacoes_v3_${user.uid}`;
+                        // Segrega o banco de dados local por e-mail para permitir o mesmo acesso em diferentes logins
+                        window.App.State.dbKey = `hw_transacoes_v3_${user.email.replace(/[^a-zA-Z0-9]/g, '_')}`;
                         window.App.Data.load(); // Carrega o banco específico deste usuário
 
                         carregarVendasDoFirebase();

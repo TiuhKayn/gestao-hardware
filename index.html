@@ -37,6 +37,102 @@
             min-height: 100vh;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
+            transition: background 0.5s ease, color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:focus,
+        select:focus,
+        input:focus,
+        div:focus {
+            outline: none !important;
+        }
+
+        /* Focus only for keyboard users */
+        :focus-visible {
+            outline: 2px solid var(--accent-primary) !important;
+            outline-offset: 2px;
+        }
+
+        button::-moz-focus-inner {
+            border: 0;
+        }
+
+        /* --- TEMA WHITE --- */
+        body.theme-white {
+            --bg-body: #f4f7fa;
+            --bg-glass: rgba(255, 255, 255, 0.9);
+            --bg-card: #ffffff;
+            --bg-input: #edf2f7;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-glow: rgba(124, 58, 237, 0.15);
+            background: radial-gradient(circle at top right, #ffffff, #f0f4f8);
+        }
+
+        body.theme-white .glass {
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        body.theme-white input,
+        body.theme-white select {
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #1a202c;
+        }
+
+        body.theme-white .t-header {
+            background: rgba(0, 0, 0, 0.02);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-white .t-row {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+        }
+
+        body.theme-white .t-row:hover {
+            background: rgba(0, 0, 0, 0.015);
+        }
+
+        body.theme-white .btn-icon {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-white .page-header {
+            background: #ffffff !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-white h1 {
+            background: var(--text-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        body.theme-white .user-dropdown-trigger {
+            background: #f8fafc !important;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            color: var(--text-primary);
+        }
+
+        body.theme-white .mob-card {
+            background: #ffffff !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        }
+
+        body.theme-white .mob-card-header {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        body.theme-white .mob-detail-sheet {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-white .mob-detail-handle {
+            background: rgba(0, 0, 0, 0.1);
         }
 
         .container {
@@ -63,10 +159,10 @@
             align-items: center;
             position: relative;
             z-index: 100;
-            background: #7c3aed !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            background: #111 !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
             border-radius: var(--border-radius);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         h1 {
@@ -205,8 +301,10 @@
             padding: 0 10px;
             transition: var(--transition);
             width: 44px;
+            height: 44px;
             overflow: hidden;
             cursor: pointer;
+            flex-shrink: 0;
         }
 
         .search-box.active {
@@ -259,10 +357,16 @@
         }
 
         .btn-primary {
-            background: var(--accent-primary);
+            background: #111;
             color: white;
-            box-shadow: 0 4px 15px var(--accent-glow);
+            border: 1px solid var(--accent-primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-primary);
+            box-shadow: 0 4px 20px var(--accent-glow);
         }
 
         .btn-danger {
@@ -336,6 +440,11 @@
             margin-bottom: 20px;
             border: 1px solid var(--accent-glow);
             animation: fadeIn 0.3s ease;
+        }
+
+        /* Default: mob-card is hidden on desktop */
+        .mob-card {
+            display: none;
         }
 
         @keyframes fadeIn {
@@ -782,150 +891,250 @@
             .filter-controls {
                 flex-direction: column;
                 gap: 10px;
+                width: 100%;
+            }
+
+            .filter-controls select {
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+
+            .filter-controls .search-box {
+                width: 44px !important;
+                box-sizing: border-box;
+                align-self: flex-start;
+            }
+
+            .filter-controls .search-box.active {
+                width: 100% !important;
             }
 
             .t-header {
                 display: none;
             }
 
-            /* --- PREMIUM MOBILE CARD DESIGN --- */
+            /* --- MOBILE CARD v2 --- */
+            /* Hide all native desktop cols inside t-row on mobile */
+            .t-row>div:not(.mob-card):not(.select-col) {
+                display: none !important;
+            }
+
             .t-row {
-                display: flex !important;
-                flex-direction: column;
+                display: block !important;
                 padding: 0 !important;
-                gap: 0 !important;
                 border: 1px solid rgba(255, 255, 255, 0.08) !important;
                 border-radius: 14px !important;
-                margin-bottom: 14px !important;
+                margin-bottom: 12px !important;
                 background: #111 !important;
-                overflow: hidden;
-            }
-
-            /* Col 1: select (always hidden on mobile) */
-            .t-row>.select-col {
-                display: none !important;
-            }
-
-            /* Col 2: Description — becomes the card header */
-            .t-row>div:nth-child(2) {
-                display: flex !important;
-                align-items: center !important;
-                justify-content: flex-start !important;
-                padding: 14px 16px 10px !important;
-                gap: 10px !important;
-                font-size: 1rem !important;
-                font-weight: 700 !important;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-                background: rgba(255, 255, 255, 0.03);
-                white-space: normal !important;
-                word-break: break-word !important;
-                text-align: left !important;
-            }
-
-            .t-row>div:nth-child(2)::before {
-                display: none !important;
-            }
-
-            /* Financial data area (cols 3-6): wrap into a 2x2 grid */
-            .t-row>div:nth-child(3),
-            .t-row>div:nth-child(4),
-            .t-row>div:nth-child(5),
-            .t-row>div:nth-child(6) {
-                display: flex !important;
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                justify-content: center !important;
-                width: 50%;
-                float: left;
-                padding: 10px 14px !important;
-                box-sizing: border-box;
-                font-size: 0.9rem;
-                text-align: left !important;
-            }
-
-            /* Clear float after col 6 */
-            .t-row>div:nth-child(6) {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-            }
-
-            .t-row>div:nth-child(5) {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-            }
-
-            .t-row>div:nth-child(3) {
-                border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
-            }
-
-            .t-row>div:nth-child(5) {
-                border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
-            }
-
-            .t-row>div:nth-child(3)::before,
-            .t-row>div:nth-child(4)::before,
-            .t-row>div:nth-child(5)::before,
-            .t-row>div:nth-child(6)::before {
-                display: block !important;
-                font-size: 0.65rem !important;
-                font-weight: 700 !important;
-                color: var(--text-secondary) !important;
-                text-transform: uppercase !important;
-                letter-spacing: 0.8px !important;
-                margin-bottom: 3px !important;
-            }
-
-            .t-row>div:nth-child(3)::before {
-                content: "Categoria" !important;
-            }
-
-            .t-row>div:nth-child(4)::before {
-                content: "Custo" !important;
-            }
-
-            .t-row>div:nth-child(5)::before {
-                content: "Saldo" !important;
-            }
-
-            .t-row>div:nth-child(6)::before {
-                content: "Tipo" !important;
-            }
-
-            /* Col 7: Date — hidden (shown in footer) */
-            .t-row>div:nth-child(7) {
-                clear: both;
-                display: none !important;
-            }
-
-            /* Col 8: Action buttons — the card footer */
-            .t-row>div:nth-child(8) {
-                display: flex !important;
-                flex-direction: row !important;
-                justify-content: space-between !important;
-                align-items: center !important;
-                clear: both !important;
-                padding: 10px 14px !important;
-                gap: 10px !important;
-                background: rgba(255, 255, 255, 0.02) !important;
-                border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-            }
-
-            .t-row>div:nth-child(8)::before {
-                display: none !important;
-            }
-
-            .t-row .btn-icon {
-                flex: 1 !important;
-                height: 38px !important;
-                border-radius: 10px !important;
-                font-size: 1rem !important;
-                width: auto !important;
+                overflow: hidden !important;
             }
 
             .select-col {
                 display: none !important;
             }
 
+            /* Show the mob-card on mobile */
+            .mob-card {
+                display: flex !important;
+                flex-direction: column;
+            }
+
+            .mob-card-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 12px 14px;
+                background: rgba(255, 255, 255, 0.03);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .mob-name {
+                font-weight: 700;
+                font-size: 0.95rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 160px;
+            }
+
+            .mob-name-area {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                overflow: hidden;
+                flex: 1;
+            }
+
+            .mob-more-btn {
+                background: none;
+                border: none;
+                color: var(--accent-primary);
+                font-size: 1rem;
+                font-weight: 700;
+                cursor: pointer;
+                padding: 0 4px;
+                line-height: 1;
+                letter-spacing: 2px;
+                flex-shrink: 0;
+                opacity: 0.8;
+            }
+
+            .mob-card-actions {
+                display: flex;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+
+            .mob-card-actions .btn-icon {
+                width: 34px !important;
+                height: 34px !important;
+                font-size: 0.9rem !important;
+            }
+
+            .mob-info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .mob-cell {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                padding: 10px 14px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                font-size: 0.88rem;
+            }
+
+            .mob-cell:nth-child(odd) {
+                border-right: 1px solid rgba(255, 255, 255, 0.04);
+            }
+
+            .mob-label {
+                font-size: 0.62rem;
+                font-weight: 700;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+            }
+
+            /* Detail modal */
+            .mob-detail-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                z-index: 9999;
+                backdrop-filter: blur(4px);
+                animation: fadeIn 0.2s ease;
+            }
+
+            .mob-detail-sheet {
+                background: #161616;
+                border: 1px solid rgba(124, 58, 237, 0.3);
+                border-bottom: none;
+                border-radius: 20px 20px 0 0;
+                width: 100%;
+                max-height: 80vh;
+                overflow-y: auto;
+                padding: 0 0 24px 0;
+                animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .mob-detail-handle {
+                width: 40px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 2px;
+                margin: 14px auto 18px;
+            }
+
+            .mob-detail-title {
+                font-size: 1.1rem;
+                font-weight: 700;
+                padding: 0 20px 16px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+                word-break: break-word;
+            }
+
+            .mob-detail-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                padding: 4px 0;
+            }
+
+            .mob-detail-cell {
+                padding: 12px 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            }
+
+            .mob-detail-cell:nth-child(odd) {
+                border-right: 1px solid rgba(255, 255, 255, 0.04);
+            }
+
+            .mob-detail-cell .mob-label {
+                margin-bottom: 4px;
+                display: block;
+            }
+
+            .mob-sub-item {
+                margin: 0 16px;
+                padding: 12px 14px;
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
+                margin-bottom: 8px;
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .mob-sub-item-name {
+                font-weight: 700;
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+                color: var(--accent-primary);
+            }
+
+            .mob-sub-item-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+                font-size: 0.82rem;
+            }
+
+            .mob-detail-close {
+                display: block;
+                margin: 16px 20px 0;
+                width: calc(100% - 40px);
+                padding: 12px;
+                background: rgba(124, 58, 237, 0.15);
+                border: 1px solid var(--accent-primary);
+                border-radius: 10px;
+                color: var(--accent-primary);
+                font-weight: 700;
+                font-size: 0.9rem;
+                cursor: pointer;
+            }
+
             .search-box.active {
                 width: 100%;
+            }
+
+            /* --- COLLAPSIBLE FORM ON MOBILE --- */
+            .smart-form-container .form-grid,
+            .smart-form-container .form-actions-row {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .smart-form-container.mobile-form-open .form-grid,
+            .smart-form-container.mobile-form-open .form-actions-row {
+                max-height: 1200px;
+                opacity: 1;
+                pointer-events: all;
             }
 
             .form-header {
@@ -933,11 +1142,18 @@
                 align-items: center;
                 gap: 12px;
                 text-align: center;
+                padding-bottom: 0 !important;
             }
 
             .type-selector {
                 width: 100%;
                 justify-content: space-between;
+            }
+
+            .type-btn {
+                flex: 1;
+                text-align: center;
+                justify-content: center;
             }
 
             .auth-card {
@@ -977,8 +1193,8 @@
                         <span style="font-size: 0.8rem; opacity: 0.5;">▼</span>
                     </button>
                     <div id="user-dropdown" class="dropdown-menu">
-                        <button class="dropdown-item" onclick="App.UI.toggleVisualMode()">
-                            <span id="btn-theme">✨</span> Alternar Visual
+                        <button class="dropdown-item" onclick="App.UI.toggleTheme()">
+                            <span id="theme-icon">☀️</span> <span id="theme-text">Tema White</span>
                         </button>
                         <button class="dropdown-item" onclick="App.UI.toggleSettings(true)">
                             <span>⚙️</span> Configurações de Conta
@@ -1149,14 +1365,17 @@
             </div>
             <div class="backup-controls" style="align-items:center;">
                 <button id="btn-selection-mode" onclick="App.Actions.toggleSelectionMode()" class="btn-icon"
-                    title="Modo Seleção (Ativar/Desativar Checkboxes)">☑</button>
+                    title="Modo Seleção (Ativar/Desativar Checkboxes)"
+                    style="border-color:var(--accent-primary); color:var(--accent-primary)">☑</button>
                 <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
                 <button onclick="App.Actions.undo()" class="btn-icon" title="Desfazer (Ctrl+Z)"
                     style="border-color:var(--accent-primary); color:var(--accent-primary)">↶</button>
                 <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
-                <button onclick="App.Actions.exportData()" class="btn-icon" title="Exportar Backup">💾</button>
+                <button onclick="App.Actions.exportData()" class="btn-icon" title="Exportar Backup"
+                    style="border-color:var(--accent-primary); color:var(--accent-primary)">💾</button>
                 <button onclick="document.getElementById('input-import').click()" class="btn-icon"
-                    title="Importar Backup">📂</button>
+                    title="Importar Backup"
+                    style="border-color:var(--accent-primary); color:var(--accent-primary)">📂</button>
                 <input type="file" id="input-import" style="display:none" onchange="App.Actions.importData(this)">
             </div>
         </div>
@@ -1295,6 +1514,18 @@
 
             UI: {
                 setFormType: (t) => {
+                    const isMobile = window.innerWidth <= 768;
+                    const formContainer = document.querySelector('.smart-form-container');
+                    const isAlreadyActive = App.State.formType === t && formContainer.classList.contains('mobile-form-open');
+
+                    // Mobile: toggle collapse if clicking the same already-open type
+                    if (isMobile && isAlreadyActive) {
+                        formContainer.classList.remove('mobile-form-open');
+                        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                        App.State._mobileFormOpen = false;
+                        return;
+                    }
+
                     App.State.formType = t;
                     document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === t));
                     const show = (id, types) => document.getElementById(id).style.display = types.includes(t) ? 'flex' : 'none';
@@ -1311,6 +1542,12 @@
                     const btn = document.getElementById('btn-main-action');
                     btn.innerText = App.State.editingId ? 'Salvar Alterações' : 'Registrar ' + t.charAt(0).toUpperCase() + t.slice(1);
                     btn.className = t === 'gasto' ? 'btn btn-danger' : 'btn btn-primary';
+
+                    // Mobile: open form after setting type
+                    if (isMobile) {
+                        formContainer.classList.add('mobile-form-open');
+                        App.State._mobileFormOpen = true;
+                    }
                 },
 
                 render: () => {
@@ -1479,23 +1716,70 @@
                                         <button class="btn-icon" onclick="App.Actions.edit('${t.id}')">✎</button>
                                         <button class="btn-icon" onclick="App.Data.remove('${t.id}')">×</button>
                                     </div>
+
+                                    <!-- NOVA MOB-CARD (MOBILE) -->
+                                    <div class="mob-card">
+                                        <div class="mob-card-header">
+                                            <div class="mob-name-area">
+                                                ${isKit ? `<button class="btn-toggle" onclick="event.stopPropagation(); this.closest('.row-group').classList.toggle('open')">▶</button>` : ''}
+                                                <span class="mob-name">${t.desc}</span>
+                                                <button class="mob-more-btn" onclick="event.stopPropagation(); App.UI.showDetailPopup('${t.id}')">···</button>
+                                            </div>
+                                            <div class="mob-card-actions">
+                                                <button class="btn-icon" onclick="event.stopPropagation(); App.Actions.edit('${t.id}')">✎</button>
+                                                <button class="btn-icon" onclick="event.stopPropagation(); App.Data.remove('${t.id}')">×</button>
+                                            </div>
+                                        </div>
+                                        <div class="mob-info-grid">
+                                            <div class="mob-cell">
+                                                <span class="mob-label">Categoria</span>
+                                                <span>${t.categoria || '-'}</span>
+                                            </div>
+                                            <div class="mob-cell">
+                                                <span class="mob-label">Custo</span>
+                                                <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>
+                                            </div>
+                                            <div class="mob-cell">
+                                                <span class="mob-label">Saldo</span>
+                                                <span style="color:${totals.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">R$ ${App.Utils.formatCurrency(totals.saldo)}</span>
+                                            </div>
+                                            <div class="mob-cell">
+                                                <span class="mob-label">Tipo</span>
+                                                <span class="badge badge-${t.tipo}">${t.tipo}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 ${isKit ? `
                                     <div class="sub-row-container">
                                         ${children.map(c => {
                             if (c.tipo === 'separator') {
                                 return `<div class="t-row" style="grid-template-columns: var(--select-col-width, 0px) 1fr auto; padding: 8px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05)" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
-                                                            <div class="select-col">
-                                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
-                                                            </div>
-                                                            <div style="text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
-                                                                <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
-                                                             </div>
-                                                             <div style="display:flex; gap:4px">
-                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.editSection('${c.id}')">✎</button>
-                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
-                                                             </div>
-                                                         </div>`;
+                                            <div class="select-col">
+                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
+                                            </div>
+                                            <div style="text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
+                                                <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
+                                             </div>
+                                             <div style="display:flex; gap:4px">
+                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.editSection('${c.id}')">✎</button>
+                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
+                                             </div>
+                                             
+                                             <!-- MOB-CARD (SEPARATOR) -->
+                                             <div class="mob-card" style="margin: 0 !important; border: none !important; background: transparent !important;">
+                                                 <div class="mob-card-header" style="background: transparent !important; padding: 12px 14px !important;">
+                                                     <div class="mob-name-area">
+                                                         <span style="font-size:1.2rem; line-height:1; color:var(--accent-primary)">↳</span>
+                                                         <span class="mob-name" style="color:var(--accent-primary); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase">${c.desc}</span>
+                                                     </div>
+                                                     <div class="mob-card-actions">
+                                                         <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="App.Actions.editSection('${c.id}')">✎</button>
+                                                         <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="App.Data.remove('${c.id}')">×</button>
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                         </div>`;
                             }
                             return `
                                              <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8; grid-template-columns: var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
@@ -1514,6 +1798,30 @@
                                                   <div style="text-align:right; display:flex; gap:4px; justify-content:flex-end">
                                                       <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.edit('${c.id}')">✎</button>
                                                       <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
+                                                  </div>
+
+                                                  <!-- MOB-CARD (SUB-ITEM) -->
+                                                  <div class="mob-card" style="margin: 0 !important; border: none !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; background: transparent !important;">
+                                                      <div class="mob-card-header" style="background: transparent !important; padding: 10px 14px 6px !important;">
+                                                          <div class="mob-name-area">
+                                                              <span style="opacity:0.5; font-size:1.2rem; line-height:1">↳</span>
+                                                              <span class="mob-name" style="font-size:0.85rem">${c.desc}</span>
+                                                          </div>
+                                                          <div class="mob-card-actions">
+                                                              <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="event.stopPropagation(); App.Actions.edit('${c.id}')">✎</button>
+                                                              <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="event.stopPropagation(); App.Data.remove('${c.id}')">×</button>
+                                                          </div>
+                                                      </div>
+                                                      <div class="mob-info-grid" style="font-size:0.8rem">
+                                                          <div class="mob-cell" style="padding: 6px 14px">
+                                                              <span class="mob-label">Custo</span>
+                                                              <span>R$ ${App.Utils.formatCurrency(c.custo)}</span>
+                                                          </div>
+                                                          <div class="mob-cell" style="padding: 6px 14px">
+                                                              <span class="mob-label">Tipo</span>
+                                                              <span class="badge badge-${c.tipo}" style="transform: scale(0.85); transform-origin: left;">${c.tipo}</span>
+                                                          </div>
+                                                      </div>
                                                   </div>
                                               </div>`;
                         }).join('')}
@@ -1580,12 +1888,101 @@
                     }
                 },
 
-                toggleVisualMode: () => {
-                    document.body.classList.toggle('compact-view');
-                    const isCompact = document.body.classList.contains('compact-view');
-                    const btnTheme = document.getElementById('btn-theme');
-                    if (btnTheme) btnTheme.innerText = isCompact ? '🔍' : '✨';
-                    App.Utils.toast(isCompact ? "Modo Compacto" : "Modo Premium");
+                showDetailPopup: (id) => {
+                    const t = App.State.data.find(x => x.id == id);
+                    if (!t) return;
+
+                    const kids = App.State.data.filter(c => String(c.kitParentId) === String(t.id));
+                    const totals = {
+                        custo: (parseFloat(t.custo) || 0) + kids.reduce((a, c) => a + (parseFloat(c.custo) || 0), 0),
+                        valor: (parseFloat(t.valor) || 0) + kids.reduce((a, c) => a + (parseFloat(c.valor) || 0), 0) + (parseFloat(t.receita) || 0)
+                    };
+
+                    const content = document.getElementById('mob-detail-content');
+                    content.innerHTML = `
+                        <div class="mob-detail-title">${t.desc}</div>
+                        <div class="mob-detail-grid">
+                            <div class="mob-detail-cell">
+                                <span class="mob-label">Categoria</span>
+                                <span>${t.categoria || '-'}</span>
+                            </div>
+                            <div class="mob-detail-cell">
+                                <span class="mob-label">Data</span>
+                                <span>${App.Utils.formatDate(t.data)}</span>
+                            </div>
+                            <div class="mob-detail-cell">
+                                <span class="mob-label">Custo Total</span>
+                                <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>
+                            </div>
+                            <div class="mob-detail-cell">
+                                <span class="mob-label">Recebido Total</span>
+                                <span>R$ ${App.Utils.formatCurrency(totals.valor)}</span>
+                            </div>
+                            <div class="mob-detail-cell" style="grid-column: span 2">
+                                <span class="mob-label">Saldo Líquido</span>
+                                <span style="font-weight:700; color:${(totals.valor - totals.custo) >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                                    R$ ${App.Utils.formatCurrency(totals.valor - totals.custo)}
+                                </span>
+                            </div>
+                        </div>
+                        ${kids.length > 0 ? `
+                            <div style="margin: 20px 20px 10px; font-weight:700; font-size:0.75rem; text-transform:uppercase; color:var(--text-secondary)">Itens do Projeto (${kids.filter(x => x.tipo !== 'separator').length})</div>
+                            ${kids.map(c => {
+                        if (c.tipo === 'separator') {
+                            return `
+                                        <div style="margin: 15px 20px 5px; display:flex; align-items:center; justify-content:space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom:5px">
+                                            <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:var(--accent-primary)">↳ ${c.desc}</div>
+                                            <div style="display:flex; gap:8px">
+                                                <button onclick="App.UI.closeDetailPopup(); App.Actions.editSection('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer">✎</button>
+                                                <button onclick="App.UI.closeDetailPopup(); App.Data.remove('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer">×</button>
+                                            </div>
+                                        </div>
+                                    `;
+                        }
+                        return `
+                                    <div class="mob-sub-item">
+                                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px">
+                                            <div class="mob-sub-item-name" style="margin:0">${c.desc}</div>
+                                            <div style="display:flex; gap:10px; flex-shrink:0">
+                                                <button onclick="App.UI.closeDetailPopup(); App.Actions.edit('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1rem">✎</button>
+                                                <button onclick="App.UI.closeDetailPopup(); App.Data.remove('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1rem">×</button>
+                                            </div>
+                                        </div>
+                                        <div class="mob-sub-item-grid">
+                                            <div><span class="mob-label">Custo:</span> R$ ${App.Utils.formatCurrency(c.custo)}</div>
+                                            <div><span class="mob-label">Valor:</span> R$ ${App.Utils.formatCurrency(c.valor)}</div>
+                                            <div><span class="mob-label">Data:</span> ${App.Utils.formatDate(c.data)}</div>
+                                            <div><span class="mob-label">Tipo:</span> ${c.tipo}</div>
+                                        </div>
+                                    </div>
+                                `;
+                    }).join('')}
+                        ` : ''}
+                        
+                        <!-- Ações de Kit -->
+                        <div style="display:flex; gap:10px; margin: 20px 20px 0;">
+                            <button class="btn-sm" style="flex:1; padding:12px" onclick="App.UI.closeDetailPopup(); App.Actions.addSection('${t.id}')">+ Sessão</button>
+                            <button class="btn-sm" style="flex:1; padding:12px" onclick="App.UI.closeDetailPopup(); App.Actions.addQuickItem('${t.id}')">+ Item</button>
+                        </div>
+                    `;
+                    document.getElementById('mob-detail-overlay').style.display = 'flex';
+                },
+
+                closeDetailPopup: () => {
+                    document.getElementById('mob-detail-overlay').style.display = 'none';
+                },
+
+                toggleTheme: () => {
+                    document.body.classList.toggle('theme-white');
+                    const isWhite = document.body.classList.contains('theme-white');
+                    localStorage.setItem('hw_theme', isWhite ? 'white' : 'dark');
+
+                    const textEl = document.getElementById('theme-text');
+                    const iconEl = document.getElementById('theme-icon');
+                    if (textEl) textEl.innerText = isWhite ? 'Tema Dark' : 'Tema White';
+                    if (iconEl) iconEl.innerText = isWhite ? '🌙' : '☀️';
+
+                    App.Utils.toast(isWhite ? "Modo White Ativado" : "Modo Dark Ativado");
                 },
 
                 resetForms: () => {
@@ -1602,7 +1999,16 @@
                     App.State.editingId = null;
                     const cancelBtn = document.getElementById('btn-cancel-edit');
                     if (cancelBtn) cancelBtn.style.display = 'none';
-                    App.UI.setFormType('venda');
+
+                    // On mobile: collapse form back to minimized state after submit
+                    if (window.innerWidth <= 768) {
+                        const formContainer = document.querySelector('.smart-form-container');
+                        formContainer.classList.remove('mobile-form-open');
+                        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                        App.State.formType = 'venda'; // reset type silently
+                    } else {
+                        App.UI.setFormType('venda');
+                    }
                 },
 
                 cancelEdit: () => {
@@ -1625,8 +2031,15 @@
                 },
 
                 toggleSearch: (el) => {
-                    el.classList.add('active');
-                    document.getElementById('filtro-busca').focus();
+                    const isActive = el.classList.contains('active');
+                    if (isActive) {
+                        el.classList.remove('active');
+                        document.getElementById('filtro-busca').value = '';
+                        App.UI.render();
+                    } else {
+                        el.classList.add('active');
+                        document.getElementById('filtro-busca').focus();
+                    }
                 },
 
                 updateBulkActions: () => {
@@ -1968,6 +2381,18 @@
         };
 
         window.onload = () => {
+            const savedTheme = localStorage.getItem('hw_theme');
+            if (savedTheme === 'white') {
+                document.body.classList.add('theme-white');
+                // Updates UI elements after load
+                setTimeout(() => {
+                    const textEl = document.getElementById('theme-text');
+                    const iconEl = document.getElementById('theme-icon');
+                    if (textEl) textEl.innerText = 'Tema Dark';
+                    if (iconEl) iconEl.innerText = '🌙';
+                }, 100);
+            }
+
             App.Data.load();
             App.UI.resetForms();
 
@@ -2651,6 +3076,16 @@
         });
 
     </script>
+    <!-- Modal de Detalhes Mobile (v2) -->
+    <div id="mob-detail-overlay" class="mob-detail-overlay" style="display: none;" onclick="App.UI.closeDetailPopup()">
+        <div class="mob-detail-sheet" onclick="event.stopPropagation()">
+            <div class="mob-detail-handle"></div>
+            <div id="mob-detail-content">
+                <!-- Conteúdo dinâmico aqui -->
+            </div>
+            <button class="mob-detail-close" onclick="App.UI.closeDetailPopup()">Fechar</button>
+        </div>
+    </div>
 </body>
 
 </html>

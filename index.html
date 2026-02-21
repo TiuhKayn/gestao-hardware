@@ -1650,8 +1650,7 @@
                     // 1. Pré-processamento: Mapear filhos e calcular totais (O(N))
                     const dataWithMeta = App.State.data.map(t => {
                         const kids = App.State.data
-                            .filter(c => String(c.kitParentId) === String(t.id))
-                            .sort((a, b) => new Date(b.data || 0) - new Date(a.data || 0));
+                            .filter(c => String(c.kitParentId) === String(t.id));
                         const kitInitialCusto = parseFloat(t.custo) || 0;
                         const kitInitialReceita = parseFloat(t.valor) || 0;
                         const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
@@ -1699,23 +1698,25 @@
                     const sortCol = s.col || 'data';
                     const sortDir = s.col ? s.dir : 'desc';
 
-                    filtered.sort((a, b) => {
-                        let valA, valB;
-                        if (sortCol === 'saldo') { valA = a._saldo; valB = b._saldo; }
-                        else if (sortCol === 'custo') { valA = a._totalCusto; valB = b._totalCusto; }
-                        else if (sortCol === 'data') {
-                            valA = new Date(a.data || 0).getTime();
-                            valB = new Date(b.data || 0).getTime();
-                        } else {
-                            valA = (a[sortCol] || '').toString().toLowerCase();
-                            valB = (b[sortCol] || '').toString().toLowerCase();
-                        }
+                    if (App.State.sort.col) {
+                        filtered.sort((a, b) => {
+                            let valA, valB;
+                            if (sortCol === 'saldo') { valA = a._saldo; valB = b._saldo; }
+                            else if (sortCol === 'custo') { valA = a._totalCusto; valB = b._totalCusto; }
+                            else if (sortCol === 'data') {
+                                valA = new Date(a.data || 0).getTime();
+                                valB = new Date(b.data || 0).getTime();
+                            } else {
+                                valA = (a[sortCol] || '').toString().toLowerCase();
+                                valB = (b[sortCol] || '').toString().toLowerCase();
+                            }
 
-                        if (typeof valA === 'number') {
-                            return sortDir === 'asc' ? valA - valB : valB - valA;
-                        }
-                        return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
-                    });
+                            if (typeof valA === 'number') {
+                                return sortDir === 'asc' ? valA - valB : valB - valA;
+                            }
+                            return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                        });
+                    }
 
                     list.innerHTML = filtered.map(t => {
                         const isKit = t.tipo === 'kit';
@@ -2217,7 +2218,7 @@
                     const fromId = e.dataTransfer.getData('rowId');
                     if (fromId === targetId) return;
 
-                    const data = [...App.State.data];
+                    let data = [...App.State.data];
                     const fromIdx = data.findIndex(x => String(x.id) === String(fromId));
                     const toIdx = data.findIndex(x => String(x.id) === String(targetId));
                     if (fromIdx === -1 || toIdx === -1) return;
@@ -2225,31 +2226,50 @@
                     const fromItem = data[fromIdx];
                     const targetItem = data[toIdx];
 
-                    // LÓGICA DE ARRASTE REFINADA
-                    // 1. Se o destino for um Kit ou filho de um Kit
-                    const targetKitId = targetItem.tipo === 'kit' ? targetItem.id : targetItem.kitParentId;
-
+                    // 1. Atualizar parentesco (Kit ou Solo)
+                    const targetKitId = (targetItem.tipo === 'kit') ? targetItem.id : targetItem.kitParentId;
                     if (targetKitId) {
-                        // Move para dentro do kit (muda o pai)
                         fromItem.kitParentId = targetKitId;
-                    } else if (!targetItem.kitParentId) {
-                        // Se soltar em um item "solo" (que não é kit nem filho de kit), tira do kit
+                    } else if (targetItem.tipo !== 'kit' && !targetItem.kitParentId) {
                         fromItem.kitParentId = null;
                     }
 
-                    // Reordena no array
-                    const [item] = data.splice(fromIdx, 1);
-                    const newToIdx = data.findIndex(x => String(x.id) === String(targetId));
+                    // 2. Decidir posição de inserção e lógica de "Dentro"
+                    let insertIdx = toIdx;
+                    let forceAfter = false;
 
-                    if (fromIdx < toIdx) {
-                        data.splice(newToIdx + 1, 0, item);
+                    if (targetItem.tipo === 'kit') {
+                        // Se soltou no Kit, tenta entrar na primeira sessão se houver
+                        const kids = data.filter(c => String(c.kitParentId) === String(targetItem.id));
+                        const firstSession = kids.find(k => k.tipo === 'separator');
+                        if (firstSession) {
+                            insertIdx = data.findIndex(x => String(x.id) === String(firstSession.id));
+                            forceAfter = true;
+                        } else {
+                            forceAfter = true; // Mesmo sem sessão, entra DEPOIS do título
+                        }
+                    } else if (targetItem.tipo === 'separator') {
+                        // Se soltou em uma sessão, sempre coloca DEPOIS
+                        forceAfter = true;
+                    }
+
+                    // 3. Reordenar
+                    data.splice(fromIdx, 1);
+
+                    // Achar onde o alvo parou após a remoção do item arrastado
+                    let finalToIdx = data.findIndex(x => String(x.id) === String(targetId));
+                    if (finalToIdx === -1) finalToIdx = data.length;
+
+                    if (forceAfter) {
+                        data.splice(finalToIdx + 1, 0, fromItem);
                     } else {
-                        data.splice(newToIdx, 0, item);
+                        data.splice(finalToIdx, 0, fromItem);
                     }
 
                     App.State.data = data;
                     App.State.sort.col = null;
                     App.Data.save();
+                    App.UI.renderTable(); // Força atualização imediata
                 },
 
                 undo: () => {

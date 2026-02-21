@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão Vendas & Hardware v3.0</title>
+    <title>Gestão de Vendas</title>
+    <!-- Polyfill para Arraste no Mobile -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch-polyfill@1.4.1/drag-drop-touch-polyfill.js"></script>
     <style>
         :root {
             --bg-body: #0d0d0d;
@@ -135,12 +137,20 @@
             background: rgba(0, 0, 0, 0.1);
         }
 
+        body.theme-white .btn-primary {
+            background: var(--accent-primary);
+            border: none;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        body.theme-white .btn-primary:hover {
+            background: #8b5cf6;
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
         }
 
         .glass {
@@ -153,7 +163,9 @@
         }
 
         .page-header {
-            padding: 20px 32px;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 20px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -163,6 +175,7 @@
             border: 1px solid rgba(255, 255, 255, 0.08) !important;
             border-radius: var(--border-radius);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 32px;
         }
 
         h1 {
@@ -211,7 +224,7 @@
         }
 
         .smart-form-container {
-            padding: 32px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
             gap: 24px;
@@ -365,8 +378,18 @@
         }
 
         .btn-primary:hover {
-            background: var(--accent-primary);
-            box-shadow: 0 4px 20px var(--accent-glow);
+            background: #1a1a1a;
+            border-color: #8b5cf6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            filter: brightness(0.9);
+        }
+
+        .btn-primary:active {
+            filter: brightness(1.2);
         }
 
         .btn-danger {
@@ -379,6 +402,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            /* Separador sutil */
+            margin-bottom: 24px;
         }
 
         .filter-controls {
@@ -398,16 +424,33 @@
         .t-header,
         .t-row {
             display: grid;
-            grid-template-columns: var(--select-col-width) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
-            padding: 14px 24px;
+            grid-template-columns: var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
+            padding: 0 24px;
             align-items: center;
             transition: var(--transition);
-            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        .selection-active .t-header,
-        .selection-active .t-row {
-            grid-template-columns: 40px 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
+        .t-header {
+            background: rgba(255, 255, 255, 0.02);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 48px;
+        }
+
+        .t-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            min-height: 54px;
+        }
+
+        .t-header div,
+        .t-row>div {
+            padding: 12px 0;
+            /* Alinhamento vertical interno */
         }
 
         .select-col {
@@ -459,19 +502,10 @@
             }
         }
 
-        .t-header {
-            background: rgba(255, 255, 255, 0.02);
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 0 24px;
-            padding: 0 24px;
-        }
-
-        .t-row {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        .t-row:not(.separator)>div {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .t-row:hover {
@@ -577,17 +611,12 @@
         }
 
         .t-header div {
-            padding: 14px 4px;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
             align-items: center;
             gap: 6px;
             user-select: none;
-        }
-
-        .t-header div:hover {
-            color: white;
         }
 
         .sort-icon {
@@ -1107,10 +1136,10 @@
                 margin: 16px 20px 0;
                 width: calc(100% - 40px);
                 padding: 12px;
-                background: rgba(124, 58, 237, 0.15);
+                background: #000;
                 border: 1px solid var(--accent-primary);
                 border-radius: 10px;
-                color: var(--accent-primary);
+                color: #fff;
                 font-weight: 700;
                 font-size: 0.9rem;
                 cursor: pointer;
@@ -1193,11 +1222,11 @@
                         <span style="font-size: 0.8rem; opacity: 0.5;">▼</span>
                     </button>
                     <div id="user-dropdown" class="dropdown-menu">
-                        <button class="dropdown-item" onclick="App.UI.toggleTheme()">
-                            <span id="theme-icon">☀️</span> <span id="theme-text">Tema White</span>
-                        </button>
                         <button class="dropdown-item" onclick="App.UI.toggleSettings(true)">
                             <span>⚙️</span> Configurações de Conta
+                        </button>
+                        <button class="dropdown-item" onclick="App.UI.toggleTheme()">
+                            <span id="theme-icon">☀️</span> <span id="theme-text">Tema White</span>
                         </button>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item danger" onclick="App.Auth.logout()">
@@ -1259,14 +1288,11 @@
             <div class="auth-card glass">
                 <div class="settings-header">
                     <h2>Configurações</h2>
-                    <button class="btn-close" onclick="App.UI.toggleSettings(false)">×</button>
                 </div>
                 <div class="auth-form">
                     <div class="input-group">
                         <label>Nome de Usuário (Exclusivo)</label>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="set-user-name" placeholder="Seu novo nome">
-                        </div>
+                        <input type="text" id="set-user-name" placeholder="Seu novo nome">
                     </div>
                     <div class="input-group">
                         <label>Nova Senha</label>
@@ -1276,15 +1302,19 @@
                         <label>Confirmar Senha</label>
                         <input type="password" id="set-pass-confirm" placeholder="Repita a senha">
                     </div>
-                    <button class="btn btn-auth" onclick="App.Auth.updateAccountSettings()"
-                        style="margin-top: 10px;">Salvar Alterações</button>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                        <button class="btn btn-auth" onclick="App.Auth.updateAccountSettings()"
+                            style="width: 100%; border: 1px solid var(--accent-primary);">Salvar Alterações</button>
+                        <button class="btn btn-auth" onclick="App.UI.toggleSettings(false)"
+                            style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--accent-primary); box-shadow: none;">Cancelar</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="dashboard-grid" id="dashboard-container"></div>
+        <div class="dashboard-grid" id="dashboard-container" style="margin-bottom: 24px;"></div>
 
-        <div class="smart-form-container glass">
+        <div class="smart-form-container glass" style="margin-bottom: 24px;">
             <div class="form-header">
                 <h2 style="margin:0; font-size:1.1rem; color:var(--text-secondary)">Nova Transação</h2>
                 <div class="type-selector">
@@ -1339,13 +1369,12 @@
                 <div style="grid-column: span 12; display: flex; gap: 12px; margin-top: 10px;">
                     <button id="btn-main-action" class="btn btn-primary" onclick="App.Actions.submitForm()">Registrar
                         Venda</button>
-                    <button id="btn-cancel-edit" class="btn" style="display:none; background:rgba(255,255,255,0.05)"
+                    <button id="btn-cancel-edit" class="btn"
+                        style="display:none; background:rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--accent-primary);"
                         onclick="App.UI.cancelEdit()">Cancelar</button>
                 </div>
             </div>
         </div>
-
-
 
         <div class="toolbar glass">
             <div class="filter-controls">
@@ -1365,47 +1394,44 @@
             </div>
             <div class="backup-controls" style="align-items:center;">
                 <button id="btn-selection-mode" onclick="App.Actions.toggleSelectionMode()" class="btn-icon"
-                    title="Modo Seleção (Ativar/Desativar Checkboxes)"
+                    title="Modo Seleção"
                     style="border-color:var(--accent-primary); color:var(--accent-primary)">☑</button>
                 <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
-                <button onclick="App.Actions.undo()" class="btn-icon" title="Desfazer (Ctrl+Z)"
+                <button onclick="App.Actions.undo()" class="btn-icon" title="Desfazer"
                     style="border-color:var(--accent-primary); color:var(--accent-primary)">↶</button>
                 <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
-                <button onclick="App.Actions.exportData()" class="btn-icon" title="Exportar Backup"
+                <button onclick="App.Actions.exportData()" class="btn-icon" title="Exportar"
                     style="border-color:var(--accent-primary); color:var(--accent-primary)">💾</button>
-                <button onclick="document.getElementById('input-import').click()" class="btn-icon"
-                    title="Importar Backup"
+                <button onclick="document.getElementById('input-import').click()" class="btn-icon" title="Importar"
                     style="border-color:var(--accent-primary); color:var(--accent-primary)">📂</button>
-                <input type="file" id="input-import" style="display:none" onchange="App.Actions.importData(this)">
+                <input type="file" id="input-import" style="display:none" onchange="App.Actions.importData(event)">
             </div>
         </div>
 
-        <div id="bulk-actions" class="bulk-actions-bar glass">
-            <span id="bulk-count" style="font-weight: 700; color: var(--accent-primary)">0 itens selecionados</span>
-            <button class="btn btn-danger" onclick="App.Actions.bulkDelete()"
-                style="height: 36px; padding: 0 16px; font-size: 0.8rem;">Excluir Selecionados</button>
-            <button class="btn" onclick="App.Actions.clearSelection()"
-                style="height: 36px; padding: 0 16px; font-size: 0.8rem; background: rgba(255,255,255,0.05)">Cancelar</button>
+        <div id="table-view" class="glass" style="overflow: hidden;">
+            <div class="t-scroll">
+                <div class="t-header" id="table-header">
+                    <div
+                        style="width: var(--select-col-width); padding: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: width 0.3s ease;">
+                        <input type="checkbox" id="select-all" onclick="App.Actions.toggleSelectAll(this.checked)"
+                            style="width: 16px; height: 16px; cursor: pointer;">
+                    </div>
+                    <div onclick="App.UI.setSort('desc')">Descrição <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('categoria')">Categoria <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('custo')">Custo <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('valor')">Venda/Saldo <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('tipo')">Tipo <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('data')">Data <span class="sort-icon">↕</span></div>
+                    <div style="text-align: right; justify-content: flex-end; padding-right: 0;">Ações</div>
+                </div>
+                <div id="lista-transacoes"></div>
+            </div>
         </div>
 
-        <div class="transactions-card glass">
-            <div class="t-header" id="table-header">
-                <div class="select-col">
-                    <input type="checkbox" id="select-all" class="checkbox-custom"
-                        onclick="App.Actions.toggleAll(this)">
-                </div>
-                <div onclick="App.Actions.sortBy('desc')" data-col="desc">Descrição <span class="sort-icon">↕</span>
-                </div>
-                <div onclick="App.Actions.sortBy('categoria')" data-col="categoria">Categoria <span
-                        class="sort-icon">↕</span></div>
-                <div onclick="App.Actions.sortBy('custo')" data-col="custo">Custo <span class="sort-icon">↕</span></div>
-                <div onclick="App.Actions.sortBy('saldo')" data-col="saldo">Valor/Saldo <span class="sort-icon">↕</span>
-                </div>
-                <div onclick="App.Actions.sortBy('tipo')" data-col="tipo">Tipo <span class="sort-icon">↕</span></div>
-                <div onclick="App.Actions.sortBy('data')" data-col="data">Data <span class="sort-icon">↕</span></div>
-                <div style="text-align:right; cursor:default; pointer-events:none">Ações</div>
-            </div>
-            <div id="lista-transacoes"></div>
+        <div id="selection-toolbar" class="selection-toolbar glass" style="display: none;">
+            <span id="selection-count">0 itens selecionados</span>
+            <button onclick="App.Actions.deleteSelected()" class="btn btn-danger"
+                style="height: 36px; padding: 0 15px; font-size: 0.8rem;">Excluir</button>
         </div>
     </div>
 
@@ -1610,10 +1636,11 @@
 
                 renderTable: () => {
                     const list = document.getElementById('lista-transacoes');
-                    const container = document.querySelector('.transactions-card');
-                    if (!list || !container) return;
+                    const container = document.getElementById('table-view');
+                    if (!list) return;
 
-                    container.classList.toggle('selection-active', App.State.selectionMode);
+                    // Ensure selection mode variable is handled
+                    if (container) container.classList.toggle('selection-active', App.State.selectionMode);
 
                     const fType = document.getElementById('filtro-tipo').value;
                     const fCat = document.getElementById('filtro-categoria').value;
@@ -1647,14 +1674,14 @@
 
                     // 2. Filtragem
                     const filtered = dataWithMeta.filter(t => {
-                        // Mostrar apenas se for root (sem kitParentId) OU se o pai não existe (órfão)
                         const hasParent = t.kitParentId && t.kitParentId !== "null" && t.kitParentId !== "";
                         const parentExists = hasParent && allIds.has(String(t.kitParentId));
 
                         if (hasParent && parentExists) return false;
 
-                        if (fType === 'kits' && t.tipo !== 'kit') return false;
-                        if (fType === 'avulsos' && t.tipo === 'kit') return false;
+                        const typeVal = fType.toLowerCase();
+                        if (typeVal === 'kits' && t.tipo !== 'kit') return false;
+                        if (typeVal === 'avulsos' && t.tipo === 'kit') return false;
                         if (fCat !== 'Todos' && t.categoria !== fCat) return false;
 
                         if (searchTerms.length > 0) {
@@ -1692,9 +1719,9 @@
 
                     list.innerHTML = filtered.map(t => {
                         const isKit = t.tipo === 'kit';
-                        const children = t._children;
+                        const children = t._children || [];
                         const itemsCount = children.filter(c => c.tipo !== 'separator').length;
-                        const totals = { custo: t._totalCusto, saldo: t._saldo };
+                        const totals = { custo: t._totalCusto || 0, saldo: t._saldo || 0 };
 
                         return `
                             <div class="row-group">
@@ -1754,35 +1781,36 @@
                                     <div class="sub-row-container">
                                         ${children.map(c => {
                             if (c.tipo === 'separator') {
-                                return `<div class="t-row" style="grid-template-columns: var(--select-col-width, 0px) 1fr auto; padding: 8px 24px; background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05)" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
-                                            <div class="select-col">
-                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
-                                            </div>
-                                            <div style="text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
-                                                <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
-                                             </div>
-                                             <div style="display:flex; gap:4px">
-                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.editSection('${c.id}')">✎</button>
-                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
-                                             </div>
-                                             
-                                             <!-- MOB-CARD (SEPARATOR) -->
-                                             <div class="mob-card" style="margin: 0 !important; border: none !important; background: transparent !important;">
-                                                 <div class="mob-card-header" style="background: transparent !important; padding: 12px 14px !important;">
-                                                     <div class="mob-name-area">
-                                                         <span style="font-size:1.2rem; line-height:1; color:var(--accent-primary)">↳</span>
-                                                         <span class="mob-name" style="color:var(--accent-primary); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase">${c.desc}</span>
-                                                     </div>
-                                                     <div class="mob-card-actions">
-                                                         <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="App.Actions.editSection('${c.id}')">✎</button>
-                                                         <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="App.Data.remove('${c.id}')">×</button>
-                                                     </div>
-                                                 </div>
-                                             </div>
-                                         </div>`;
+                                return `<div class="t-row separator" style="padding: 8px 24px; background: rgba(255,255,255,0.02); cursor: move;" 
+                                                              draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                            <div class="select-col">
+                                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
+                                                            </div>
+                                                            <div style="grid-column: span 6; text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
+                                                                <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
+                                                             </div>
+                                                             <div style="display:flex; gap:4px; justify-content: flex-end;">
+                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.editSection('${c.id}')">✎</button>
+                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
+                                                             </div>
+                                                             
+                                                             <!-- MOB-CARD (SEPARATOR) -->
+                                                             <div class="mob-card" style="margin: 0 !important; border: none !important; background: transparent !important;">
+                                                                 <div class="mob-card-header" style="background: transparent !important; padding: 12px 14px !important;">
+                                                                     <div class="mob-name-area">
+                                                                         <span style="font-size:1.2rem; line-height:1; color:var(--accent-primary)">↳</span>
+                                                                         <span class="mob-name" style="color:var(--accent-primary); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase">${c.desc}</span>
+                                                                     </div>
+                                                                     <div class="mob-card-actions">
+                                                                         <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="App.Actions.editSection('${c.id}')">✎</button>
+                                                                         <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="App.Data.remove('${c.id}')">×</button>
+                                                                     </div>
+                                                                 </div>
+                                                             </div>
+                                                         </div>`;
                             }
                             return `
-                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8; grid-template-columns: var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8;" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
                                                  <div class="select-col">
                                                      <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
                                                  </div>
@@ -1831,8 +1859,7 @@
                                         </div>
                                     </div>
                                 ` : ''}
-                            </div>
-                        `;
+                            </div>`;
                     }).join('');
                 },
 
@@ -1900,31 +1927,31 @@
 
                     const content = document.getElementById('mob-detail-content');
                     content.innerHTML = `
-                        <div class="mob-detail-title">${t.desc}</div>
-                        <div class="mob-detail-grid">
-                            <div class="mob-detail-cell">
-                                <span class="mob-label">Categoria</span>
-                                <span>${t.categoria || '-'}</span>
-                            </div>
-                            <div class="mob-detail-cell">
-                                <span class="mob-label">Data</span>
-                                <span>${App.Utils.formatDate(t.data)}</span>
-                            </div>
-                            <div class="mob-detail-cell">
-                                <span class="mob-label">Custo Total</span>
-                                <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>
-                            </div>
-                            <div class="mob-detail-cell">
-                                <span class="mob-label">Recebido Total</span>
-                                <span>R$ ${App.Utils.formatCurrency(totals.valor)}</span>
-                            </div>
-                            <div class="mob-detail-cell" style="grid-column: span 2">
-                                <span class="mob-label">Saldo Líquido</span>
-                                <span style="font-weight:700; color:${(totals.valor - totals.custo) >= 0 ? 'var(--success)' : 'var(--danger)'}">
-                                    R$ ${App.Utils.formatCurrency(totals.valor - totals.custo)}
-                                </span>
-                            </div>
-                        </div>
+                                <div class="mob-detail-title">${t.desc}</div>
+                                    <div class="mob-detail-grid">
+                                        <div class="mob-detail-cell">
+                                            <span class="mob-label">Categoria</span>
+                                            <span>${t.categoria || '-'}</span>
+                                        </div>
+                                        <div class="mob-detail-cell">
+                                            <span class="mob-label">Data</span>
+                                            <span>${App.Utils.formatDate(t.data)}</span>
+                                        </div>
+                                        <div class="mob-detail-cell">
+                                            <span class="mob-label">Custo Total</span>
+                                            <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>
+                                        </div>
+                                        <div class="mob-detail-cell">
+                                            <span class="mob-label">Recebido Total</span>
+                                            <span>R$ ${App.Utils.formatCurrency(totals.valor)}</span>
+                                        </div>
+                                        <div class="mob-detail-cell" style="grid-column: span 2">
+                                            <span class="mob-label">Saldo Líquido</span>
+                                            <span style="font-weight:700; color:${(totals.valor - totals.custo) >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                                                R$ ${App.Utils.formatCurrency(totals.valor - totals.custo)}
+                                            </span>
+                                        </div>
+                                    </div>
                         ${kids.length > 0 ? `
                             <div style="margin: 20px 20px 10px; font-weight:700; font-size:0.75rem; text-transform:uppercase; color:var(--text-secondary)">Itens do Projeto (${kids.filter(x => x.tipo !== 'separator').length})</div>
                             ${kids.map(c => {
@@ -1957,13 +1984,15 @@
                                     </div>
                                 `;
                     }).join('')}
+                        ` : ''
+                        }
+                        ${t.tipo === 'kit' ? `
+                            <div style="margin: 25px 20px 10px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); text-align: center; opacity: 0.6;">Ações de Kit</div>
+                            <div style="display:flex; gap:10px; margin: 0 20px;">
+                                <button class="btn-sm" style="flex:1; padding:12px; background:#000; color:#fff; border: 1px solid var(--accent-primary); border-radius: 10px; font-weight: 700;" onclick="App.UI.closeDetailPopup(); App.Actions.addSection('${t.id}')">+ Sessão</button>
+                                <button class="btn-sm" style="flex:1; padding:12px; background:#000; color:#fff; border: 1px solid var(--accent-primary); border-radius: 10px; font-weight: 700;" onclick="App.UI.closeDetailPopup(); App.Actions.addQuickItem('${t.id}')">+ Item</button>
+                            </div>
                         ` : ''}
-                        
-                        <!-- Ações de Kit -->
-                        <div style="display:flex; gap:10px; margin: 20px 20px 0;">
-                            <button class="btn-sm" style="flex:1; padding:12px" onclick="App.UI.closeDetailPopup(); App.Actions.addSection('${t.id}')">+ Sessão</button>
-                            <button class="btn-sm" style="flex:1; padding:12px" onclick="App.UI.closeDetailPopup(); App.Actions.addQuickItem('${t.id}')">+ Item</button>
-                        </div>
                     `;
                     document.getElementById('mob-detail-overlay').style.display = 'flex';
                 },
@@ -2018,7 +2047,7 @@
 
                 updateSortIndicators: () => {
                     const s = App.State.sort;
-                    document.querySelectorAll('#table-header div[data-col]').forEach(el => {
+                    document.querySelectorAll('.t-header div[onclick]').forEach(el => {
                         const col = el.dataset.col;
                         el.classList.toggle('sort-active', col === s.col);
                         const icon = el.querySelector('.sort-icon');
@@ -2049,7 +2078,7 @@
 
                     if (count > 0 && App.State.selectionMode) {
                         bar.style.display = 'flex';
-                        countEl.innerText = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'}`;
+                        countEl.innerText = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'} `;
                     } else {
                         bar.style.display = 'none';
                     }
@@ -2085,14 +2114,14 @@
                         const descRec = get('reg-recebeu');
                         if (kitPai) {
                             App.State.data.unshift({ id: kid + 3, desc: descRec, categoria: 'Hardware', valor: 0, custo: 0, tipo: 'venda', data, kitParentId: kitPai });
-                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc}`, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kitPai });
+                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc} `, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kitPai });
                             if (vta > 0) App.State.data.unshift({ id: kid + 1, desc: 'Volta: ' + desc, categoria: 'Financeiro', valor: vta, custo: 0, tipo: 'venda', data, kitParentId: kitPai });
-                            App.State.data.unshift({ id: kid, desc: `TROCA: ${desc} ↔ ${descRec}`, tipo: 'separator', data, kitParentId: kitPai });
+                            App.State.data.unshift({ id: kid, desc: `TROCA: ${desc} ↔ ${descRec} `, tipo: 'separator', data, kitParentId: kitPai });
                         } else {
                             App.State.data.unshift({ id: kid + 3, desc: descRec, categoria: 'Hardware', valor: 0, custo: 0, tipo: 'venda', data, kitParentId: kid });
-                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc}`, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kid });
+                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc} `, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kid });
                             if (vta > 0) App.State.data.unshift({ id: kid + 1, desc: 'Volta: ' + desc, categoria: 'Financeiro', valor: vta, custo: 0, tipo: 'venda', data, kitParentId: kid });
-                            App.State.data.unshift({ id: kid, desc: `Troca: ${desc} ↔ ${descRec}`, tipo: 'kit', receita: 0, data, categoria: item.categoria });
+                            App.State.data.unshift({ id: kid, desc: `Troca: ${desc} ↔ ${descRec} `, tipo: 'kit', receita: 0, data, categoria: item.categoria });
                         }
                         App.Data.save(); App.UI.resetForms();
                     } else {
@@ -2185,48 +2214,37 @@
                 },
                 onRowDrop: (e, targetId) => {
                     e.preventDefault();
-                    const fromId = parseInt(e.dataTransfer.getData('rowId'));
+                    const fromId = e.dataTransfer.getData('rowId');
                     if (fromId === targetId) return;
 
                     const data = [...App.State.data];
-                    const fromIdx = data.findIndex(x => x.id === fromId);
-                    const toIdx = data.findIndex(x => x.id === targetId);
+                    const fromIdx = data.findIndex(x => String(x.id) === String(fromId));
+                    const toIdx = data.findIndex(x => String(x.id) === String(targetId));
                     if (fromIdx === -1 || toIdx === -1) return;
 
                     const fromItem = data[fromIdx];
                     const targetItem = data[toIdx];
 
+                    // LÓGICA DE ARRASTE REFINADA
+                    // 1. Se o destino for um Kit ou filho de um Kit
+                    const targetKitId = targetItem.tipo === 'kit' ? targetItem.id : targetItem.kitParentId;
 
-                    if (!fromItem.kitParentId) {
-                        App.Utils.toast("Arraste permitido apenas para itens dentro de Kits", "info");
-                        return;
-                    }
-
-
-                    const isParent = (targetItem.id == fromItem.kitParentId);
-                    const isSibling = (targetItem.kitParentId == fromItem.kitParentId);
-
-                    if (!isParent && !isSibling) {
-                        App.Utils.toast("Arraste permitido apenas dentro do mesmo Kit", "info");
-                        return;
+                    if (targetKitId) {
+                        // Move para dentro do kit (muda o pai)
+                        fromItem.kitParentId = targetKitId;
+                    } else if (!targetItem.kitParentId) {
+                        // Se soltar em um item "solo" (que não é kit nem filho de kit), tira do kit
+                        fromItem.kitParentId = null;
                     }
 
                     // Reordena no array
                     const [item] = data.splice(fromIdx, 1);
-                    const newToIdx = data.findIndex(x => x.id === targetId);
+                    const newToIdx = data.findIndex(x => String(x.id) === String(targetId));
 
-
-                    if (isParent) {
-                        const firstChildIdx = data.findIndex(x => x.kitParentId === targetId);
-                        if (firstChildIdx !== -1) data.splice(firstChildIdx, 0, item);
-                        else data.splice(newToIdx + 1, 0, item);
+                    if (fromIdx < toIdx) {
+                        data.splice(newToIdx + 1, 0, item);
                     } else {
-
-                        if (fromIdx < toIdx) {
-                            data.splice(newToIdx + 1, 0, item);
-                        } else {
-                            data.splice(newToIdx, 0, item);
-                        }
+                        data.splice(newToIdx, 0, item);
                     }
 
                     App.State.data = data;
@@ -2338,7 +2356,7 @@
                 bulkDelete: async () => {
                     const idsCount = App.State.selectedIds.size;
                     if (idsCount === 0) return;
-                    if (!confirm(`Deseja excluir permanentemente ${idsCount} itens?`)) return;
+                    if (!confirm(`Deseja excluir permanentemente ${idsCount} itens ? `)) return;
 
                     App.Utils.toast(`Excluindo ${idsCount} itens...`, "info");
 
@@ -2736,7 +2754,7 @@
                 onAuthStateChanged(auth, (user) => {
                     // Limpa erros residuais do console se necessário
                     if (!user) console.info("Sistema pronto: Aguardando login ou processando nova sessão.");
-                    console.log("Estado Auth Mudou:", user ? `Logado como ${user.email}` : "Deslogado");
+                    console.log("Estado Auth Mudou:", user ? `Logado como ${user.email} ` : "Deslogado");
 
                     if (user) {
                         window.App.State.user = user;

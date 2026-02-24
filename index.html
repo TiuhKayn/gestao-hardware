@@ -1978,7 +1978,12 @@
 
                     const content = document.getElementById('mob-detail-content');
                     content.innerHTML = `
-                                <div class="mob-detail-title">${t.desc}</div>
+                                <div class="mob-detail-title" 
+                                     ondragover="event.preventDefault(); this.style.color='var(--accent-primary)'; this.style.transform='scale(1.02)';" 
+                                     ondragleave="this.style.color=''; this.style.transform='';" 
+                                     ondrop="this.style.color=''; this.style.transform=''; App.Actions.onRowDrop(event, '${t.id}')">
+                                     ${t.desc}
+                                </div>
                                     <div class="mob-detail-grid">
                                         <div class="mob-detail-cell">
                                             <span class="mob-label">Categoria</span>
@@ -2299,14 +2304,13 @@
                     let forceAfter = false;
 
                     if (targetItem.tipo === 'kit') {
-                        // Se soltou no Kit, tenta entrar ANTES da primeira sessão se houver
-                        // IMPORTANTE: Excluir o próprio item arrastado da busca pela "primeira sessão"
+                        // Se soltou no Kit, vira o PRIMEIRO item do kit
                         const kids = data.filter(c => String(c.kitParentId) === String(targetItem.id) && String(c.id) !== String(fromId));
-                        const firstSession = kids.find(k => k.tipo === 'separator');
-                        if (firstSession) {
-                            targetIdToUse = String(firstSession.id);
+                        if (kids.length > 0) {
+                            targetIdToUse = String(kids[0].id);
                             forceAfter = false;
                         } else {
+                            targetIdToUse = String(targetItem.id);
                             forceAfter = true;
                         }
                     } else if (targetItem.tipo === 'separator') {

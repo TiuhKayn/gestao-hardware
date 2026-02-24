@@ -424,7 +424,7 @@
         .t-header,
         .t-row {
             display: grid;
-            grid-template-columns: var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
+            grid-template-columns: 30px var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
             padding: 0 24px;
             align-items: center;
             transition: var(--transition);
@@ -590,6 +590,29 @@
             color: white;
         }
 
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-secondary);
+            opacity: 0.5;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            user-select: none;
+            font-size: 1.1rem;
+            min-width: 24px;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .t-row:hover .drag-handle {
+            opacity: 1;
+            color: var(--accent-primary);
+        }
+
         #toast-container {
             position: fixed;
             bottom: 24px;
@@ -617,6 +640,12 @@
             align-items: center;
             gap: 6px;
             user-select: none;
+        }
+
+        .t-header.drop-over {
+            background: rgba(124, 58, 237, 0.15) !important;
+            border: 1px dashed var(--accent-primary) !important;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.2);
         }
 
         .sort-icon {
@@ -1410,7 +1439,11 @@
 
         <div id="table-view" class="glass" style="overflow: hidden;">
             <div class="t-scroll">
-                <div class="t-header" id="table-header">
+                <div class="t-header" id="table-header"
+                    ondragover="event.preventDefault(); this.classList.add('drop-over')"
+                    ondragleave="this.classList.remove('drop-over')"
+                    ondrop="this.classList.remove('drop-over'); App.Actions.onHeaderDrop(event)">
+                    <div style="width: 30px;"></div>
                     <div
                         style="width: var(--select-col-width); padding: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: width 0.3s ease;">
                         <input type="checkbox" id="select-all" onclick="App.Actions.toggleSelectAll(this.checked)"
@@ -1450,7 +1483,8 @@
                 selectedIds: new Set(),
                 selectionMode: false,
                 lastSelectedId: null,
-                user: null
+                user: null,
+                _activePopupId: null
             },
 
             Utils: {
@@ -1727,6 +1761,7 @@
                         return `
                             <div class="row-group">
                                 <div class="t-row ${isKit ? 'row-kit' : ''}" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${t.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${t.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                    <div class="drag-handle" title="Arraste para reordenar">⋮⋮</div>
                                     <div class="select-col">
                                         <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${t.id}" ${App.State.selectedIds.has(String(t.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${t.id}')">
                                     </div>
@@ -1748,6 +1783,7 @@
                                     <!-- NOVA MOB-CARD (MOBILE) -->
                                     <div class="mob-card">
                                         <div class="mob-card-header">
+                                            <div class="drag-handle" style="padding:0; margin-right:4px; opacity:0.8">⋮⋮</div>
                                             <div class="mob-name-area">
                                                 ${isKit ? `<button class="btn-toggle" onclick="event.stopPropagation(); this.closest('.row-group').classList.toggle('open')">▶</button>` : ''}
                                                 <span class="mob-name">${t.desc}</span>
@@ -1764,16 +1800,16 @@
                                                 <span>${t.categoria || '-'}</span>
                                             </div>
                                             <div class="mob-cell">
+                                                <span class="mob-label">Tipo</span>
+                                                <span class="badge badge-${t.tipo}">${t.tipo}</span>
+                                            </div>
+                                            <div class="mob-cell">
                                                 <span class="mob-label">Custo</span>
                                                 <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>
                                             </div>
                                             <div class="mob-cell">
                                                 <span class="mob-label">Saldo</span>
                                                 <span style="color:${totals.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">R$ ${App.Utils.formatCurrency(totals.saldo)}</span>
-                                            </div>
-                                            <div class="mob-cell">
-                                                <span class="mob-label">Tipo</span>
-                                                <span class="badge badge-${t.tipo}">${t.tipo}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1783,7 +1819,8 @@
                                         ${children.map(c => {
                             if (c.tipo === 'separator') {
                                 return `<div class="t-row separator" style="padding: 8px 24px; background: rgba(255,255,255,0.02); cursor: move;" 
-                                                              draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                               draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                            <div class="drag-handle" title="Arraste para reordenar">⋮⋮</div>
                                                             <div class="select-col">
                                                                 <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
                                                             </div>
@@ -1798,6 +1835,7 @@
                                                              <!-- MOB-CARD (SEPARATOR) -->
                                                              <div class="mob-card" style="margin: 0 !important; border: none !important; background: transparent !important;">
                                                                  <div class="mob-card-header" style="background: transparent !important; padding: 12px 14px !important;">
+                                                                     <div class="drag-handle" style="padding:0; margin-right:4px; opacity:0.8">⋮⋮</div>
                                                                      <div class="mob-name-area">
                                                                          <span style="font-size:1.2rem; line-height:1; color:var(--accent-primary)">↳</span>
                                                                          <span class="mob-name" style="color:var(--accent-primary); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase">${c.desc}</span>
@@ -1812,6 +1850,7 @@
                             }
                             return `
                                              <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8;" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                 <div class="drag-handle" title="Arraste para reordenar">⋮⋮</div>
                                                  <div class="select-col">
                                                      <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
                                                  </div>
@@ -1832,6 +1871,7 @@
                                                   <!-- MOB-CARD (SUB-ITEM) -->
                                                   <div class="mob-card" style="margin: 0 !important; border: none !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; background: transparent !important;">
                                                       <div class="mob-card-header" style="background: transparent !important; padding: 10px 14px 6px !important;">
+                                                          <div class="drag-handle" style="padding:0; margin-right:4px; opacity:0.8">⋮⋮</div>
                                                           <div class="mob-name-area">
                                                               <span style="opacity:0.5; font-size:1.2rem; line-height:1">↳</span>
                                                               <span class="mob-name" style="font-size:0.85rem">${c.desc}</span>
@@ -1861,7 +1901,14 @@
                                     </div>
                                 ` : ''}
                             </div>`;
-                    }).join('');
+                    }).join('') + `
+                        <div id="drop-zone-bottom" 
+                             style="height: 48px; border: 2px dashed rgba(255,255,255,0.05); margin: 15px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-secondary); opacity: 0.5; transition: all 0.2s ease;"
+                             ondragover="event.preventDefault(); this.style.opacity='1'; this.style.borderColor='var(--accent-primary)'; this.style.background='rgba(124, 58, 237, 0.05)';"
+                             ondragleave="this.style.opacity='0.5'; this.style.borderColor='rgba(255,255,255,0.05)'; this.style.background='transparent';"
+                             ondrop="this.style.opacity='0.5'; this.style.borderColor='rgba(255,255,255,0.05)'; this.style.background='transparent'; App.Actions.onBottomDrop(event)">
+                             Mover para o fim da lista (Fora de Kits / Top Level)
+                        </div>`;
                 },
 
                 updateSelects: () => {
@@ -1917,6 +1964,7 @@
                 },
 
                 showDetailPopup: (id) => {
+                    App.State._activePopupId = id;
                     const t = App.State.data.find(x => x.id == id);
                     if (!t) return;
 
@@ -1958,8 +2006,12 @@
                             ${kids.map(c => {
                         if (c.tipo === 'separator') {
                             return `
-                                        <div style="margin: 15px 20px 5px; display:flex; align-items:center; justify-content:space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom:5px">
-                                            <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:var(--accent-primary)">↳ ${c.desc}</div>
+                                        <div style="margin: 5px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding:8px 0"
+                                             draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                            <div style="display:flex; align-items:center; gap:8px">
+                                                <div class="drag-handle" style="padding:0; opacity:0.6; font-size:0.9rem">⋮⋮</div>
+                                                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:var(--accent-primary)">↳ ${c.desc}</div>
+                                            </div>
                                             <div style="display:flex; gap:8px">
                                                 <button onclick="App.UI.closeDetailPopup(); App.Actions.editSection('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer">✎</button>
                                                 <button onclick="App.UI.closeDetailPopup(); App.Data.remove('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer">×</button>
@@ -1968,9 +2020,12 @@
                                     `;
                         }
                         return `
-                                    <div class="mob-sub-item">
+                                    <div class="mob-sub-item" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
                                         <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px">
-                                            <div class="mob-sub-item-name" style="margin:0">${c.desc}</div>
+                                            <div style="display:flex; align-items:center; gap:8px">
+                                                <div class="drag-handle" style="padding:0; opacity:0.6; font-size:0.9rem">⋮⋮</div>
+                                                <div class="mob-sub-item-name" style="margin:0">${c.desc}</div>
+                                            </div>
                                             <div style="display:flex; gap:10px; flex-shrink:0">
                                                 <button onclick="App.UI.closeDetailPopup(); App.Actions.edit('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1rem">✎</button>
                                                 <button onclick="App.UI.closeDetailPopup(); App.Data.remove('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1rem">×</button>
@@ -1999,6 +2054,7 @@
                 },
 
                 closeDetailPopup: () => {
+                    App.State._activePopupId = null;
                     document.getElementById('mob-detail-overlay').style.display = 'none';
                 },
 
@@ -2240,13 +2296,14 @@
 
                     if (targetItem.tipo === 'kit') {
                         // Se soltou no Kit, tenta entrar ANTES da primeira sessão se houver
-                        const kids = data.filter(c => String(c.kitParentId) === String(targetItem.id));
+                        // IMPORTANTE: Excluir o próprio item arrastado da busca pela "primeira sessão"
+                        const kids = data.filter(c => String(c.kitParentId) === String(targetItem.id) && String(c.id) !== String(fromId));
                         const firstSession = kids.find(k => k.tipo === 'separator');
                         if (firstSession) {
                             targetIdToUse = String(firstSession.id);
-                            forceAfter = false; // "Mover o item para cima da sessão"
+                            forceAfter = false;
                         } else {
-                            forceAfter = true; // No sessions, just put after the header
+                            forceAfter = true;
                         }
                     } else if (targetItem.tipo === 'separator') {
                         // Se soltou em uma sessão, sempre coloca DEPOIS
@@ -2268,6 +2325,60 @@
                     App.UI.renderTable();
 
                     // Sincroniza a nova ordem com a nuvem
+                    if (window.sincronizarOrdemNoFirebase) {
+                        window.sincronizarOrdemNoFirebase();
+                    }
+
+                    // Se o popup de detalhes estiver aberto (do mesmo kit ou de qualquer um), atualiza ele
+                    const popup = document.getElementById('mob-detail-overlay');
+                    if (popup && popup.style.display === 'flex') {
+                        // Pega o ID que está sendo exibido atualmente (podemos guardar no State ou inferir do título)
+                        // Para simplificar, se houver um kit sendo movido ou pai sendo afetado, reabre o popup
+                        const currentId = App.State._activePopupId;
+                        if (currentId) App.UI.showDetailPopup(currentId);
+                    }
+                },
+
+                onHeaderDrop: (e) => {
+                    e.preventDefault();
+                    // Garante que pega do rowId (conforme setado no onRowDragStart)
+                    const fromId = e.dataTransfer.getData('rowId') || e.dataTransfer.getData('text/plain');
+                    if (!fromId) return;
+
+                    const data = [...App.State.data];
+                    const fromIdx = data.findIndex(x => String(x.id) === String(fromId));
+                    if (fromIdx === -1) return;
+
+                    const fromItem = data.splice(fromIdx, 1)[0];
+                    fromItem.kitParentId = null; // Move para fora!
+                    data.unshift(fromItem); // Coloca no topo
+
+                    App.State.data = data;
+                    App.Data.save();
+                    App.UI.renderTable();
+
+                    if (window.sincronizarOrdemNoFirebase) {
+                        window.sincronizarOrdemNoFirebase();
+                    }
+                },
+
+                onBottomDrop: (e) => {
+                    e.preventDefault();
+                    const fromId = e.dataTransfer.getData('rowId') || e.dataTransfer.getData('text/plain');
+                    if (!fromId) return;
+
+                    const data = [...App.State.data];
+                    const fromIdx = data.findIndex(x => String(x.id) === String(fromId));
+                    if (fromIdx === -1) return;
+
+                    const fromItem = data.splice(fromIdx, 1)[0];
+                    fromItem.kitParentId = null; // Move para fora!
+                    data.push(fromItem); // Coloca no fim
+
+                    App.State.data = data;
+                    App.Data.save();
+                    App.UI.renderTable();
+
                     if (window.sincronizarOrdemNoFirebase) {
                         window.sincronizarOrdemNoFirebase();
                     }
@@ -2627,7 +2738,6 @@
                 console.log("Upload concluído!");
                 App.Utils.toast("Nuvem reparada com sucesso!", "success");
 
-                // Opcional: Recarregar para garantir
                 setTimeout(() => location.reload(), 1500);
 
             } catch (e) {
@@ -2636,7 +2746,6 @@
             }
         }
 
-        // Função para Importar Backup em Lote (Professional Version)
         async function importarBackupParaNuvem(lista, mode = 'merge') {
             if (!auth.currentUser) return;
             const setStatus = (sts, color) => {
@@ -2652,7 +2761,6 @@
                 if (mode === 'replace') {
                     const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
                     const snap = await getDocs(q);
-                    // Deleta em lotes de 500 (limite do Firestore)
                     let batch = writeBatch(db);
                     let count = 0;
                     for (const d of snap.docs) {
@@ -2663,14 +2771,12 @@
                     if (count > 0) await batch.commit();
                 }
 
-                // Upload em lotes
                 let batch = writeBatch(db);
                 let count = 0;
                 for (const item of lista) {
                     const docId = String(item.id || Date.now() + Math.random());
                     const ref = doc(db, "vendas", docId);
 
-                    // Mapeamento de campos LEGADOS (v1/v2 -> v3)
                     const dataToSave = {
                         descricao: item.desc || item.descricao || "Item sem nome",
                         custo: Number(item.custo || item.cost || 0),

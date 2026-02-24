@@ -602,6 +602,8 @@
             user-select: none;
             font-size: 1.1rem;
             min-width: 24px;
+            touch-action: none;
+            /* Previne scroll ao arrastar no mobile */
         }
 
         .drag-handle:active {
@@ -2264,6 +2266,7 @@
 
                 onRowDragStart: (e, id) => {
                     e.dataTransfer.setData('rowId', id);
+                    e.dataTransfer.setData('text/plain', id); // Fallback para mobile/polyfills
                     e.currentTarget.classList.add('dragging');
                 },
                 onRowDragEnd: (e) => {
@@ -2271,7 +2274,8 @@
                 },
                 onRowDrop: (e, targetId) => {
                     e.preventDefault();
-                    const fromId = e.dataTransfer.getData('rowId');
+                    // Garante que pega do rowId ou text/plain (conforme setado no onRowDragStart)
+                    const fromId = e.dataTransfer.getData('rowId') || e.dataTransfer.getData('text/plain');
                     if (fromId === targetId) return;
 
                     let data = [...App.State.data];

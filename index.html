@@ -2234,19 +2234,19 @@
                         fromItem.kitParentId = null;
                     }
 
-                    // 2. Decidir posição de inserção e lógica de "Dentro"
-                    let insertIdx = toIdx;
+                    // 2. Smart Placement: Decidir ID do alvo real e se vai depois
+                    let targetIdToUse = targetId;
                     let forceAfter = false;
 
                     if (targetItem.tipo === 'kit') {
-                        // Se soltou no Kit, tenta entrar na primeira sessão se houver
+                        // Se soltou no Kit, tenta entrar ANTES da primeira sessão se houver
                         const kids = data.filter(c => String(c.kitParentId) === String(targetItem.id));
                         const firstSession = kids.find(k => k.tipo === 'separator');
                         if (firstSession) {
-                            insertIdx = data.findIndex(x => String(x.id) === String(firstSession.id));
-                            forceAfter = true;
+                            targetIdToUse = String(firstSession.id);
+                            forceAfter = false; // "Mover o item para cima da sessão"
                         } else {
-                            forceAfter = true; // Mesmo sem sessão, entra DEPOIS do título
+                            forceAfter = true; // No sessions, just put after the header
                         }
                     } else if (targetItem.tipo === 'separator') {
                         // Se soltou em uma sessão, sempre coloca DEPOIS
@@ -2256,20 +2256,16 @@
                     // 3. Reordenar
                     data.splice(fromIdx, 1);
 
-                    // Achar onde o alvo parou após a remoção do item arrastado
-                    let finalToIdx = data.findIndex(x => String(x.id) === String(targetId));
+                    // Achar onde o alvo real parou após a remoção
+                    let finalToIdx = data.findIndex(x => String(x.id) === String(targetIdToUse));
                     if (finalToIdx === -1) finalToIdx = data.length;
 
-                    if (forceAfter) {
-                        data.splice(finalToIdx + 1, 0, fromItem);
-                    } else {
-                        data.splice(finalToIdx, 0, fromItem);
-                    }
+                    data.splice(finalToIdx + (forceAfter ? 1 : 0), 0, fromItem);
 
                     App.State.data = data;
                     App.State.sort.col = null;
                     App.Data.save();
-                    App.UI.renderTable(); // Força atualização imediata
+                    App.UI.renderTable();
                 },
 
                 undo: () => {

@@ -1444,7 +1444,7 @@
                 data: [],
                 formType: 'venda',
                 editingId: null,
-                sort: { col: 'data', dir: 'desc' },
+                sort: { col: null, dir: 'desc' },
                 dashboardOrder: ['investido', 'recebido', 'lucro'],
                 history: [],
                 selectedIds: new Set(),
@@ -2266,6 +2266,11 @@
                     App.State.sort.col = null;
                     App.Data.save();
                     App.UI.renderTable();
+
+                    // Sincroniza a nova ordem com a nuvem
+                    if (window.sincronizarOrdemNoFirebase) {
+                        window.sincronizarOrdemNoFirebase();
+                    }
                 },
 
                 undo: () => {
@@ -2506,6 +2511,7 @@
                     tipo: dadosParaSalvar.tipo || "venda",
                     data: dadosParaSalvar.data,
                     kitParentId: dadosParaSalvar.kitParentId || null,
+                    pos: dadosParaSalvar.pos || 0,
                     userId: auth.currentUser.uid,
                     updatedAt: new Date()
                 });
@@ -2520,6 +2526,11 @@
                     itemLocal.id = docRef.id;
                     App.Data.relink(oldId, docRef.id); // Atualiza filhos para o novo ID String
                     App.Data.save(true);
+
+                    // Após o item ganhar um ID real, sincronizamos a ordem completa
+                    if (window.sincronizarOrdemNoFirebase) {
+                        window.sincronizarOrdemNoFirebase();
+                    }
                 }
 
             } catch (e) {
@@ -2545,6 +2556,8 @@
                     categoria: dadosDaVenda.categoria,
                     tipo: dadosDaVenda.tipo,
                     data: dadosDaVenda.data,
+                    kitParentId: dadosDaVenda.kitParentId || null,
+                    pos: dadosDaVenda.pos || 0,
                     updatedAt: new Date()
                 });
                 console.log("Item atualizado na nuvem:", id);
@@ -2603,6 +2616,7 @@
                         tipo: item.tipo || "venda",
                         data: item.data,
                         kitParentId: item.kitParentId || null,
+                        pos: item.pos || 0,
                         userId: auth.currentUser.uid,
                         updatedAt: new Date()
                     });
@@ -2665,6 +2679,7 @@
                         tipo: item.tipo || "venda",
                         data: item.data || new Date().toISOString().split('T')[0],
                         kitParentId: item.kitParentId || null,
+                        pos: item.pos || 0,
                         userId: auth.currentUser.uid,
                         updatedAt: new Date()
                     };
@@ -2689,11 +2704,49 @@
             }
         }
 
+        async function sincronizarOrdemNoFirebase() {
+            if (!auth.currentUser) return;
+            const data = App.State.data;
+            try {
+                let batch = writeBatch(db);
+                let count = 0;
+                data.forEach((item, index) => {
+                    // Atualiza a posição (pos) localmente para garantir consistência
+                    item.pos = index;
+
+                    // Só tenta sincronizar itens que já têm ID do Firebase (String)
+                    if (typeof item.id === 'string' && item.id.length > 5) {
+                        const ref = doc(db, "vendas", item.id);
+                        batch.update(ref, {
+                            pos: index,
+                            kitParentId: item.kitParentId || null,
+                            updatedAt: new Date()
+                        });
+                        count++;
+                    }
+
+                    if (count === 400) {
+                        // Não aguardamos o commit para não travar a UI, mas logamos
+                        batch.commit().then(() => console.log("Lote de ordens sincronizado."));
+                        batch = writeBatch(db);
+                        count = 0;
+                    }
+                });
+                if (count > 0) {
+                    await batch.commit();
+                    console.log("Ordem sincronizada na nuvem.");
+                }
+            } catch (e) {
+                console.error("Erro ao sincronizar ordem:", e);
+            }
+        }
+
         // Expondo para o App
         window.salvarVendaNoFirebase = salvarVendaNoFirebase;
         window.atualizarVendaNoFirebase = atualizarVendaNoFirebase;
         window.removerVendaDoFirebase = removerVendaDoFirebase;
         window.importarBackupParaNuvem = importarBackupParaNuvem;
+        window.sincronizarOrdemNoFirebase = sincronizarOrdemNoFirebase;
 
 
 
@@ -2727,12 +2780,13 @@
                         categoria: d.categoria || "Geral",
                         tipo: d.tipo || "venda",
                         data: d.data || new Date().toISOString().split('T')[0],
-                        kitParentId: d.kitParentId || null
+                        kitParentId: d.kitParentId || null,
+                        pos: d.pos || 0
                     });
                 });
 
-                // Ordenação e atualização local imediata
-                cloudItems.sort((a, b) => new Date(b.data) - new Date(a.data));
+                // Ordenação por POSIÇÃO (Manual Flow) e atualização local imediata
+                cloudItems.sort((a, b) => (a.pos || 0) - (b.pos || 0));
 
                 window.App.State.data = cloudItems;
                 window.App.Data.save(true); // Persiste no LocalStorage isolado

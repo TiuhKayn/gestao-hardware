@@ -424,7 +424,7 @@
         .t-header,
         .t-row {
             display: grid;
-            grid-template-columns: 30px var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 100px;
+            grid-template-columns: 30px var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 80px;
             padding: 0 24px;
             align-items: center;
             transition: var(--transition);
@@ -1454,10 +1454,11 @@
                     <div onclick="App.UI.setSort('desc')">Descrição <span class="sort-icon">↕</span></div>
                     <div onclick="App.UI.setSort('categoria')">Categoria <span class="sort-icon">↕</span></div>
                     <div onclick="App.UI.setSort('custo')">Custo <span class="sort-icon">↕</span></div>
-                    <div onclick="App.UI.setSort('valor')">Venda/Saldo <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('saldo')">Venda/Saldo <span class="sort-icon">↕</span></div>
                     <div onclick="App.UI.setSort('tipo')">Tipo <span class="sort-icon">↕</span></div>
                     <div onclick="App.UI.setSort('data')">Data <span class="sort-icon">↕</span></div>
-                    <div style="text-align: right; justify-content: flex-end; padding-right: 0;">Ações</div>
+                    <div style="text-align: center; display: flex; justify-content: center; padding-right: 0;">Ações
+                    </div>
                 </div>
                 <div id="lista-transacoes"></div>
             </div>
@@ -1777,7 +1778,7 @@
                                     <div style="color:${totals.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">R$ ${App.Utils.formatCurrency(totals.saldo)}</div>
                                     <div><span class="badge badge-${t.tipo}">${t.tipo}</span></div>
                                     <div>${App.Utils.formatDate(t.data)}</div>
-                                    <div style="text-align:right; display:flex; gap:4px; justify-content:flex-end">
+                                    <div style="display:flex; gap:4px; justify-content:center">
                                         <button class="btn-icon" onclick="App.Actions.edit('${t.id}')">✎</button>
                                         <button class="btn-icon" onclick="App.Data.remove('${t.id}')">×</button>
                                     </div>
@@ -1865,7 +1866,7 @@
                                                   </div>
                                                   <div><span class="badge badge-${c.tipo}">${c.tipo}</span></div>
                                                   <div>${App.Utils.formatDate(c.data)}</div>
-                                                  <div style="text-align:right; display:flex; gap:4px; justify-content:flex-end">
+                                                  <div style="display:flex; gap:4px; justify-content:center">
                                                       <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.edit('${c.id}')">✎</button>
                                                       <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
                                                   </div>
@@ -1927,6 +1928,40 @@
                     const cur = sel.value;
                     sel.innerHTML = '<option value="Todos">Categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
                     sel.value = cur;
+                },
+
+                updateSortIndicators: () => {
+                    const s = App.State.sort;
+                    if (!s || !s.col) return;
+                    const headers = document.querySelectorAll('.t-header > div[onclick]');
+                    headers.forEach(h => {
+                        const onclick = h.getAttribute('onclick') || '';
+                        const match = onclick.match(/setSort\('([^']+)'\)/);
+                        if (match && match[1]) {
+                            const icon = h.querySelector('.sort-icon');
+                            if (icon) {
+                                if (match[1] === s.col) {
+                                    icon.innerText = s.dir === 'asc' ? '↑' : '↓';
+                                    icon.style.opacity = '1';
+                                    icon.style.color = 'var(--accent-primary)';
+                                } else {
+                                    icon.innerText = '↕';
+                                    icon.style.opacity = '0.3';
+                                    icon.style.color = '';
+                                }
+                            }
+                        }
+                    });
+                },
+
+                setSort: (col) => {
+                    if (App.State.sort.col === col) {
+                        App.State.sort.dir = App.State.sort.dir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        App.State.sort.col = col;
+                        App.State.sort.dir = 'asc';
+                    }
+                    App.UI.render();
                 },
 
                 toggleAuthView: (isRegister) => {

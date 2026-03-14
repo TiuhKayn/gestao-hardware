@@ -1536,8 +1536,8 @@
                     if (App.State.editingId) {
                         const idx = App.State.data.findIndex(x => x.id == App.State.editingId);
 
-                        // Atualiza localmente
-                        App.State.data[idx] = { ...i, id: App.State.editingId };
+                        // Atualiza localmente, PRESERVANDO propriedades como 'pos' que não estão no form
+                        App.State.data[idx] = { ...App.State.data[idx], ...i, id: App.State.editingId };
 
                         // Sincroniza Edição
                         if (window.atualizarVendaNoFirebase) window.atualizarVendaNoFirebase(App.State.editingId, i);
@@ -2711,7 +2711,7 @@
                     tipo: dadosDaVenda.tipo,
                     data: dadosDaVenda.data,
                     kitParentId: dadosDaVenda.kitParentId || null,
-                    pos: dadosDaVenda.pos || 0,
+                    // Removido 'pos' aqui para não sobrescrever o valor existente na nuvem
                     updatedAt: new Date()
                 });
                 console.log("Item atualizado na nuvem:", id);

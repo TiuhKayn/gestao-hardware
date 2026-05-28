@@ -1396,7 +1396,7 @@
                 </div>
                 <div class="input-group" id="group-kit-pai" style="grid-column: span 6">
                     <label>Vincular a Projeto/Kit</label>
-                    <select id="reg-kit-pai">
+                    <select id="reg-kit-pai" onchange="App.UI.toggleDataVenda()">
                         <option value="">Avulso</option>
                     </select>
                 </div>
@@ -1587,6 +1587,11 @@
             },
 
             UI: {
+                toggleDataVenda: () => {
+                    const kitPai = document.getElementById('reg-kit-pai').value;
+                    const type = App.State.formType;
+                    document.getElementById('group-data-venda').style.display = (type === 'venda' && !kitPai) ? 'flex' : 'none';
+                },
                 setFormType: (t) => {
                     const isMobile = window.innerWidth <= 768;
                     const formContainer = document.querySelector('.smart-form-container');
@@ -1605,11 +1610,12 @@
                     const show = (id, types) => document.getElementById(id).style.display = types.includes(t) ? 'flex' : 'none';
                     show('group-custo', ['venda', 'kit']);
                     show('group-valor', ['venda', 'kit']);
-                    show('group-data-venda', ['venda', 'kit']);
                     show('group-recebeu', []);
                     show('group-receita', []);
                     show('group-volta', []);
                     show('group-kit-pai', ['venda']);
+
+                    App.UI.toggleDataVenda();
 
                     document.getElementById('lbl-custo').innerText = t === 'kit' ? 'Custo Adicional/Base (R$)' : 'Custo (R$)';
                     document.getElementById('lbl-valor').innerText = t === 'kit' ? 'Venda Final do PC (R$)' : 'Venda (R$)';
@@ -2154,6 +2160,7 @@
                     document.getElementById('reg-volta').value = '';
                     document.getElementById('reg-recebeu').value = '';
                     document.getElementById('reg-kit-pai').value = '';
+                    App.UI.toggleDataVenda();
 
                     App.State.editingId = null;
                     const cancelBtn = document.getElementById('btn-cancel-edit');
@@ -2291,6 +2298,7 @@
                     set('reg-desc', t.desc); set('reg-cat', t.categoria); set('reg-data', t.data); set('reg-data-venda', dv || '');
                     set('reg-valor', t.valor); set('reg-custo', t.custo); set('reg-receita', t.receita);
                     set('reg-kit-pai', t.kitParentId || '');
+                    App.UI.toggleDataVenda();
 
                     document.getElementById('btn-cancel-edit').style.display = 'block';
                     window.scrollTo({ top: 0, behavior: 'smooth' });

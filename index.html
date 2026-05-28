@@ -2734,6 +2734,7 @@
                     categoria: dadosParaSalvar.categoria || "Geral",
                     tipo: dadosParaSalvar.tipo || "venda",
                     data: dadosParaSalvar.data,
+                    dataVenda: dadosParaSalvar.dataVenda || "",
                     kitParentId: dadosParaSalvar.kitParentId || null,
                     pos: dadosParaSalvar.pos || 0,
                     userId: auth.currentUser.uid,
@@ -2780,6 +2781,7 @@
                     categoria: dadosDaVenda.categoria,
                     tipo: dadosDaVenda.tipo,
                     data: dadosDaVenda.data,
+                    dataVenda: dadosDaVenda.dataVenda || "",
                     kitParentId: dadosDaVenda.kitParentId || null,
                     // Removido 'pos' aqui para não sobrescrever o valor existente na nuvem
                     updatedAt: new Date()
@@ -3041,6 +3043,7 @@
                         categoria: d.categoria || "Geral",
                         tipo: d.tipo || "venda",
                         data: d.data || new Date().toISOString().split('T')[0],
+                        dataVenda: d.dataVenda || "",
                         kitParentId: d.kitParentId || null,
                         pos: d.pos || 0
                     });

@@ -1,0 +1,3341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Vendas</title>
+    <!-- Polyfill para Arraste no Mobile -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch-polyfill@1.4.1/drag-drop-touch-polyfill.js"></script>
+    <style>
+        :root {
+            --bg-body: #0d0d0d;
+            --bg-glass: rgba(20, 20, 20, 0.8);
+            --bg-card: #151515;
+            --bg-input: #050505;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #7c3aed;
+            --accent-glow: rgba(124, 58, 237, 0.4);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --purple: #7c3aed;
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --select-col-width: 0px;
+        }
+
+        .selection-active {
+            --select-col-width: 40px;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top right, #1a1a1a, #0d0d0d);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 24px;
+            min-height: 100vh;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.5s ease, color 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:focus,
+        select:focus,
+        input:focus,
+        div:focus {
+            outline: none !important;
+        }
+
+        /* Focus only for keyboard users */
+        :focus-visible {
+            outline: 2px solid var(--accent-primary) !important;
+            outline-offset: 2px;
+        }
+
+        button::-moz-focus-inner {
+            border: 0;
+        }
+
+        /* --- TEMA WHITE --- */
+        body.theme-white {
+            --bg-body: #f4f7fa;
+            --bg-glass: rgba(255, 255, 255, 0.9);
+            --bg-card: #ffffff;
+            --bg-input: #edf2f7;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-glow: rgba(124, 58, 237, 0.15);
+            background: radial-gradient(circle at top right, #ffffff, #f0f4f8);
+        }
+
+        body.theme-white .glass {
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        body.theme-white input,
+        body.theme-white select {
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #1a202c;
+        }
+
+        body.theme-white .t-header {
+            background: rgba(0, 0, 0, 0.02);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-white .t-row {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.02);
+        }
+
+        body.theme-white .t-row:hover {
+            background: rgba(0, 0, 0, 0.015);
+        }
+
+        body.theme-white .btn-icon {
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-white .page-header {
+            background: #ffffff !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-white h1 {
+            background: var(--text-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        body.theme-white .user-dropdown-trigger {
+            background: #f8fafc !important;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            color: var(--text-primary);
+        }
+
+        body.theme-white .mob-card {
+            background: #ffffff !important;
+            border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        }
+
+        body.theme-white .mob-card-header {
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        body.theme-white .mob-detail-sheet {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-white .mob-detail-handle {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        body.theme-white .btn-primary {
+            background: var(--accent-primary);
+            border: none;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        body.theme-white .btn-primary:hover {
+            background: #8b5cf6;
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .glass {
+            background: var(--bg-glass);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .page-header {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 100;
+            background: #111 !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-left: 4px solid var(--stat-color, var(--accent-primary));
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .smart-form-container {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 20px;
+        }
+
+        .type-selector {
+            display: flex;
+            background: var(--bg-input);
+            padding: 4px;
+            border-radius: 12px;
+            gap: 4px;
+        }
+
+        .type-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .type-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding-left: 4px;
+        }
+
+        input,
+        select {
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: white;
+            height: 44px;
+            border-radius: 10px;
+            padding: 0 16px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 0 10px;
+            transition: var(--transition);
+            width: 44px;
+            height: 44px;
+            overflow: hidden;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .search-box.active {
+            width: 250px;
+            border-color: var(--accent-primary);
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            margin-left: 8px;
+            color: white;
+            outline: none;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            box-shadow: none !important;
+        }
+
+        .search-input:focus {
+            box-shadow: none !important;
+        }
+
+        .search-box.active .search-input {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 0 24px;
+            height: 46px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: #111;
+            color: white;
+            border: 1px solid var(--accent-primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #1a1a1a;
+            border-color: #8b5cf6;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+            filter: brightness(0.9);
+        }
+
+        .btn-primary:active {
+            filter: brightness(1.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #b91c1c);
+            color: white;
+        }
+
+        .toolbar {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            /* Separador sutil */
+            margin-bottom: 24px;
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 20px;
+        }
+
+        .backup-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .transactions-card {
+            overflow: hidden;
+        }
+
+        .t-header,
+        .t-row {
+            display: grid;
+            grid-template-columns: 30px var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 80px;
+            padding: 0 24px;
+            align-items: center;
+            transition: var(--transition);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .t-header {
+            background: rgba(255, 255, 255, 0.02);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 48px;
+        }
+
+        .t-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            min-height: 54px;
+        }
+
+        .t-header div,
+        .t-row>div {
+            padding: 12px 0;
+            /* Alinhamento vertical interno */
+        }
+
+        .select-col {
+            display: flex;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .selection-active .select-col {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-primary);
+        }
+
+        .bulk-actions-bar {
+            background: var(--bg-card);
+            padding: 12px 24px;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            border: 1px solid var(--accent-glow);
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Default: mob-card is hidden on desktop */
+        .mob-card {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .t-row:not(.separator)>div {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .t-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-venda {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-gasto {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-kit {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-primary);
+        }
+
+        .badge-troca {
+            background: rgba(168, 85, 247, 0.1);
+            color: var(--purple);
+        }
+
+        .row-group.open .sub-row-container {
+            display: block;
+        }
+
+        .sub-row-container {
+            display: none;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 5px 0 10px 0;
+        }
+
+        .btn-toggle {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 0.7rem;
+        }
+
+        .t-row[draggable="true"] {
+            cursor: grab;
+        }
+
+        .t-row.dragging {
+            opacity: 0.4;
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .row-group.open .btn-toggle {
+            transform: rotate(90deg);
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-secondary);
+            opacity: 0.5;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            user-select: none;
+            font-size: 1.1rem;
+            min-width: 24px;
+            touch-action: none;
+            /* Previne scroll ao arrastar no mobile */
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .t-row:hover .drag-handle {
+            opacity: 1;
+            color: var(--accent-primary);
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 9999;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 10px;
+            background: #1e293b;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease;
+            border-left: 4px solid var(--success);
+        }
+
+        .t-header div {
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .t-header.drop-over {
+            background: rgba(124, 58, 237, 0.15) !important;
+            border: 1px dashed var(--accent-primary) !important;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.2);
+        }
+
+        .sort-icon {
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .t-header div:hover .sort-icon,
+        .sort-active .sort-icon {
+            opacity: 1;
+        }
+
+        .sort-active .sort-icon {
+            color: var(--accent-primary);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* --- GLASS OVERLAYS (UNIFICADOS) --- */
+        .glass-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.3s;
+        }
+
+        #auth-overlay {
+            z-index: 2100;
+        }
+
+        #username-prompt-overlay {
+            z-index: 2200;
+        }
+
+        #settings-overlay {
+            z-index: 2300;
+        }
+
+        .user-menu-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-dropdown-trigger {
+            background: #0d0d0d !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .user-dropdown-trigger:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-primary);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 220px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.2s ease-out;
+        }
+
+        .dropdown-menu.active {
+            display: flex;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 4px 0;
+        }
+
+        .dropdown-item.danger {
+            color: #ef4444;
+        }
+
+        .dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .btn-close:hover {
+            color: var(--text-primary);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .auth-card h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-primary) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-form input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .auth-form input:focus {
+            border-color: var(--accent-primary);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-auth {
+            background: var(--accent-primary);
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .auth-footer {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: var(--text-dim);
+        }
+
+        .auth-footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50px;
+            margin-right: 15px;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn-logout {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: var(--text-dim);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .google-btn {
+            background: white;
+            color: #444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            font-weight: 600;
+        }
+
+        /* --- RESPONSIVIDADE MOBILE --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .page-header {
+                padding: 16px;
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .page-header div[style*="align-items:center"] {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            #sync-status {
+                justify-content: center;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr !important;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .form-grid .input-group {
+                grid-column: span 12 !important;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .filter-controls select {
+                width: 100% !important;
+                box-sizing: border-box;
+            }
+
+            .filter-controls .search-box {
+                width: 44px !important;
+                box-sizing: border-box;
+                align-self: flex-start;
+            }
+
+            .filter-controls .search-box.active {
+                width: 100% !important;
+            }
+
+            .t-header {
+                display: none;
+            }
+
+            /* --- MOBILE CARD v2 --- */
+            /* Hide all native desktop cols inside t-row on mobile */
+            .t-row>div:not(.mob-card):not(.select-col) {
+                display: none !important;
+            }
+
+            .t-row {
+                display: block !important;
+                padding: 0 !important;
+                border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                border-radius: 14px !important;
+                margin-bottom: 12px !important;
+                background: #111 !important;
+                overflow: hidden !important;
+            }
+
+            .select-col {
+                display: none !important;
+            }
+
+            /* Show the mob-card on mobile */
+            .mob-card {
+                display: flex !important;
+                flex-direction: column;
+            }
+
+            .mob-card-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 12px 14px;
+                background: rgba(255, 255, 255, 0.03);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .mob-name {
+                font-weight: 700;
+                font-size: 0.95rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 160px;
+            }
+
+            .mob-name-area {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                overflow: hidden;
+                flex: 1;
+            }
+
+            .mob-more-btn {
+                background: none;
+                border: none;
+                color: var(--accent-primary);
+                font-size: 1rem;
+                font-weight: 700;
+                cursor: pointer;
+                padding: 0 4px;
+                line-height: 1;
+                letter-spacing: 2px;
+                flex-shrink: 0;
+                opacity: 0.8;
+            }
+
+            .mob-card-actions {
+                display: flex;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+
+            .mob-card-actions .btn-icon {
+                width: 34px !important;
+                height: 34px !important;
+                font-size: 0.9rem !important;
+            }
+
+            .mob-info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .mob-cell {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                padding: 10px 14px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                font-size: 0.88rem;
+            }
+
+            .mob-cell:nth-child(odd) {
+                border-right: 1px solid rgba(255, 255, 255, 0.04);
+            }
+
+            .mob-label {
+                font-size: 0.62rem;
+                font-weight: 700;
+                color: var(--text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+            }
+
+            /* Detail modal */
+            .mob-detail-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: flex-end;
+                justify-content: center;
+                z-index: 9999;
+                backdrop-filter: blur(4px);
+                animation: fadeIn 0.2s ease;
+            }
+
+            .mob-detail-sheet {
+                background: #161616;
+                border: 1px solid rgba(124, 58, 237, 0.3);
+                border-bottom: none;
+                border-radius: 20px 20px 0 0;
+                width: 100%;
+                max-height: 80vh;
+                overflow-y: auto;
+                padding: 0 0 24px 0;
+                animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .mob-detail-handle {
+                width: 40px;
+                height: 4px;
+                background: rgba(255, 255, 255, 0.15);
+                border-radius: 2px;
+                margin: 14px auto 18px;
+            }
+
+            .mob-detail-title {
+                font-size: 1.1rem;
+                font-weight: 700;
+                padding: 0 20px 16px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+                word-break: break-word;
+            }
+
+            .mob-detail-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                padding: 4px 0;
+            }
+
+            .mob-detail-cell {
+                padding: 12px 20px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            }
+
+            .mob-detail-cell:nth-child(odd) {
+                border-right: 1px solid rgba(255, 255, 255, 0.04);
+            }
+
+            .mob-detail-cell .mob-label {
+                margin-bottom: 4px;
+                display: block;
+            }
+
+            .mob-sub-item {
+                margin: 0 16px;
+                padding: 12px 14px;
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
+                margin-bottom: 8px;
+                background: rgba(255, 255, 255, 0.02);
+            }
+
+            .mob-sub-item-name {
+                font-weight: 700;
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+                color: var(--accent-primary);
+            }
+
+            .mob-sub-item-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+                font-size: 0.82rem;
+            }
+
+            .mob-detail-close {
+                display: block;
+                margin: 16px 20px 0;
+                width: calc(100% - 40px);
+                padding: 12px;
+                background: #000;
+                border: 1px solid var(--accent-primary);
+                border-radius: 10px;
+                color: #fff;
+                font-weight: 700;
+                font-size: 0.9rem;
+                cursor: pointer;
+            }
+
+            .search-box.active {
+                width: 100%;
+            }
+
+            /* --- COLLAPSIBLE FORM ON MOBILE --- */
+            .smart-form-container .form-grid,
+            .smart-form-container .form-actions-row {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .smart-form-container.mobile-form-open .form-grid,
+            .smart-form-container.mobile-form-open .form-actions-row {
+                max-height: 1200px;
+                opacity: 1;
+                pointer-events: all;
+            }
+
+            .form-header {
+                flex-direction: column;
+                align-items: center;
+                gap: 12px;
+                text-align: center;
+                padding-bottom: 0 !important;
+            }
+
+            .type-selector {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .type-btn {
+                flex: 1;
+                text-align: center;
+                justify-content: center;
+            }
+
+            .auth-card {
+                width: 100%;
+                margin: 20px;
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div style="display:flex; align-items:center; gap:20px">
+                <div
+                    style="background: #000; padding: 4px 16px 4px 4px; border-radius: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+                    <img src="1.png" alt="Logo"
+                        style="width:36px; height:36px; object-fit:contain; border-radius: 8px;">
+                    <div
+                        style="font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; color: #fff; display: flex; align-items: center; gap: 6px;">
+                        Masabushi <span
+                            style="font-weight:800; opacity: 0.9; font-style: italic; text-decoration: underline;">Sell</span>
+                    </div>
+                </div>
+                <div id="sync-status" style="display: flex; align-items: center; gap: 8px;">
+                    <span id="sync-dot"
+                        style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
+                    <span id="sync-text" style="font-size: 0.7rem; color: var(--text-dim);">Conectando...</span>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center;">
+                <div id="user-info" class="user-menu-container" style="display: none;">
+                    <button class="user-dropdown-trigger" onclick="App.UI.toggleUserDropdown(event)">
+                        <span id="display-name">Usuário</span>
+                        <span style="font-size: 0.8rem; opacity: 0.5;">▼</span>
+                    </button>
+                    <div id="user-dropdown" class="dropdown-menu">
+                        <button class="dropdown-item" onclick="App.UI.toggleSettings(true)">
+                            <span>⚙️</span> Configurações de Conta
+                        </button>
+                        <button class="dropdown-item" onclick="App.UI.toggleTheme()">
+                            <span id="theme-icon">☀️</span> <span id="theme-text">Tema White</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item danger" onclick="App.Auth.logout()">
+                            <span>🚪</span> Sair da Conta
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div id="auth-overlay" class="glass-overlay">
+            <div class="auth-card glass">
+                <div id="login-view">
+                    <h2>Bem-vindo</h2>
+                    <div class="auth-form">
+                        <input type="email" id="login-email" placeholder="Usuário ou E-mail">
+                        <input type="password" id="login-pass" placeholder="Senha">
+                        <button class="btn btn-auth" onclick="App.Auth.login()">Entrar</button>
+                        <button class="btn google-btn" onclick="App.Auth.loginWithGoogle()">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+                            Entrar com Google
+                        </button>
+                    </div>
+                    <div class="auth-footer">
+                        Não tem conta? <a onclick="App.UI.toggleAuthView(true)">Cadastre-se</a>
+                    </div>
+                </div>
+
+                <div id="register-view" style="display: none;">
+                    <h2>Criar Registro</h2>
+                    <div class="auth-form">
+                        <input type="text" id="reg-user-name" placeholder="Nome Completo / Usuário">
+                        <input type="email" id="reg-email" placeholder="Definir E-mail">
+                        <input type="password" id="reg-pass" placeholder="Definir Senha">
+                        <button class="btn btn-auth" onclick="App.Auth.register()">Concluir Cadastro</button>
+                    </div>
+                    <div class="auth-footer">
+                        Já é cadastrado? <a onclick="App.UI.toggleAuthView(false)">Fazer Login</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="username-prompt-overlay" class="glass-overlay" style="display: none;">
+            <div class="auth-card glass">
+                <h2>Escolha seu Nome</h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+                    Notei que você ainda não tem um nome de usuário único. Escolha um agora para continuar!
+                </p>
+                <div class="auth-form">
+                    <input type="text" id="prompt-user-name" placeholder="Ex: Yugoh, Kayn123...">
+                    <button id="btn-save-username" class="btn btn-auth" onclick="App.Auth.setInitialUsername()">Salvar e
+                        Entrar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings-overlay" class="glass-overlay" style="display: none;">
+            <div class="auth-card glass">
+                <div class="settings-header">
+                    <h2>Configurações</h2>
+                </div>
+                <div class="auth-form">
+                    <div class="input-group">
+                        <label>Nome de Usuário (Exclusivo)</label>
+                        <input type="text" id="set-user-name" placeholder="Seu novo nome">
+                    </div>
+                    <div class="input-group">
+                        <label>Nova Senha</label>
+                        <input type="password" id="set-pass" placeholder="Mudar senha">
+                    </div>
+                    <div class="input-group">
+                        <label>Confirmar Senha</label>
+                        <input type="password" id="set-pass-confirm" placeholder="Repita a senha">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                        <button class="btn btn-auth" onclick="App.Auth.updateAccountSettings()"
+                            style="width: 100%; border: 1px solid var(--accent-primary);">Salvar Alterações</button>
+                        <button class="btn btn-auth" onclick="App.UI.toggleSettings(false)"
+                            style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--accent-primary); box-shadow: none;">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid" id="dashboard-container" style="margin-bottom: 24px;"></div>
+
+        <div class="smart-form-container glass" style="margin-bottom: 24px;">
+            <div class="form-header">
+                <h2 style="margin:0; font-size:1.1rem; color:var(--text-secondary)">Nova Transação</h2>
+                <div class="type-selector">
+                    <button class="type-btn active" onclick="App.UI.setFormType('venda')" data-type="venda">🛍️
+                        Venda</button>
+                    <button class="type-btn" onclick="App.UI.setFormType('gasto')" data-type="gasto">💸 Despesa</button>
+                    <button class="type-btn" onclick="App.UI.setFormType('kit')" data-type="kit">📦 Lote/Kit</button>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="input-group" id="group-desc" style="grid-column: span 6">
+                    <label id="lbl-desc">Descrição do Item</label>
+                    <input type="text" id="reg-desc" placeholder="">
+                </div>
+                <div class="input-group" id="group-recebeu" style="grid-column: span 6; display:none">
+                    <label>Recebido na Troca</label>
+                    <input type="text" id="reg-recebeu" placeholder="Ex: GTX 1660 + R$ 200">
+                </div>
+                <div class="input-group" style="grid-column: span 3">
+                    <label>Categoria</label>
+                    <input type="text" id="reg-cat" placeholder="">
+                </div>
+                <div class="input-group" style="grid-column: span 3">
+                    <label>Data</label>
+                    <input type="date" id="reg-data">
+                </div>
+
+                <div class="input-group" id="group-custo" style="grid-column: span 3">
+                    <label id="lbl-custo">Custo (R$)</label>
+                    <input type="number" id="reg-custo" step="0.01">
+                </div>
+                <div class="input-group" id="group-valor" style="grid-column: span 3">
+                    <label id="lbl-valor">Venda (R$)</label>
+                    <input type="number" id="reg-valor" step="0.01">
+                </div>
+                <div class="input-group" id="group-receita" style="grid-column: span 3; display:none">
+                    <label>Bônus/Receita Extra</label>
+                    <input type="number" id="reg-receita" placeholder="0.00">
+                </div>
+                <div class="input-group" id="group-volta" style="grid-column: span 3; display:none">
+                    <label>Volta em Dinheiro</label>
+                    <input type="number" id="reg-volta" placeholder="0.00">
+                </div>
+                <div class="input-group" id="group-kit-pai" style="grid-column: span 6">
+                    <label>Vincular a Projeto/Kit</label>
+                    <select id="reg-kit-pai">
+                        <option value="">Avulso</option>
+                    </select>
+                </div>
+
+                <div style="grid-column: span 12; display: flex; gap: 12px; margin-top: 10px;">
+                    <button id="btn-main-action" class="btn btn-primary" onclick="App.Actions.submitForm()">Registrar
+                        Venda</button>
+                    <button id="btn-cancel-edit" class="btn"
+                        style="display:none; background:rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--accent-primary);"
+                        onclick="App.UI.cancelEdit()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="toolbar glass">
+            <div class="filter-controls">
+                <select id="filtro-tipo" onchange="App.UI.render()">
+                    <option value="todos">Tudo</option>
+                    <option value="kits">Kits/Projetos</option>
+                    <option value="avulsos">Avulsos</option>
+                </select>
+                <select id="filtro-categoria" onchange="App.UI.render()">
+                    <option value="Todos">Categorias</option>
+                </select>
+                <div class="search-box" onclick="App.UI.toggleSearch(this)">
+                    <span style="font-size: 1.2rem;">🔍</span>
+                    <input type="text" id="filtro-busca" class="search-input" placeholder="Buscar item..."
+                        onkeyup="App.UI.render()" onclick="event.stopPropagation()">
+                </div>
+            </div>
+            <div class="backup-controls" style="align-items:center;">
+                <button id="btn-selection-mode" onclick="App.Actions.toggleSelectionMode()" class="btn-icon"
+                    title="Modo Seleção"
+                    style="border-color:var(--accent-primary); color:var(--accent-primary)">☑</button>
+                <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
+                <button onclick="App.Actions.undo()" class="btn-icon" title="Desfazer"
+                    style="border-color:var(--accent-primary); color:var(--accent-primary)">↶</button>
+                <div style="width:1px; height:20px; background:rgba(255,255,255,0.1); margin: 0 5px;"></div>
+                <button onclick="App.Actions.exportData()" class="btn-icon" title="Exportar"
+                    style="border-color:var(--accent-primary); color:var(--accent-primary)">💾</button>
+                <button onclick="document.getElementById('input-import').click()" class="btn-icon" title="Importar"
+                    style="border-color:var(--accent-primary); color:var(--accent-primary)">📂</button>
+                <input type="file" id="input-import" style="display:none" onchange="App.Actions.importData(event)">
+            </div>
+        </div>
+
+        <div id="table-view" class="glass" style="overflow: hidden;">
+            <div class="t-scroll">
+                <div class="t-header" id="table-header"
+                    ondragover="event.preventDefault(); this.classList.add('drop-over')"
+                    ondragleave="this.classList.remove('drop-over')"
+                    ondrop="this.classList.remove('drop-over'); App.Actions.onHeaderDrop(event)">
+                    <div style="width: 30px;"></div>
+                    <div
+                        style="width: var(--select-col-width); padding: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: width 0.3s ease;">
+                        <input type="checkbox" id="select-all" onclick="App.Actions.toggleSelectAll(this.checked)"
+                            style="width: 16px; height: 16px; cursor: pointer;">
+                    </div>
+                    <div onclick="App.UI.setSort('desc')">Descrição <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('categoria')">Categoria <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('custo')">Custo <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('saldo')">Venda/Saldo <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('tipo')">Tipo <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('data')">Data <span class="sort-icon">↕</span></div>
+                    <div style="text-align: center; display: flex; justify-content: center; padding-right: 0;">Ações
+                    </div>
+                </div>
+                <div id="lista-transacoes"></div>
+            </div>
+        </div>
+
+        <div id="selection-toolbar" class="selection-toolbar glass" style="display: none;">
+            <span id="selection-count">0 itens selecionados</span>
+            <button onclick="App.Actions.deleteSelected()" class="btn btn-danger"
+                style="height: 36px; padding: 0 15px; font-size: 0.8rem;">Excluir</button>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        window.App = {
+            State: {
+                dbKey: 'hw_transacoes_v3',
+                data: [],
+                formType: 'venda',
+                editingId: null,
+                sort: { col: null, dir: 'desc' },
+                dashboardOrder: ['investido', 'recebido', 'lucro'],
+                history: [],
+                selectedIds: new Set(),
+                selectionMode: false,
+                lastSelectedId: null,
+                user: null,
+                _activePopupId: null,
+                openKits: new Set()
+            },
+
+            Utils: {
+                formatCurrency: (v) => Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 }),
+                formatDate: (s) => {
+                    if (!s) return '-';
+                    try {
+                        const d = new Date(s + 'T12:00:00');
+                        return isNaN(d.getTime()) ? 'Data Inválida' : d.toLocaleDateString('pt-BR');
+                    } catch (e) { return 'Erro Data'; }
+                },
+                getToday: () => {
+                    const d = new Date();
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                },
+                generateId: () => Date.now(),
+                toast: (m, t = 'success') => {
+                    const c = document.getElementById('toast-container');
+                    const e = document.createElement('div');
+                    e.className = `toast ${t}`; e.innerText = m;
+                    c.appendChild(e); setTimeout(() => e.remove(), 4000);
+                }
+            },
+
+            Data: {
+                load: () => {
+                    try {
+                        App.State.data = JSON.parse(localStorage.getItem(App.State.dbKey) || '[]');
+                        const savedOrder = localStorage.getItem('hw_dashboard_order');
+                        if (savedOrder) {
+                            const parsed = JSON.parse(savedOrder);
+                            if (Array.isArray(parsed) && parsed.length > 0) App.State.dashboardOrder = parsed;
+                        }
+                    } catch (e) { console.error("Erro ao carregar dados", e); App.State.data = []; }
+                    App.UI.render();
+                },
+                save: (skipHistory = false) => {
+                    if (!skipHistory) {
+                        App.State.history.push(JSON.stringify(App.State.data));
+                        if (App.State.history.length > 30) App.State.history.shift();
+                    }
+                    localStorage.setItem(App.State.dbKey, JSON.stringify(App.State.data));
+                    App.UI.render();
+                },
+                add: (i) => {
+                    if (App.State.editingId) {
+                        const idx = App.State.data.findIndex(x => x.id == App.State.editingId);
+
+                        // Atualiza localmente, PRESERVANDO propriedades como 'pos' que não estão no form
+                        App.State.data[idx] = { ...App.State.data[idx], ...i, id: App.State.editingId };
+
+                        // Sincroniza Edição
+                        if (window.atualizarVendaNoFirebase) window.atualizarVendaNoFirebase(App.State.editingId, i);
+
+                        App.State.editingId = null;
+                    } else {
+                        App.State.data.unshift(i);
+
+                        // Sincroniza Criação
+                        if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(i);
+                    }
+                    App.Data.save(); App.UI.resetForms();
+                },
+                remove: (id) => {
+                    if (confirm("Remover?")) {
+                        // Sincroniza Exclusão
+                        if (window.removerVendaDoFirebase) window.removerVendaDoFirebase(id);
+
+                        App.State.data = App.State.data.filter(x => x.id != id && x.kitParentId != id);
+                        App.Data.save();
+                    }
+                },
+                relink: (oldId, newId, targetArray = null) => {
+                    if (!oldId || !newId || String(oldId) === String(newId)) return;
+                    const arr = targetArray || App.State.data;
+                    let count = 0;
+                    arr.forEach(item => {
+                        if (String(item.kitParentId) === String(oldId)) {
+                            item.kitParentId = newId;
+                            count++;
+                        }
+                    });
+                    // Silenciado para evitar poluição no console
+                },
+                clearAll: () => { if (confirm("Limpar TUDO?")) { App.State.data = []; App.Data.save(); } }
+            },
+
+            UI: {
+                setFormType: (t) => {
+                    const isMobile = window.innerWidth <= 768;
+                    const formContainer = document.querySelector('.smart-form-container');
+                    const isAlreadyActive = App.State.formType === t && formContainer.classList.contains('mobile-form-open');
+
+                    // Mobile: toggle collapse if clicking the same already-open type
+                    if (isMobile && isAlreadyActive) {
+                        formContainer.classList.remove('mobile-form-open');
+                        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                        App.State._mobileFormOpen = false;
+                        return;
+                    }
+
+                    App.State.formType = t;
+                    document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === t));
+                    const show = (id, types) => document.getElementById(id).style.display = types.includes(t) ? 'flex' : 'none';
+                    show('group-custo', ['venda', 'gasto', 'troca', 'kit']);
+                    show('group-valor', ['venda', 'troca', 'kit']);
+                    show('group-recebeu', ['troca']);
+                    show('group-receita', ['kit']);
+                    show('group-volta', ['troca']);
+                    show('group-kit-pai', ['venda', 'gasto', 'troca']);
+
+                    document.getElementById('lbl-custo').innerText = t === 'kit' ? 'Custo Inicial (R$)' : 'Custo (R$)';
+                    document.getElementById('lbl-valor').innerText = t === 'kit' ? 'Receita Final (R$)' : (t === 'troca' ? 'Sobra/Saldo (R$)' : 'Venda (R$)');
+
+                    const btn = document.getElementById('btn-main-action');
+                    btn.innerText = App.State.editingId ? 'Salvar Alterações' : 'Registrar ' + t.charAt(0).toUpperCase() + t.slice(1);
+                    btn.className = t === 'gasto' ? 'btn btn-danger' : 'btn btn-primary';
+
+                    // Mobile: open form after setting type
+                    if (isMobile) {
+                        formContainer.classList.add('mobile-form-open');
+                        App.State._mobileFormOpen = true;
+                    }
+                },
+
+                render: () => {
+                    try {
+                        App.UI.updateDashboard();
+                        App.UI.renderTable();
+                        App.UI.updateSelects();
+                        App.UI.updateFilters();
+                        App.UI.updateSortIndicators();
+                    } catch (e) {
+                        console.error("Erro de Renderização", e);
+                        App.Utils.toast("Erro ao atualizar tela", "error");
+                    }
+                },
+
+                updateDashboard: () => {
+                    const items = App.State.data || [];
+
+                    // Se estiver logado, garante que filtre apenas dados do usuário? 
+                    // (A sincronização v11/v12 já deve garantir isso na carga)
+
+                    const income = items.reduce((a, t) => {
+                        const v = (t.tipo === 'venda' || t.tipo === 'troca' ? (parseFloat(t.valor) || 0) : (t.tipo === 'kit' ? (parseFloat(t.valor) || 0) + (parseFloat(t.receita) || 0) : 0));
+                        return a + (Math.abs(v) > 1e8 ? 0 : v);
+                    }, 0);
+                    const expenses = items.reduce((a, t) => {
+                        const v = (t.tipo === 'gasto' || t.tipo === 'venda' || t.tipo === 'troca' || t.tipo === 'kit' ? (parseFloat(t.custo) || 0) : 0);
+                        return a + (Math.abs(v) > 1e8 ? 0 : v);
+                    }, 0);
+
+                    const cards = {
+                        investido: { title: 'Total Investido', val: expenses, color: 'var(--danger)' },
+                        recebido: { title: 'Total Recebido', val: income, color: 'var(--success)' },
+                        lucro: { title: 'Lucro Estimado', val: income - expenses, color: 'var(--accent-primary)' }
+                    };
+
+                    const container = document.getElementById('dashboard-container');
+                    if (!container) return;
+
+
+                    let order = App.State.dashboardOrder || [];
+                    const defaults = ['investido', 'recebido', 'lucro'];
+                    if (order.length < 3) order = defaults;
+
+                    defaults.forEach(k => { if (!order.includes(k)) order.push(k); });
+
+                    container.innerHTML = order.map(key => {
+                        const c = cards[key];
+                        if (!c) return '';
+                        return `
+                        <div class="stat-card glass" id="card-${key}" draggable="true" style="--stat-color: ${c.color}; cursor:grab;" 
+                             data-key="${key}" ondragstart="App.Actions.onDragStart(event)" 
+                             ondragover="event.preventDefault()" ondrop="App.Actions.onDrop(event)">
+                            <div class="stat-label">${c.title}</div>
+                            <div class="stat-value">R$ ${App.Utils.formatCurrency(c.val)}</div>
+                        </div>`;
+                    }).join('');
+
+                },
+
+                renderTable: () => {
+                    const list = document.getElementById('lista-transacoes');
+                    const container = document.getElementById('table-view');
+                    if (!list) return;
+
+                    // Ensure selection mode variable is handled
+                    if (container) container.classList.toggle('selection-active', App.State.selectionMode);
+
+                    const fType = document.getElementById('filtro-tipo').value;
+                    const fCat = document.getElementById('filtro-categoria').value;
+                    const fBusca = (document.getElementById('filtro-busca').value || "").toLowerCase().trim();
+                    const searchTerms = fBusca.split(' ').filter(x => x);
+
+                    // 1. Pré-processamento: Mapear filhos e calcular totais (O(N))
+                    const dataWithMeta = App.State.data.map(t => {
+                        const kids = App.State.data
+                            .filter(c => String(c.kitParentId) === String(t.id));
+                        const kitInitialCusto = parseFloat(t.custo) || 0;
+                        const kitInitialReceita = parseFloat(t.valor) || 0;
+                        const kidsCusto = kids.reduce((acc, c) => acc + (parseFloat(c.custo) || 0), 0);
+                        const kidsValor = kids.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
+                        const bonusExtra = parseFloat(t.receita) || 0;
+
+                        const totalCusto = kitInitialCusto + kidsCusto;
+                        const totalReceita = kitInitialReceita + kidsValor + bonusExtra;
+
+                        return {
+                            ...t,
+                            _children: kids,
+                            _totalCusto: totalCusto,
+                            _totalReceita: totalReceita,
+                            _saldo: totalReceita - totalCusto
+                        };
+                    });
+
+                    const allIds = new Set(App.State.data.map(x => String(x.id)));
+
+                    // 2. Filtragem
+                    const filtered = dataWithMeta.filter(t => {
+                        const hasParent = t.kitParentId && t.kitParentId !== "null" && t.kitParentId !== "";
+                        const parentExists = hasParent && allIds.has(String(t.kitParentId));
+
+                        if (hasParent && parentExists) return false;
+
+                        const typeVal = fType.toLowerCase();
+                        if (typeVal === 'kits' && t.tipo !== 'kit') return false;
+                        if (typeVal === 'avulsos' && t.tipo === 'kit') return false;
+                        if (fCat !== 'Todos' && t.categoria !== fCat) return false;
+
+                        if (searchTerms.length > 0) {
+                            const match = (txt) => searchTerms.every(term => (txt || '').toLowerCase().includes(term));
+                            const selfMatch = match(t.desc) || match(t.categoria);
+                            const childMatch = t.tipo === 'kit' && t._children.some(c => match(c.desc) || match(c.categoria));
+                            if (!selfMatch && !childMatch) return false;
+                        }
+
+                        return true;
+                    });
+
+                    // 3. Ordenação (Usa metadados pré-calculados)
+                    const s = App.State.sort;
+                    const sortCol = s.col || 'data';
+                    const sortDir = s.col ? s.dir : 'desc';
+
+                    if (App.State.sort.col) {
+                        filtered.sort((a, b) => {
+                            let valA, valB;
+                            if (sortCol === 'saldo') { valA = a._saldo; valB = b._saldo; }
+                            else if (sortCol === 'custo') { valA = a._totalCusto; valB = b._totalCusto; }
+                            else if (sortCol === 'data') {
+                                valA = new Date(a.data || 0).getTime();
+                                valB = new Date(b.data || 0).getTime();
+                            } else {
+                                valA = (a[sortCol] || '').toString().toLowerCase();
+                                valB = (b[sortCol] || '').toString().toLowerCase();
+                            }
+
+                            if (typeof valA === 'number') {
+                                return sortDir === 'asc' ? valA - valB : valB - valA;
+                            }
+                            return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                        });
+                    }
+
+                    list.innerHTML = filtered.map(t => {
+                        const isKit = t.tipo === 'kit';
+                        const children = t._children || [];
+                        const itemsCount = children.filter(c => c.tipo !== 'separator').length;
+                        const totals = { custo: t._totalCusto || 0, saldo: t._saldo || 0 };
+
+                        return `
+                            <div class="row-group ${App.State.openKits.has(String(t.id)) ? 'open' : ''}">
+                                <div class="t-row ${isKit ? 'row-kit' : ''}" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${t.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${t.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                    <div class="drag-handle" title="Arraste para reordenar">⋮⋮</div>
+                                    <div class="select-col">
+                                        <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${t.id}" ${App.State.selectedIds.has(String(t.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${t.id}')">
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:8px">
+                                        ${isKit ? `<button class="btn-toggle" onclick="App.Actions.toggleKit(event, '${t.id}')">▶</button>` : ''}
+                                        <span style="font-weight:600">${t.desc}</span>
+                                        ${isKit ? `<span style="font-size:0.7rem; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:10px; opacity:0.6">${itemsCount} itens</span>` : ''}
+                                    </div>
+                                    <div>${t.categoria || '-'}</div>
+                                    <div>R$ ${App.Utils.formatCurrency(totals.custo)}</div>
+                                    <div style="color:${totals.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">R$ ${App.Utils.formatCurrency(totals.saldo)}</div>
+                                    <div><span class="badge badge-${t.tipo}">${t.tipo}</span></div>
+                                    <div>${App.Utils.formatDate(t.data)}</div>
+                                    <div style="display:flex; gap:4px; justify-content:center">
+                                        <button class="btn-icon" onclick="App.Actions.edit('${t.id}')">✎</button>
+                                        <button class="btn-icon" onclick="App.Data.remove('${t.id}')">×</button>
+                                    </div>
+
+                                    <!-- NOVA MOB-CARD (MOBILE) -->
+                                    <div class="mob-card">
+                                        <div class="mob-card-header">
+                                            <div class="drag-handle" style="padding:0; margin-right:4px; opacity:0.8">⋮⋮</div>
+                                            <div class="mob-name-area">
+                                                ${isKit ? `<button class="btn-toggle" onclick="App.Actions.toggleKit(event, '${t.id}')">▶</button>` : ''}
+                                                <span class="mob-name">${t.desc}</span>
+                                                <button class="mob-more-btn" onclick="event.stopPropagation(); App.UI.showDetailPopup('${t.id}')">···</button>
+                                            </div>
+                                            <div class="mob-card-actions">
+                                                <button class="btn-icon" onclick="event.stopPropagation(); App.Actions.edit('${t.id}')">✎</button>
+                                                <button class="btn-icon" onclick="event.stopPropagation(); App.Data.remove('${t.id}')">×</button>
+                                            </div>
+                                        </div>
+                                        <div class="mob-info-grid">
+                                            <div class="mob-cell">
+                                                <span class="mob-label">Categoria</span>
+                                                <span>${t.categoria || '-'}</span>
+                                            </div>
+                                            <div class="mob-cell">
+                                                <span class="mob-label">Tipo</span>
+                                                <span class="badge badge-${t.tipo}">${t.tipo}</span>
+                                            </div>
+                                            <div class="mob-cell">
+                                                <span class="mob-label">Custo</span>
+                                                <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>
+                                            </div>
+                                            <div class="mob-cell">
+                                                <span class="mob-label">Saldo</span>
+                                                <span style="color:${totals.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">R$ ${App.Utils.formatCurrency(totals.saldo)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                ${isKit ? `
+                                    <div class="sub-row-container">
+                                        ${children.map(c => {
+                            if (c.tipo === 'separator') {
+                                return `<div class="t-row separator" style="padding: 8px 24px; background: rgba(255,255,255,0.02); cursor: move;" 
+                                                               draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                            <div class="drag-handle" title="Arraste para reordenar">⋮⋮</div>
+                                                            <div class="select-col">
+                                                                <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
+                                                            </div>
+                                                            <div style="grid-column: span 6; text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
+                                                                <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
+                                                             </div>
+                                                             <div style="display:flex; gap:4px; justify-content: flex-end;">
+                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.editSection('${c.id}')">✎</button>
+                                                                <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
+                                                             </div>
+                                                             
+                                                             <!-- MOB-CARD (SEPARATOR) -->
+                                                             <div class="mob-card" style="margin: 0 !important; border: none !important; background: transparent !important;">
+                                                                 <div class="mob-card-header" style="background: transparent !important; padding: 12px 14px !important;">
+                                                                     <div class="drag-handle" style="padding:0; margin-right:4px; opacity:0.8">⋮⋮</div>
+                                                                     <div class="mob-name-area">
+                                                                         <span style="font-size:1.2rem; line-height:1; color:var(--accent-primary)">↳</span>
+                                                                         <span class="mob-name" style="color:var(--accent-primary); font-size:0.75rem; letter-spacing:1px; text-transform:uppercase">${c.desc}</span>
+                                                                     </div>
+                                                                     <div class="mob-card-actions">
+                                                                         <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="App.Actions.editSection('${c.id}')">✎</button>
+                                                                         <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="App.Data.remove('${c.id}')">×</button>
+                                                                     </div>
+                                                                 </div>
+                                                             </div>
+                                                         </div>`;
+                            }
+                            return `
+                                             <div class="t-row" style="font-size:0.85rem; border-bottom:none; opacity:0.8;" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                                 <div class="drag-handle" title="Arraste para reordenar">⋮⋮</div>
+                                                 <div class="select-col">
+                                                     <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
+                                                 </div>
+                                                 <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left:8px; display:flex; align-items:center; gap:8px">
+                                                     <span style="opacity:0.5">↳</span> ${c.desc}
+                                                  </div>
+                                                  <div>${c.categoria || '-'}</div><div>R$ ${App.Utils.formatCurrency(c.custo)}</div>
+                                                  <div style="color:${(c.tipo === 'venda' || c.tipo === 'troca') ? 'var(--success)' : 'var(--danger)'}">
+                                                      R$ ${App.Utils.formatCurrency((c.tipo === 'venda' || c.tipo === 'troca') ? c.valor : c.custo)}
+                                                  </div>
+                                                  <div><span class="badge badge-${c.tipo}">${c.tipo}</span></div>
+                                                  <div>${App.Utils.formatDate(c.data)}</div>
+                                                  <div style="display:flex; gap:4px; justify-content:center">
+                                                      <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.edit('${c.id}')">✎</button>
+                                                      <button class="btn-icon" style="width:24px; height:24px" onclick="App.Data.remove('${c.id}')">×</button>
+                                                  </div>
+
+                                                  <!-- MOB-CARD (SUB-ITEM) -->
+                                                  <div class="mob-card" style="margin: 0 !important; border: none !important; border-bottom: 1px solid rgba(255,255,255,0.05) !important; background: transparent !important;">
+                                                      <div class="mob-card-header" style="background: transparent !important; padding: 10px 14px 6px !important;">
+                                                          <div class="drag-handle" style="padding:0; margin-right:4px; opacity:0.8">⋮⋮</div>
+                                                          <div class="mob-name-area">
+                                                              <span style="opacity:0.5; font-size:1.2rem; line-height:1">↳</span>
+                                                              <span class="mob-name" style="font-size:0.85rem">${c.desc}</span>
+                                                          </div>
+                                                          <div class="mob-card-actions">
+                                                              <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="event.stopPropagation(); App.Actions.edit('${c.id}')">✎</button>
+                                                              <button class="btn-icon" style="width:30px !important; height:30px !important;" onclick="event.stopPropagation(); App.Data.remove('${c.id}')">×</button>
+                                                          </div>
+                                                      </div>
+                                                      <div class="mob-info-grid" style="font-size:0.8rem">
+                                                          <div class="mob-cell" style="padding: 6px 14px">
+                                                              <span class="mob-label">Custo</span>
+                                                              <span>R$ ${App.Utils.formatCurrency(c.custo)}</span>
+                                                          </div>
+                                                          <div class="mob-cell" style="padding: 6px 14px">
+                                                              <span class="mob-label">Tipo</span>
+                                                              <span class="badge badge-${c.tipo}" style="transform: scale(0.85); transform-origin: left;">${c.tipo}</span>
+                                                          </div>
+                                                      </div>
+                                                  </div>
+                                              </div>`;
+                        }).join('')}
+                                        <div style="padding: 10px 48px; display:flex; gap:10px">
+                                            <button class="btn-sm" onclick="App.Actions.addSection('${t.id}')">+ Adicionar Sessão</button>
+                                            <button class="btn-sm" onclick="App.Actions.addQuickItem('${t.id}')">+ Adicionar Item</button>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>`;
+                    }).join('') + `
+                        <div id="drop-zone-bottom" 
+                             style="height: 48px; border: 2px dashed rgba(255,255,255,0.05); margin: 15px 10px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: var(--text-secondary); opacity: 0.5; transition: all 0.2s ease;"
+                             ondragover="event.preventDefault(); this.style.opacity='1'; this.style.borderColor='var(--accent-primary)'; this.style.background='rgba(124, 58, 237, 0.05)';"
+                             ondragleave="this.style.opacity='0.5'; this.style.borderColor='rgba(255,255,255,0.05)'; this.style.background='transparent';"
+                             ondrop="this.style.opacity='0.5'; this.style.borderColor='rgba(255,255,255,0.05)'; this.style.background='transparent'; App.Actions.onBottomDrop(event)">
+                             Mover para o fim da lista (Fora de Kits / Top Level)
+                        </div>`;
+                },
+
+                updateSelects: () => {
+                    const kits = App.State.data.filter(t => t.tipo === 'kit');
+                    const sel = document.getElementById('reg-kit-pai');
+                    const cur = sel.value;
+                    sel.innerHTML = '<option value="">Avulso</option>' + kits.map(k => `<option value="${k.id}">${k.desc}</option>`).join('');
+                    sel.value = cur;
+                },
+
+                updateFilters: () => {
+                    const cats = [...new Set(App.State.data.map(t => t.categoria).filter(c => c && c !== '-'))];
+                    const sel = document.getElementById('filtro-categoria');
+                    const cur = sel.value;
+                    sel.innerHTML = '<option value="Todos">Categorias</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+                    sel.value = cur;
+                },
+
+                updateSortIndicators: () => {
+                    const s = App.State.sort;
+                    if (!s || !s.col) return;
+                    const headers = document.querySelectorAll('.t-header > div[onclick]');
+                    headers.forEach(h => {
+                        const onclick = h.getAttribute('onclick') || '';
+                        const match = onclick.match(/setSort\('([^']+)'\)/);
+                        if (match && match[1]) {
+                            const icon = h.querySelector('.sort-icon');
+                            if (icon) {
+                                if (match[1] === s.col) {
+                                    icon.innerText = s.dir === 'asc' ? '↑' : '↓';
+                                    icon.style.opacity = '1';
+                                    icon.style.color = 'var(--accent-primary)';
+                                } else {
+                                    icon.innerText = '↕';
+                                    icon.style.opacity = '0.3';
+                                    icon.style.color = '';
+                                }
+                            }
+                        }
+                    });
+                },
+
+                setSort: (col) => {
+                    if (App.State.sort.col === col) {
+                        App.State.sort.dir = App.State.sort.dir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        App.State.sort.col = col;
+                        App.State.sort.dir = 'asc';
+                    }
+                    App.UI.render();
+                },
+
+                toggleAuthView: (isRegister) => {
+                    document.getElementById('login-view').style.display = isRegister ? 'none' : 'block';
+                    document.getElementById('register-view').style.display = isRegister ? 'block' : 'none';
+                    document.getElementById('auth-overlay').style.display = 'flex';
+                },
+
+                toggleUserDropdown: (event) => {
+                    if (event) event.stopPropagation();
+                    const dropdown = document.getElementById('user-dropdown');
+                    dropdown.classList.toggle('active');
+
+                    // Listener para fechar ao clicar fora
+                    if (dropdown.classList.contains('active')) {
+                        const closeMenu = (e) => {
+                            if (!dropdown.contains(e.target)) {
+                                dropdown.classList.remove('active');
+                                document.removeEventListener('click', closeMenu);
+                            }
+                        };
+                        setTimeout(() => document.addEventListener('click', closeMenu), 0);
+                    }
+                },
+
+                toggleSettings: (show) => {
+                    const overlay = document.getElementById('settings-overlay');
+                    if (show) {
+                        document.getElementById('user-dropdown').classList.remove('active');
+                        overlay.style.display = 'flex';
+                        overlay.style.opacity = '1';
+                        // Preenche com o nome atual
+                        document.getElementById('set-user-name').value = App.State.user.displayName || "";
+                    } else {
+                        overlay.style.display = 'none';
+                    }
+                },
+
+                showDetailPopup: (id) => {
+                    App.State._activePopupId = id;
+                    const t = App.State.data.find(x => x.id == id);
+                    if (!t) return;
+
+                    const kids = App.State.data.filter(c => String(c.kitParentId) === String(t.id));
+                    const totals = {
+                        custo: (parseFloat(t.custo) || 0) + kids.reduce((a, c) => a + (parseFloat(c.custo) || 0), 0),
+                        valor: (parseFloat(t.valor) || 0) + kids.reduce((a, c) => a + (parseFloat(c.valor) || 0), 0) + (parseFloat(t.receita) || 0)
+                    };
+
+                    const content = document.getElementById('mob-detail-content');
+                    content.innerHTML = `
+                                <div class="mob-detail-title" 
+                                     ondragover="event.preventDefault(); this.style.color='var(--accent-primary)'; this.style.transform='scale(1.02)';" 
+                                     ondragleave="this.style.color=''; this.style.transform='';" 
+                                     ondrop="this.style.color=''; this.style.transform=''; App.Actions.onRowDrop(event, '${t.id}')">
+                                     ${t.desc}
+                                </div>
+                                    <div class="mob-detail-grid">
+                                        <div class="mob-detail-cell">
+                                            <span class="mob-label">Categoria</span>
+                                            <span>${t.categoria || '-'}</span>
+                                        </div>
+                                        <div class="mob-detail-cell">
+                                            <span class="mob-label">Data</span>
+                                            <span>${App.Utils.formatDate(t.data)}</span>
+                                        </div>
+                                        <div class="mob-detail-cell">
+                                            <span class="mob-label">Custo Total</span>
+                                            <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>
+                                        </div>
+                                        <div class="mob-detail-cell">
+                                            <span class="mob-label">Recebido Total</span>
+                                            <span>R$ ${App.Utils.formatCurrency(totals.valor)}</span>
+                                        </div>
+                                        <div class="mob-detail-cell" style="grid-column: span 2">
+                                            <span class="mob-label">Saldo Líquido</span>
+                                            <span style="font-weight:700; color:${(totals.valor - totals.custo) >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                                                R$ ${App.Utils.formatCurrency(totals.valor - totals.custo)}
+                                            </span>
+                                        </div>
+                                    </div>
+                        ${kids.length > 0 ? `
+                            <div style="margin: 20px 20px 10px; font-weight:700; font-size:0.75rem; text-transform:uppercase; color:var(--text-secondary)">Itens do Projeto (${kids.filter(x => x.tipo !== 'separator').length})</div>
+                            ${kids.map(c => {
+                        if (c.tipo === 'separator') {
+                            return `
+                                        <div style="margin: 5px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding:8px 0"
+                                             draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                            <div style="display:flex; align-items:center; gap:8px">
+                                                <div class="drag-handle" style="padding:0; opacity:0.6; font-size:0.9rem">⋮⋮</div>
+                                                <div style="font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; font-weight:800; color:var(--accent-primary)">↳ ${c.desc}</div>
+                                            </div>
+                                            <div style="display:flex; gap:8px">
+                                                <button onclick="App.UI.closeDetailPopup(); App.Actions.editSection('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer">✎</button>
+                                                <button onclick="App.UI.closeDetailPopup(); App.Data.remove('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer">×</button>
+                                            </div>
+                                        </div>
+                                    `;
+                        }
+                        return `
+                                    <div class="mob-sub-item" draggable="true" ondragstart="App.Actions.onRowDragStart(event, '${c.id}')" ondragover="event.preventDefault()" ondrop="App.Actions.onRowDrop(event, '${c.id}')" ondragend="App.Actions.onRowDragEnd(event)">
+                                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px">
+                                            <div style="display:flex; align-items:center; gap:8px">
+                                                <div class="drag-handle" style="padding:0; opacity:0.6; font-size:0.9rem">⋮⋮</div>
+                                                <div class="mob-sub-item-name" style="margin:0">${c.desc}</div>
+                                            </div>
+                                            <div style="display:flex; gap:10px; flex-shrink:0">
+                                                <button onclick="App.UI.closeDetailPopup(); App.Actions.edit('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1rem">✎</button>
+                                                <button onclick="App.UI.closeDetailPopup(); App.Data.remove('${c.id}')" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1rem">×</button>
+                                            </div>
+                                        </div>
+                                        <div class="mob-sub-item-grid">
+                                            <div><span class="mob-label">Custo:</span> R$ ${App.Utils.formatCurrency(c.custo)}</div>
+                                            <div><span class="mob-label">Valor:</span> R$ ${App.Utils.formatCurrency(c.valor)}</div>
+                                            <div><span class="mob-label">Data:</span> ${App.Utils.formatDate(c.data)}</div>
+                                            <div><span class="mob-label">Tipo:</span> ${c.tipo}</div>
+                                        </div>
+                                    </div>
+                                `;
+                    }).join('')}
+                        ` : ''
+                        }
+                        ${t.tipo === 'kit' ? `
+                            <div style="margin: 25px 20px 10px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); text-align: center; opacity: 0.6;">Ações de Kit</div>
+                            <div style="display:flex; gap:10px; margin: 0 20px;">
+                                <button class="btn-sm" style="flex:1; padding:12px; background:#000; color:#fff; border: 1px solid var(--accent-primary); border-radius: 10px; font-weight: 700;" onclick="App.UI.closeDetailPopup(); App.Actions.addSection('${t.id}')">+ Sessão</button>
+                                <button class="btn-sm" style="flex:1; padding:12px; background:#000; color:#fff; border: 1px solid var(--accent-primary); border-radius: 10px; font-weight: 700;" onclick="App.UI.closeDetailPopup(); App.Actions.addQuickItem('${t.id}')">+ Item</button>
+                            </div>
+                        ` : ''}
+                    `;
+                    document.getElementById('mob-detail-overlay').style.display = 'flex';
+                },
+
+                closeDetailPopup: () => {
+                    App.State._activePopupId = null;
+                    document.getElementById('mob-detail-overlay').style.display = 'none';
+                },
+
+                toggleTheme: () => {
+                    document.body.classList.toggle('theme-white');
+                    const isWhite = document.body.classList.contains('theme-white');
+                    localStorage.setItem('hw_theme', isWhite ? 'white' : 'dark');
+
+                    const textEl = document.getElementById('theme-text');
+                    const iconEl = document.getElementById('theme-icon');
+                    if (textEl) textEl.innerText = isWhite ? 'Tema Dark' : 'Tema White';
+                    if (iconEl) iconEl.innerText = isWhite ? '🌙' : '☀️';
+
+                    App.Utils.toast(isWhite ? "Modo White Ativado" : "Modo Dark Ativado");
+                },
+
+                resetForms: () => {
+                    document.getElementById('reg-desc').value = '';
+                    document.getElementById('reg-cat').value = '';
+                    document.getElementById('reg-data').value = App.Utils.getToday();
+                    document.getElementById('reg-valor').value = '';
+                    document.getElementById('reg-custo').value = '';
+                    document.getElementById('reg-receita').value = '';
+                    document.getElementById('reg-volta').value = '';
+                    document.getElementById('reg-recebeu').value = '';
+                    document.getElementById('reg-kit-pai').value = '';
+
+                    App.State.editingId = null;
+                    const cancelBtn = document.getElementById('btn-cancel-edit');
+                    if (cancelBtn) cancelBtn.style.display = 'none';
+
+                    // On mobile: collapse form back to minimized state after submit
+                    if (window.innerWidth <= 768) {
+                        const formContainer = document.querySelector('.smart-form-container');
+                        formContainer.classList.remove('mobile-form-open');
+                        document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                        App.State.formType = 'venda'; // reset type silently
+                    } else {
+                        App.UI.setFormType('venda');
+                    }
+                },
+
+                cancelEdit: () => {
+                    App.UI.resetForms();
+                    App.Utils.toast("Edição cancelada", "info");
+                },
+
+                updateSortIndicators: () => {
+                    const s = App.State.sort;
+                    document.querySelectorAll('.t-header div[onclick]').forEach(el => {
+                        const col = el.dataset.col;
+                        el.classList.toggle('sort-active', col === s.col);
+                        const icon = el.querySelector('.sort-icon');
+                        if (col === s.col) {
+                            icon.innerText = s.dir === 'asc' ? '▲' : '▼';
+                        } else {
+                            icon.innerText = '↕';
+                        }
+                    });
+                },
+
+                toggleSearch: (el) => {
+                    const isActive = el.classList.contains('active');
+                    if (isActive) {
+                        el.classList.remove('active');
+                        document.getElementById('filtro-busca').value = '';
+                        App.UI.render();
+                    } else {
+                        el.classList.add('active');
+                        document.getElementById('filtro-busca').focus();
+                    }
+                },
+
+                updateBulkActions: () => {
+                    const bar = document.getElementById('bulk-actions');
+                    const countEl = document.getElementById('bulk-count');
+                    const count = App.State.selectedIds.size;
+
+                    if (count > 0 && App.State.selectionMode) {
+                        bar.style.display = 'flex';
+                        countEl.innerText = `${count} ${count === 1 ? 'item selecionado' : 'itens selecionados'} `;
+                    } else {
+                        bar.style.display = 'none';
+                    }
+                }
+            },
+
+            Actions: {
+                toggleKit: (e, id) => {
+                    e.stopPropagation();
+                    const grp = e.target.closest('.row-group');
+                    if (grp.classList.contains('open')) {
+                        grp.classList.remove('open');
+                        App.State.openKits.delete(String(id));
+                    } else {
+                        grp.classList.add('open');
+                        App.State.openKits.add(String(id));
+                    }
+                },
+                submitForm: () => {
+                    const get = (id) => document.getElementById(id).value;
+                    const parse = (id) => {
+                        const val = get(id).replace(',', '.');
+                        return parseFloat(val) || 0;
+                    };
+                    const type = App.State.formType;
+                    const desc = get('reg-desc');
+                    const data = get('reg-data');
+                    if (!desc || !data) return App.Utils.toast("Preencha Descrição e Data", "error");
+
+                    const kitPai = get('reg-kit-pai');
+                    const item = {
+                        id: App.Utils.generateId(),
+                        desc, data, categoria: get('reg-cat'),
+                        valor: parse('reg-valor'),
+                        custo: parse('reg-custo'),
+                        receita: parse('reg-receita'),
+                        tipo: type,
+                        kitParentId: (type === 'venda' || type === 'gasto' || type === 'troca') ? kitPai : null
+                    };
+
+                    if (type === 'troca' && !App.State.editingId) {
+                        const kid = item.id;
+                        const vta = parseFloat(get('reg-volta')) || 0;
+                        const descRec = get('reg-recebeu');
+                        if (kitPai) {
+                            App.State.data.unshift({ id: kid + 3, desc: descRec, categoria: 'Hardware', valor: 0, custo: 0, tipo: 'venda', data, kitParentId: kitPai });
+                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc} `, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kitPai });
+                            if (vta > 0) App.State.data.unshift({ id: kid + 1, desc: 'Volta: ' + desc, categoria: 'Financeiro', valor: vta, custo: 0, tipo: 'venda', data, kitParentId: kitPai });
+                            App.State.data.unshift({ id: kid, desc: `TROCA: ${desc} ↔ ${descRec} `, tipo: 'separator', data, kitParentId: kitPai });
+                        } else {
+                            App.State.data.unshift({ id: kid + 3, desc: descRec, categoria: 'Hardware', valor: 0, custo: 0, tipo: 'venda', data, kitParentId: kid });
+                            App.State.data.unshift({ id: kid + 2, desc: `ENTREGUE: ${desc} `, categoria: item.categoria || 'Hardware', valor: 0, custo: item.custo, tipo: 'venda', data, kitParentId: kid });
+                            if (vta > 0) App.State.data.unshift({ id: kid + 1, desc: 'Volta: ' + desc, categoria: 'Financeiro', valor: vta, custo: 0, tipo: 'venda', data, kitParentId: kid });
+                            App.State.data.unshift({ id: kid, desc: `Troca: ${desc} ↔ ${descRec} `, tipo: 'kit', receita: 0, data, categoria: item.categoria });
+                        }
+                        App.Data.save(); App.UI.resetForms();
+                    } else {
+                        App.Data.add(item);
+                        // removido salvarVendaNoFirebase(item) duplicado
+                    }
+                },
+
+                edit: (id) => {
+                    const t = App.State.data.find(x => x.id == id);
+                    if (!t) return;
+                    App.State.editingId = id;
+                    App.UI.setFormType(t.tipo || 'venda');
+
+                    const set = (id, v) => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = v === 0 ? 0 : (v || '');
+                    };
+                    set('reg-desc', t.desc); set('reg-cat', t.categoria); set('reg-data', t.data);
+                    set('reg-valor', t.valor); set('reg-custo', t.custo); set('reg-receita', t.receita);
+                    set('reg-kit-pai', t.kitParentId || '');
+
+                    document.getElementById('btn-cancel-edit').style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+
+                addSection: (kitId) => {
+                    const desc = prompt("Nome da Sessão (Ex: ENTREGUE, RECEBIDO):");
+                    if (!desc) return;
+                    const item = { id: App.Utils.generateId(), desc, tipo: 'separator', data: App.Utils.getToday(), kitParentId: kitId };
+                    App.State.data.unshift(item);
+                    if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(item);
+                    App.Data.save();
+                },
+
+                editSection: (id) => {
+                    const t = App.State.data.find(x => x.id === id);
+                    if (!t) return;
+                    const newDesc = prompt("Novo nome da sessão:", t.desc);
+                    if (newDesc) {
+                        t.desc = newDesc;
+                        App.Data.save();
+                    }
+                },
+
+                addQuickItem: (kitId) => {
+                    const desc = prompt("Descrição do item:");
+                    if (!desc) return;
+
+                    const categoria = prompt("Categoria:", "Hardware") || "Hardware";
+
+                    const parseInput = (str) => parseFloat((str || '0').replace(',', '.')) || 0;
+
+                    const custoStr = prompt("Custo (R$):", "0");
+                    const custo = parseInput(custoStr);
+
+                    const valorStr = prompt("Venda (R$):", "0");
+                    const valor = parseInput(valorStr);
+
+                    const item = { id: App.Utils.generateId(), desc, categoria, valor: valor, custo: custo, tipo: 'venda', data: App.Utils.getToday(), kitParentId: kitId };
+                    App.State.data.unshift(item);
+                    if (window.salvarVendaNoFirebase) window.salvarVendaNoFirebase(item);
+                    App.Data.save();
+                },
+
+                onDragStart: (e) => { e.dataTransfer.setData('key', e.currentTarget.dataset.key); },
+                onDrop: (e) => {
+                    e.preventDefault();
+                    const fromKey = e.dataTransfer.getData('key');
+                    const toKey = e.currentTarget.dataset.key;
+                    if (fromKey === toKey) return;
+
+                    const order = [...App.State.dashboardOrder];
+                    const fromIdx = order.indexOf(fromKey);
+                    const toIdx = order.indexOf(toKey);
+                    order.splice(fromIdx, 1);
+                    order.splice(toIdx, 0, fromKey);
+
+                    App.State.dashboardOrder = order;
+                    localStorage.setItem('hw_dashboard_order', JSON.stringify(order));
+                    App.UI.updateDashboard();
+                },
+
+                onRowDragStart: (e, id) => {
+                    e.dataTransfer.setData('rowId', id);
+                    e.dataTransfer.setData('text/plain', id); // Fallback para mobile/polyfills
+                    e.currentTarget.classList.add('dragging');
+                },
+                onRowDragEnd: (e) => {
+                    e.currentTarget.classList.remove('dragging');
+                },
+                onRowDrop: (e, targetId) => {
+                    e.preventDefault();
+                    // Garante que pega do rowId ou text/plain (conforme setado no onRowDragStart)
+                    const fromId = e.dataTransfer.getData('rowId') || e.dataTransfer.getData('text/plain');
+                    if (fromId === targetId) return;
+
+                    let data = [...App.State.data];
+                    const fromIdx = data.findIndex(x => String(x.id) === String(fromId));
+                    const toIdx = data.findIndex(x => String(x.id) === String(targetId));
+                    if (fromIdx === -1 || toIdx === -1) return;
+
+                    const fromItem = data[fromIdx];
+                    const targetItem = data[toIdx];
+
+                    // 1. Atualizar parentesco (Kit ou Solo)
+                    const targetKitId = (targetItem.tipo === 'kit') ? targetItem.id : targetItem.kitParentId;
+                    if (targetKitId) {
+                        fromItem.kitParentId = targetKitId;
+                    } else if (targetItem.tipo !== 'kit' && !targetItem.kitParentId) {
+                        fromItem.kitParentId = null;
+                    }
+
+                    // 2. Smart Placement: Decidir ID do alvo real e se vai depois
+                    let targetIdToUse = targetId;
+                    let forceAfter = false;
+
+                    if (targetItem.tipo === 'kit') {
+                        // Se soltou no Kit, vira o PRIMEIRO item do kit
+                        const kids = data.filter(c => String(c.kitParentId) === String(targetItem.id) && String(c.id) !== String(fromId));
+                        if (kids.length > 0) {
+                            targetIdToUse = String(kids[0].id);
+                            forceAfter = false;
+                        } else {
+                            targetIdToUse = String(targetItem.id);
+                            forceAfter = true;
+                        }
+                    } else if (targetItem.tipo === 'separator') {
+                        // Se soltou em uma sessão, sempre coloca DEPOIS
+                        forceAfter = true;
+                    }
+
+                    // 3. Reordenar
+                    data.splice(fromIdx, 1);
+
+                    // Achar onde o alvo real parou após a remoção
+                    let finalToIdx = data.findIndex(x => String(x.id) === String(targetIdToUse));
+                    if (finalToIdx === -1) finalToIdx = data.length;
+
+                    data.splice(finalToIdx + (forceAfter ? 1 : 0), 0, fromItem);
+
+                    App.State.data = data;
+                    App.State.sort.col = null;
+                    App.Data.save();
+                    App.UI.renderTable();
+
+                    // Sincroniza a nova ordem com a nuvem
+                    if (window.sincronizarOrdemNoFirebase) {
+                        window.sincronizarOrdemNoFirebase();
+                    }
+
+                    // Se o popup de detalhes estiver aberto (do mesmo kit ou de qualquer um), atualiza ele
+                    const popup = document.getElementById('mob-detail-overlay');
+                    if (popup && popup.style.display === 'flex') {
+                        // Pega o ID que está sendo exibido atualmente (podemos guardar no State ou inferir do título)
+                        // Para simplificar, se houver um kit sendo movido ou pai sendo afetado, reabre o popup
+                        const currentId = App.State._activePopupId;
+                        if (currentId) App.UI.showDetailPopup(currentId);
+                    }
+                },
+
+                onHeaderDrop: (e) => {
+                    e.preventDefault();
+                    // Garante que pega do rowId (conforme setado no onRowDragStart)
+                    const fromId = e.dataTransfer.getData('rowId') || e.dataTransfer.getData('text/plain');
+                    if (!fromId) return;
+
+                    const data = [...App.State.data];
+                    const fromIdx = data.findIndex(x => String(x.id) === String(fromId));
+                    if (fromIdx === -1) return;
+
+                    const fromItem = data.splice(fromIdx, 1)[0];
+                    fromItem.kitParentId = null; // Move para fora!
+                    data.unshift(fromItem); // Coloca no topo
+
+                    App.State.data = data;
+                    App.Data.save();
+                    App.UI.renderTable();
+
+                    if (window.sincronizarOrdemNoFirebase) {
+                        window.sincronizarOrdemNoFirebase();
+                    }
+                },
+
+                onBottomDrop: (e) => {
+                    e.preventDefault();
+                    const fromId = e.dataTransfer.getData('rowId') || e.dataTransfer.getData('text/plain');
+                    if (!fromId) return;
+
+                    const data = [...App.State.data];
+                    const fromIdx = data.findIndex(x => String(x.id) === String(fromId));
+                    if (fromIdx === -1) return;
+
+                    const fromItem = data.splice(fromIdx, 1)[0];
+                    fromItem.kitParentId = null; // Move para fora!
+                    data.push(fromItem); // Coloca no fim
+
+                    App.State.data = data;
+                    App.Data.save();
+                    App.UI.renderTable();
+
+                    if (window.sincronizarOrdemNoFirebase) {
+                        window.sincronizarOrdemNoFirebase();
+                    }
+                },
+
+                undo: () => {
+                    if (App.State.history.length === 0) return App.Utils.toast("Nada para desfazer", "info");
+                    const prev = App.State.history.pop();
+                    App.State.data = JSON.parse(prev);
+                    App.Data.save(true);
+                    App.Utils.toast("Ação desfeita", "info");
+                },
+
+                exportData: () => {
+                    const b = new Blob([JSON.stringify(App.State.data)], { type: 'application/json' });
+                    const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+                    a.download = `backup_${App.Utils.getToday()}.json`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                },
+                importData: (i) => {
+                    const f = i.target ? i.target.files[0] : (i.files ? i.files[0] : null); if (!f) return;
+                    const r = new FileReader(); r.onload = async (e) => {
+                        try {
+                            const dados = JSON.parse(e.target.result);
+                            if (!Array.isArray(dados)) throw new Error("Formato inválido");
+
+                            if (window.importarBackupParaNuvem) {
+                                const mode = confirm("IMPORTAÇÃO PROFISSIONAL:\n\nDeseja SUBSTITUIR todos os dados da nuvem pelos deste arquivo?\n\nOK = Apagar atual e usar backup\nCancelar = Apenas adicionar itens novos") ? 'replace' : 'merge';
+
+                                App.Utils.toast("Iniciando importação...", "info");
+                                await window.importarBackupParaNuvem(dados, mode);
+                                App.Utils.toast("Backup processado! A tela atualizará em breve.", "success");
+                            } else {
+                                App.State.data = dados;
+                                App.Data.save();
+                                App.UI.render();
+                            }
+                        } catch (err) {
+                            App.Utils.toast("Erro ao ler backup", "error");
+                        }
+                    }; r.readAsText(f);
+                },
+
+                sortBy: (col) => {
+                    if (App.State.sort.col === col) {
+                        App.State.sort.dir = App.State.sort.dir === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        App.State.sort.col = col;
+                        App.State.sort.dir = 'asc';
+                    }
+                    App.UI.render();
+                },
+
+                toggleSearch: (el) => {
+                    el.classList.add('active');
+                    document.getElementById('filtro-busca').focus();
+                },
+
+                toggleSelect: (event, id) => {
+                    id = String(id);
+                    const isSelected = App.State.selectedIds.has(id);
+
+                    if (event && event.shiftKey && App.State.lastSelectedId) {
+                        const checkboxes = Array.from(document.querySelectorAll('.row-checkbox'));
+                        const startIdx = checkboxes.findIndex(cb => cb.dataset.id === App.State.lastSelectedId);
+                        const endIdx = checkboxes.findIndex(cb => cb.dataset.id === id);
+
+                        if (startIdx !== -1 && endIdx !== -1) {
+                            const [min, max] = [Math.min(startIdx, endIdx), Math.max(startIdx, endIdx)];
+                            const shouldSelect = !isSelected; // Segue o estado do clique atual
+
+                            for (let i = min; i <= max; i++) {
+                                const targetId = String(checkboxes[i].dataset.id);
+                                if (shouldSelect) App.State.selectedIds.add(targetId);
+                                else App.State.selectedIds.delete(targetId);
+                            }
+                            App.UI.renderTable(); // Re-renderiza para atualizar os checks visualmente
+                        }
+                    } else {
+                        if (isSelected) {
+                            App.State.selectedIds.delete(id);
+                        } else {
+                            App.State.selectedIds.add(id);
+                        }
+                    }
+
+                    App.State.lastSelectedId = id;
+                    App.UI.updateBulkActions();
+                },
+
+                toggleAll: (checkbox) => {
+                    const rows = document.querySelectorAll('.row-checkbox');
+                    App.State.selectedIds.clear();
+                    rows.forEach(cb => {
+                        cb.checked = checkbox.checked;
+                        if (checkbox.checked) App.State.selectedIds.add(String(cb.dataset.id));
+                    });
+                    App.UI.updateBulkActions();
+                },
+
+                clearSelection: () => {
+                    App.State.selectedIds.clear();
+                    const allCb = document.getElementById('select-all');
+                    if (allCb) allCb.checked = false;
+                    App.UI.render();
+                },
+
+                bulkDelete: async () => {
+                    const idsCount = App.State.selectedIds.size;
+                    if (idsCount === 0) return;
+                    if (!confirm(`Deseja excluir permanentemente ${idsCount} itens ? `)) return;
+
+                    App.Utils.toast(`Excluindo ${idsCount} itens...`, "info");
+
+                    const idsToRemove = Array.from(App.State.selectedIds);
+
+                    // Exclusão local e nuvem
+                    for (const id of idsToRemove) {
+                        if (window.removerVendaDoFirebase) {
+                            await window.removerVendaDoFirebase(id);
+                        }
+                    }
+
+                    App.State.data = App.State.data.filter(x => !App.State.selectedIds.has(String(x.id)));
+                    App.State.selectedIds.clear();
+
+                    App.Data.save();
+                    App.Utils.toast(`${idsCount} itens removidos com sucesso!`, "success");
+                    App.Actions.toggleSelectionMode(); // Sai do modo após excluir
+                },
+
+                toggleSelectionMode: () => {
+                    App.State.selectionMode = !App.State.selectionMode;
+                    const btn = document.getElementById('btn-selection-mode');
+
+                    if (!App.State.selectionMode) {
+                        App.State.selectedIds.clear();
+                        const allCb = document.getElementById('select-all');
+                        if (allCb) allCb.checked = false;
+                        btn.classList.remove('active');
+                        btn.style.background = '';
+                    } else {
+                        btn.classList.add('active');
+                        btn.style.background = 'var(--accent-primary)';
+                    }
+
+                    App.UI.renderTable();
+                    App.UI.updateBulkActions();
+                }
+            }
+        };
+
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('hw_theme');
+            if (savedTheme === 'white') {
+                document.body.classList.add('theme-white');
+                // Updates UI elements after load
+                setTimeout(() => {
+                    const textEl = document.getElementById('theme-text');
+                    const iconEl = document.getElementById('theme-icon');
+                    if (textEl) textEl.innerText = 'Tema Dark';
+                    if (iconEl) iconEl.innerText = '🌙';
+                }, 100);
+            }
+
+            App.Data.load();
+            App.UI.resetForms();
+
+            window.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+                    e.preventDefault();
+                    App.Actions.undo();
+                }
+            });
+
+            setInterval(() => {
+                const el = document.getElementById('real-time-clock');
+                if (el) el.innerText = new Date().toLocaleString('pt-BR');
+            }, 1000);
+        };
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc, query, where, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, updateProfile, linkWithCredential, EmailAuthProvider, sendEmailVerification, updatePassword } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-analytics.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAfb_D2zgx0ekh_OoZoCIMVVbWFDjrCc4M",
+            authDomain: "cash-c56e8.firebaseapp.com",
+            projectId: "cash-c56e8",
+            storageBucket: "cash-c56e8.firebasestorage.app",
+            messagingSenderId: "169106049481",
+            appId: "1:169106049481:web:a72f58bf916d9f14eb0018",
+            measurementId: "G-MD51FFSWFG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        console.log("Firebase Inicializado no Projeto: ", firebaseConfig.projectId);
+
+        window.testarFirebase = async () => {
+            console.log("Testando conexão com: ", firebaseConfig.projectId);
+            try {
+                const q = query(collection(db, "perfis"), where("nome", "==", "teste"));
+                await getDocs(q);
+                alert("Conexão com Firebase " + firebaseConfig.projectId + " OK!");
+            } catch (e) {
+                console.error("Erro no teste: ", e);
+                alert("Erro: " + e.message);
+            }
+        };
+
+        // window.testarConexao = testarFirebase; // Removido para evitar erro de referência
+        // Função para salvar uma venda REAL vinda do seu formulário
+        // ======= FUNÇÕES DE SINCRONIZAÇÃO CRUD (Create, Read, Update, Delete) =======
+
+        // 1. SALVAR (Create)
+        const activeUploads = new Set();
+        async function salvarVendaNoFirebase(dadosDaVenda) {
+            // Travas de Segurança:
+            // 1. Já tem ID de servidor? Ignora.
+            if (typeof dadosDaVenda.id === 'string' && dadosDaVenda.id.length > 5) return;
+            // 2. Já está sendo enviado agora? Ignora.
+            if (activeUploads.has(dadosDaVenda.id)) return;
+
+            activeUploads.add(dadosDaVenda.id);
+
+            try {
+                // Remove o ID temporário gerado localmente antes de enviar
+                const { id, ...dadosParaSalvar } = dadosDaVenda;
+
+                const docRef = await addDoc(collection(db, "vendas"), {
+                    descricao: dadosParaSalvar.desc || "Item sem nome",
+                    custo: Number(dadosParaSalvar.custo || 0),
+                    valor: Number(dadosParaSalvar.valor || 0),
+                    categoria: dadosParaSalvar.categoria || "Geral",
+                    tipo: dadosParaSalvar.tipo || "venda",
+                    data: dadosParaSalvar.data,
+                    kitParentId: dadosParaSalvar.kitParentId || null,
+                    pos: dadosParaSalvar.pos || 0,
+                    userId: auth.currentUser.uid,
+                    updatedAt: new Date()
+                });
+
+                console.log("Item salvo na nuvem. ID Firebase:", docRef.id);
+
+                // IMPORTANTE: Atualiza o item local com o ID real do Firebase
+                // Isso permite que o usuário edite/exclua este item imediatamente sem recarregar
+                const itemLocal = App.State.data.find(x => x.id === dadosDaVenda.id);
+                if (itemLocal) {
+                    const oldId = itemLocal.id;
+                    itemLocal.id = docRef.id;
+                    App.Data.relink(oldId, docRef.id); // Atualiza filhos para o novo ID String
+                    App.Data.save(true);
+
+                    // Após o item ganhar um ID real, sincronizamos a ordem completa
+                    if (window.sincronizarOrdemNoFirebase) {
+                        window.sincronizarOrdemNoFirebase();
+                    }
+                }
+
+            } catch (e) {
+                console.error("Erro ao salvar na nuvem:", e);
+                App.Utils.toast("Erro de conexão (Salvar)", "error");
+            } finally {
+                activeUploads.delete(dadosDaVenda.id);
+            }
+        }
+
+        // 2. ATUALIZAR (Update)
+        async function atualizarVendaNoFirebase(id, dadosDaVenda) {
+            // Se o ID for numérico (timestamp), o item ainda não sincronizou ou é local antigo.
+            // Nesse caso, não dá pra atualizar no Firebase direto pelo ID.
+            if (typeof id === 'number' || !id) return;
+
+            try {
+                const docRef = doc(db, "vendas", id);
+                await updateDoc(docRef, {
+                    descricao: dadosDaVenda.desc,
+                    custo: Number(dadosDaVenda.custo || 0),
+                    valor: Number(dadosDaVenda.valor || 0),
+                    categoria: dadosDaVenda.categoria,
+                    tipo: dadosDaVenda.tipo,
+                    data: dadosDaVenda.data,
+                    kitParentId: dadosDaVenda.kitParentId || null,
+                    // Removido 'pos' aqui para não sobrescrever o valor existente na nuvem
+                    updatedAt: new Date()
+                });
+                console.log("Item atualizado na nuvem:", id);
+            } catch (e) {
+                console.error("Erro ao atualizar na nuvem:", e);
+            }
+        }
+
+        // 3. REMOVER (Delete)
+        async function removerVendaDoFirebase(id) {
+            if (typeof id === 'number' || !id) return;
+
+            try {
+                await deleteDoc(doc(db, "vendas", id));
+                console.log("Item removido da nuvem:", id);
+            } catch (e) {
+                console.error("Erro ao remover da nuvem:", e);
+                App.Utils.toast("Erro ao remover da nuvem", "error");
+            }
+        }
+
+        // 4. RESETAR NUVEM (Wipe & Sync)
+        async function resetarNuvemComDadosLocais() {
+            if (!confirm("ATENÇÃO: Isso vai APAGAR tudo na nuvem e enviar os dados que estão na sua tela agora.\n\nUse isso se o seu Backup Local estiver correto e a Nuvem estiver errada.\n\nDeseja continuar?")) return;
+
+            console.log("Iniciando Reset da Nuvem...");
+            App.Utils.toast("Iniciando reparo da nuvem...", "info");
+
+            try {
+                // 1. Apagar apenas itens do usuário na nuvem
+                const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
+                const snapshot = await getDocs(q);
+                const totalDocs = snapshot.size;
+                console.log(`Excluindo ${totalDocs} itens do usuário...`);
+
+                const deletePromises = [];
+                snapshot.forEach(doc => {
+                    deletePromises.push(deleteDoc(doc.ref));
+                });
+                await Promise.all(deletePromises);
+                console.log("Nuvem limpa.");
+
+                // 2. Enviar dados locais
+                const localItems = App.State.data;
+                console.log(`Enviando ${localItems.length} itens locais...`);
+
+                const uploadPromises = localItems.map(item => {
+                    // Usa setDoc para forçar o ID que já existe (String ou Number -> String)
+                    // Isso preserva os IDs numéricos antigos e os relacionamentos de Kits
+                    const docId = String(item.id);
+                    return setDoc(doc(db, "vendas", docId), {
+                        descricao: item.desc || "Sem nome",
+                        custo: Number(item.custo || 0),
+                        valor: Number(item.valor || 0),
+                        categoria: item.categoria || "Geral",
+                        tipo: item.tipo || "venda",
+                        data: item.data,
+                        kitParentId: item.kitParentId || null,
+                        pos: item.pos || 0,
+                        userId: auth.currentUser.uid,
+                        updatedAt: new Date()
+                    });
+                });
+
+                await Promise.all(uploadPromises);
+
+                console.log("Upload concluído!");
+                App.Utils.toast("Nuvem reparada com sucesso!", "success");
+
+                setTimeout(() => location.reload(), 1500);
+
+            } catch (e) {
+                console.error("Erro ao resetar nuvem:", e);
+                App.Utils.toast("Erro crítico ao reparar nuvem", "error");
+            }
+        }
+
+        async function importarBackupParaNuvem(lista, mode = 'merge') {
+            if (!auth.currentUser) return;
+            const setStatus = (sts, color) => {
+                const dot = document.getElementById('sync-dot');
+                const text = document.getElementById('sync-text');
+                if (dot) dot.style.background = color;
+                if (text) text.innerText = sts;
+            };
+
+            try {
+                setStatus("Importando...", "#3b82f6");
+
+                if (mode === 'replace') {
+                    const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
+                    const snap = await getDocs(q);
+                    let batch = writeBatch(db);
+                    let count = 0;
+                    for (const d of snap.docs) {
+                        batch.delete(d.ref);
+                        count++;
+                        if (count === 400) { await batch.commit(); batch = writeBatch(db); count = 0; }
+                    }
+                    if (count > 0) await batch.commit();
+                }
+
+                let batch = writeBatch(db);
+                let count = 0;
+                for (const item of lista) {
+                    const docId = String(item.id || Date.now() + Math.random());
+                    const ref = doc(db, "vendas", docId);
+
+                    const dataToSave = {
+                        descricao: item.desc || item.descricao || "Item sem nome",
+                        custo: Number(item.custo || item.cost || 0),
+                        valor: Number(item.valor || item.amount || 0),
+                        categoria: item.categoria || "Geral",
+                        tipo: item.tipo || "venda",
+                        data: item.data || new Date().toISOString().split('T')[0],
+                        kitParentId: item.kitParentId || null,
+                        pos: item.pos || 0,
+                        userId: auth.currentUser.uid,
+                        updatedAt: new Date()
+                    };
+
+                    batch.set(ref, dataToSave, { merge: true });
+                    count++;
+
+                    if (count === 400) {
+                        await batch.commit();
+                        batch = writeBatch(db);
+                        count = 0;
+                    }
+                }
+
+                if (count > 0) await batch.commit();
+
+                setStatus("Nuvem Ativa", "#10b981");
+            } catch (e) {
+                console.error("Erro no upload do backup:", e);
+                setStatus("Erro Import", "#ef4444");
+                throw e;
+            }
+        }
+
+        async function sincronizarOrdemNoFirebase() {
+            if (!auth.currentUser) return;
+            const data = App.State.data;
+            try {
+                let batch = writeBatch(db);
+                let count = 0;
+                data.forEach((item, index) => {
+                    // Atualiza a posição (pos) localmente para garantir consistência
+                    item.pos = index;
+
+                    // Só tenta sincronizar itens que já têm ID do Firebase (String)
+                    if (typeof item.id === 'string' && item.id.length > 5) {
+                        const ref = doc(db, "vendas", item.id);
+                        batch.update(ref, {
+                            pos: index,
+                            kitParentId: item.kitParentId || null,
+                            updatedAt: new Date()
+                        });
+                        count++;
+                    }
+
+                    if (count === 400) {
+                        // Não aguardamos o commit para não travar a UI, mas logamos
+                        batch.commit().then(() => console.log("Lote de ordens sincronizado."));
+                        batch = writeBatch(db);
+                        count = 0;
+                    }
+                });
+                if (count > 0) {
+                    await batch.commit();
+                    console.log("Ordem sincronizada na nuvem.");
+                }
+            } catch (e) {
+                console.error("Erro ao sincronizar ordem:", e);
+            }
+        }
+
+        // Expondo para o App
+        window.salvarVendaNoFirebase = salvarVendaNoFirebase;
+        window.atualizarVendaNoFirebase = atualizarVendaNoFirebase;
+        window.removerVendaDoFirebase = removerVendaDoFirebase;
+        window.importarBackupParaNuvem = importarBackupParaNuvem;
+        window.sincronizarOrdemNoFirebase = sincronizarOrdemNoFirebase;
+
+
+
+        let syncListener = null;
+
+        function carregarVendasDoFirebase() {
+            if (syncListener) syncListener(); // Limpa listener anterior se existir
+
+            const setStatus = (sts, color) => {
+                const dot = document.getElementById('sync-dot');
+                const text = document.getElementById('sync-text');
+                if (dot) dot.style.background = color;
+                if (text) text.innerText = sts;
+            };
+
+            if (!auth.currentUser) return;
+
+            setStatus("Sincronizando...", "#f59e0b");
+
+            const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
+
+            syncListener = onSnapshot(q, (snapshot) => {
+                const cloudItems = [];
+                snapshot.forEach((doc) => {
+                    const d = doc.data();
+                    cloudItems.push({
+                        id: doc.id,
+                        desc: d.descricao || "Item sem nome",
+                        valor: Number(d.valor || 0),
+                        custo: Number(d.custo || 0),
+                        categoria: d.categoria || "Geral",
+                        tipo: d.tipo || "venda",
+                        data: d.data || new Date().toISOString().split('T')[0],
+                        kitParentId: d.kitParentId || null,
+                        pos: d.pos || 0
+                    });
+                });
+
+                // Ordenação por POSIÇÃO (Manual Flow) e atualização local imediata
+                cloudItems.sort((a, b) => (a.pos || 0) - (b.pos || 0));
+
+                window.App.State.data = cloudItems;
+                window.App.Data.save(true); // Persiste no LocalStorage isolado
+                window.App.UI.render();
+
+                setStatus("Nuvem Ativa", "#10b981");
+            }, (error) => {
+                console.error("Erro no Listener Real-time:", error);
+                setStatus("Erro Sync", "#ef4444");
+            });
+        }
+
+
+        // ======= AUXILIARES DE PERFIL =======
+        async function salvarOuAtualizarPerfil(user) {
+            if (!user) return;
+            const perfilRef = doc(db, "perfis", user.uid);
+
+            // Atualiza apenas e-mail e último acesso. 
+            // O nome NUNCA é preenchido aqui automaticamente para Google.
+            // O nome vem ou do Cadastro Manual ou do Prompt do Google.
+            const dadosPerfil = {
+                email: user.email,
+                ultimoAcesso: new Date()
+            };
+
+            await setDoc(perfilRef, dadosPerfil, { merge: true });
+        }
+
+        // ======= SISTEMA DE AUTENTICAÇÃO (APP.AUTH) =======
+        window.App.Auth = {
+            monitor: () => {
+                console.log("Monitor de Autenticação Ativado.");
+
+                onAuthStateChanged(auth, (user) => {
+                    // Limpa erros residuais do console se necessário
+                    if (!user) console.info("Sistema pronto: Aguardando login ou processando nova sessão.");
+                    console.log("Estado Auth Mudou:", user ? `Logado como ${user.email} ` : "Deslogado");
+
+                    if (user) {
+                        window.App.State.user = user;
+                        // Esconde o overlay de login
+                        const overlay = document.getElementById('auth-overlay');
+                        if (overlay) {
+                            overlay.style.opacity = '0';
+                            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+                        }
+
+                        // Mostra info do usuário
+                        const userInfo = document.getElementById('user-info');
+                        if (userInfo) userInfo.style.display = 'flex';
+
+                        const displayEl = document.getElementById('display-name');
+                        if (displayEl) displayEl.innerText = user.displayName || user.email.split('@')[0];
+
+                        // Configura banco local e carrega dados
+                        window.App.State.dbKey = `hw_transacoes_v3_${user.uid}`;
+                        window.App.Data.load();
+
+                        // Inicia sincronização com nuvem
+                        carregarVendasDoFirebase();
+
+                        // Sincroniza Perfil e garante Precedência do Nome
+                        (async () => {
+                            try {
+                                const perfilRef = doc(db, "perfis", user.uid);
+                                const snap = await getDoc(perfilRef);
+
+                                const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
+
+                                if (snap.exists() && snap.data().nome) {
+                                    // PRECEDÊNCIA: Prioriza o nome do Firestore se ele existir
+                                    const firestoreName = snap.data().nome;
+                                    document.getElementById('display-name').innerText = firestoreName;
+                                    console.log("Nome carregado do Firestore (Precedência):", firestoreName);
+                                    document.getElementById('username-prompt-overlay').style.display = 'none';
+                                } else if (isGoogle) {
+                                    // REGRA RÍGIDA: Só mostra a tela de escolher nome se for login via Google
+                                    const promptOverlay = document.getElementById('username-prompt-overlay');
+                                    if (promptOverlay) {
+                                        promptOverlay.style.display = 'flex';
+                                        promptOverlay.style.opacity = '1';
+                                        const authOverlay = document.getElementById('auth-overlay');
+                                        if (authOverlay) authOverlay.style.display = 'none';
+                                    }
+                                } else {
+                                    // Se for cadastro manual e o Firestore estiver lento, 
+                                    // usamos o displayName do Auth Profile (que salvamos no register)
+                                    document.getElementById('display-name').innerText = user.displayName || user.email.split('@')[0];
+                                    document.getElementById('username-prompt-overlay').style.display = 'none';
+                                }
+
+                                // Atualiza dados básicos silenciosamente (mantendo o nome se já existir)
+                                await salvarOuAtualizarPerfil(user);
+                            } catch (e) {
+                                console.warn("Erro ao carregar perfil:", e);
+                            }
+                        })();
+                    } else {
+                        window.App.State.user = null;
+                        window.App.State.dbKey = 'hw_transacoes_v3';
+
+                        const overlay = document.getElementById('auth-overlay');
+                        if (overlay) {
+                            overlay.style.display = 'flex';
+                            overlay.style.opacity = '1';
+                        }
+
+                        const userInfo = document.getElementById('user-info');
+                        if (userInfo) userInfo.style.display = 'none';
+
+                        if (syncListener) syncListener();
+                        window.App.State.data = [];
+                        window.App.UI.render();
+                    }
+                });
+            },
+
+            login: async () => {
+                let identifier = document.getElementById('login-email').value.trim();
+                const pass = document.getElementById('login-pass').value;
+                if (!identifier || !pass) return window.App.Utils.toast("Preencha campos e senha", "warning");
+
+                try {
+                    App.Utils.toast("Iniciando login...", "info");
+
+                    let emailParaLogin = identifier;
+
+                    // Se não tiver @, assume que é um NOME DE USUÁRIO e busca o e-mail no Firestore
+                    if (!identifier.includes('@')) {
+                        console.log("Resolvendo usuário:", identifier);
+                        const q = query(collection(db, "perfis"), where("nome", "==", identifier));
+                        const snap = await getDocs(q);
+
+                        if (snap.empty) {
+                            return window.App.Utils.toast("Usuário não encontrado.", "error");
+                        }
+
+                        emailParaLogin = snap.docs[0].data().email;
+                        console.log("E-mail resolvido:", emailParaLogin);
+                    }
+
+                    await signInWithEmailAndPassword(auth, emailParaLogin, pass);
+
+                    // SEGURANÇA: Verifica se o e-mail está validado
+                    if (!auth.currentUser.emailVerified) {
+                        const user = auth.currentUser;
+                        await signOut(auth);
+                        return window.App.Utils.toast("Por favor, verifique seu e-mail antes de logar.", "warning");
+                    }
+
+                    window.App.Utils.toast("Bem-vindo!", "success");
+                } catch (e) {
+                    console.error("Erro Login:", e);
+                    if (e.code === 'auth/configuration-not-found') {
+                        window.App.Utils.toast("Erro: Login por E-mail não ativado no Firebase.", "error");
+                    } else if (e.code === 'auth/invalid-credential') {
+                        window.App.Utils.toast("E-mail ou senha incorretos.", "error");
+                    } else {
+                        window.App.Utils.toast("Erro no login: " + e.code, "error");
+                    }
+                }
+            },
+
+            register: async () => {
+                const name = document.getElementById('reg-user-name').value;
+                const email = document.getElementById('reg-email').value;
+                const pass = document.getElementById('reg-pass').value;
+                if (!name || !email || !pass) return window.App.Utils.toast("Preencha todos os campos", "warning");
+                if (pass.length < 6) return window.App.Utils.toast("A senha deve ter pelo menos 6 caracteres", "warning");
+
+                // VINCULAÇÃO PROFISSIONAL: Se logado via Google, "anexa" a senha
+                if (auth.currentUser && auth.currentUser.email === email) {
+                    try {
+                        const credential = EmailAuthProvider.credential(email, pass);
+                        await linkWithCredential(auth.currentUser, credential);
+                        window.App.Utils.toast("Senha vinculada à sua conta Google!", "success");
+                        App.UI.toggleAuthView(false); // Volta para login
+                        return;
+                    } catch (e) {
+                        console.error("Erro Link:", e);
+                        if (e.code === 'auth/credential-already-in-use') {
+                            return window.App.Utils.toast("Este e-mail já possui uma senha vinculada.", "warning");
+                        }
+                        return window.App.Utils.toast("Erro na vinculação: " + e.code, "error");
+                    }
+                }
+
+                try {
+                    // Verificação de Unicidade ANTES do cadastro
+                    const isUnique = await App.Auth.checkUsernameUnique(name);
+                    if (!isUnique) {
+                        return window.App.Utils.toast("Este nome já está em uso", "error");
+                    }
+
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    await updateProfile(cred.user, { displayName: name });
+
+                    // SALVA IMEDIATAMENTE NO FIRESTORE (Garante persistência do nome manual)
+                    await setDoc(doc(db, "perfis", cred.user.uid), {
+                        nome: name,
+                        email: email,
+                        ultimoAcesso: new Date(),
+                        criadoEm: new Date()
+                    });
+
+                    // ENVIAR VERIFICAÇÃO 
+                    await sendEmailVerification(cred.user);
+
+                    window.App.Utils.toast("Cadastro realizado! Verifique seu e-mail para ativar a conta.", "success");
+
+                    // Sai do registro e vai para o Login
+                    await signOut(auth);
+                    App.UI.toggleAuthView(false);
+                } catch (e) {
+                    console.error("Erro Cadastro:", e);
+                    if (e.code === 'auth/configuration-not-found') {
+                        window.App.Utils.toast("Erro: Cadastro por E-mail não ativado no Firebase.", "error");
+                    } else if (e.code === 'auth/email-already-in-use') {
+                        window.App.Utils.toast("E-mail já está sendo usado. Se você usa Google, faça login e vincule nas configurações.", "warning");
+                    } else {
+                        window.App.Utils.toast("Erro no cadastro: " + e.code, "error");
+                    }
+                }
+            },
+
+            loginWithGoogle: async () => {
+                if (window.location.protocol === 'file:') {
+                    return window.App.Utils.toast("O Login Google não funciona abrindo o arquivo direto. Use o Live Server ou publique no GitHub.", "warning");
+                }
+                try {
+                    const result = await signInWithPopup(auth, googleProvider);
+                    if (result.user) {
+                        // O monitor de Autenticação (onAuthStateChanged) cuidará do restante.
+                        console.log("Login Google sucesso para:", result.user.email);
+                    }
+                } catch (e) {
+                    console.error("Erro Google Auth:", e);
+                    if (e.code === 'auth/configuration-not-found') {
+                        window.App.Utils.toast("Erro: Google Auth não ativado no Firebase Console.", "error");
+                    } else if (e.code === 'auth/operation-not-allowed') {
+                        window.App.Utils.toast("Erro: Operação não permitida.", "error");
+                    } else {
+                        window.App.Utils.toast("Erro ao iniciar login Google", "error");
+                    }
+                }
+            },
+
+            logout: () => {
+                if (confirm("Sair do sistema?")) signOut(auth);
+            },
+
+            checkUsernameUnique: async (name) => {
+                const q = query(collection(db, "perfis"), where("nome", "==", name));
+                const snap = await getDocs(q);
+
+                // Se não existe o nome, está livre
+                if (snap.empty) return true;
+
+                // Se existe o nome, só permitimos se for o PRÓPRIO usuário logado tentando mudar o nome dele (caso de edição)
+                if (auth.currentUser) {
+                    return snap.docs.some(doc => doc.id === auth.currentUser.uid);
+                }
+
+                // Se não estiver logado (Registro), e o nome já existe, então está ocupado
+                return false;
+            },
+
+            setInitialUsername: async () => {
+                const btn = document.getElementById('btn-save-username');
+                const nameInput = document.getElementById('prompt-user-name');
+                const name = nameInput.value.trim();
+                if (!name) return App.Utils.toast("Escolha um nome primeiro", "warning");
+
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerText = "Salvando...";
+                }
+
+                try {
+                    const isUnique = await App.Auth.checkUsernameUnique(name);
+                    if (!isUnique) {
+                        if (btn) { btn.disabled = false; btn.innerText = "Salvar e Entrar"; }
+                        return App.Utils.toast("Este nome já está em uso", "error");
+                    }
+
+                    const user = auth.currentUser;
+                    if (!user) throw new Error("Sessão expirada. Tente logar novamente.");
+
+                    // 1. Salva no Firestore (Prioridade Máxima)
+                    await setDoc(doc(db, "perfis", user.uid), {
+                        nome: name,
+                        email: user.email,
+                        ultimoAcesso: new Date(),
+                        criadoEm: new Date()
+                    }, { merge: true });
+
+                    // 2. Tenta atualizar Perfil Auth (Se falhar, não trava o processo)
+                    try {
+                        await updateProfile(user, { displayName: name });
+                    } catch (errAuth) {
+                        console.warn("Erro ao atualizar displayName no Auth:", errAuth);
+                    }
+
+                    // 3. Esconde overlay
+                    const promptOverlay = document.getElementById('username-prompt-overlay');
+                    if (promptOverlay) promptOverlay.style.display = 'none';
+
+                    // 4. Fluxo solicitado: Desloga para forçar login novo
+                    await signOut(auth);
+
+                    // 5. Volta para tela de Login
+                    if (window.App.UI && window.App.UI.toggleAuthView) {
+                        window.App.UI.toggleAuthView(false);
+                    }
+
+                    window.App.Utils.toast("Nome definido com sucesso! Entre agora com seu novo usuário.", "success");
+                } catch (e) {
+                    console.error("Erro completo ao definir nome:", e);
+                    if (btn) { btn.disabled = false; btn.innerText = "Salvar e Entrar"; }
+                    App.Utils.toast("Erro ao salvar: " + (e.message || "tente novamente"), "error");
+                }
+            },
+
+            updateAccountSettings: async () => {
+                const newName = document.getElementById('set-user-name').value.trim();
+                const newPass = document.getElementById('set-pass').value;
+                const confirmPass = document.getElementById('set-pass-confirm').value;
+
+                if (!newName) return App.Utils.toast("O nome não pode ser vazio", "warning");
+
+                try {
+                    App.Utils.toast("Processando alterações...", "info");
+
+                    // 1. Verificação de Unicidade do Nome
+                    const isUnique = await App.Auth.checkUsernameUnique(newName);
+                    if (!isUnique) {
+                        return App.Utils.toast("Este nome já está em uso por outro usuário", "error");
+                    }
+
+                    // 2. Atualiza Perfil (Nome) se mudou
+                    if (newName !== auth.currentUser.displayName) {
+                        await updateProfile(auth.currentUser, { displayName: newName });
+                        await setDoc(doc(db, "perfis", auth.currentUser.uid), {
+                            nome: newName
+                        }, { merge: true });
+                        document.getElementById('display-name').innerText = newName;
+                    }
+
+                    // 3. Atualiza Senha se preenchida
+                    if (newPass) {
+                        if (newPass !== confirmPass) return App.Utils.toast("As senhas não coincidem", "error");
+                        if (newPass.length < 6) return App.Utils.toast("A senha deve ter 6+ digitos", "warning");
+                        await updatePassword(auth.currentUser, newPass);
+                    }
+
+                    App.Utils.toast("Configurações atualizadas!", "success");
+                    App.UI.toggleSettings(false);
+                } catch (e) {
+                    console.error("Erro ao atualizar conta:", e);
+                    if (e.code === 'auth/requires-recent-login') {
+                        App.Utils.toast("Para mudar a senha, faça login novamente por segurança.", "warning");
+                        signOut(auth);
+                    } else {
+                        App.Utils.toast("Erro ao atualizar: " + e.code, "error");
+                    }
+                }
+            }
+        };
+
+        window.App.Auth.monitor();
+
+        window.addEventListener('load', () => {
+            // carregarVendasDoFirebase() será chamado pelo monitor de Auth
+        });
+
+    </script>
+    <!-- Modal de Detalhes Mobile (v2) -->
+    <div id="mob-detail-overlay" class="mob-detail-overlay" style="display: none;" onclick="App.UI.closeDetailPopup()">
+        <div class="mob-detail-sheet" onclick="event.stopPropagation()">
+            <div class="mob-detail-handle"></div>
+            <div id="mob-detail-content">
+                <!-- Conteúdo dinâmico aqui -->
+            </div>
+            <button class="mob-detail-close" onclick="App.UI.closeDetailPopup()">Fechar</button>
+        </div>
+    </div>
+</body>
+
+</html>

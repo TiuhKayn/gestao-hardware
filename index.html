@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Vendas</title>
+    <link rel="icon" type="image/png" href="1.png">
     <!-- Polyfill para Arraste no Mobile -->
     <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch-polyfill@1.4.1/drag-drop-touch-polyfill.js"></script>
     <style>
@@ -2444,12 +2445,22 @@
                     }
                 },
 
-                undo: () => {
+                undo: async () => {
                     if (App.State.history.length === 0) return App.Utils.toast("Nada para desfazer", "info");
+                    
+                    const currentState = [...App.State.data];
                     const prev = App.State.history.pop();
-                    App.State.data = JSON.parse(prev);
+                    const prevState = JSON.parse(prev);
+                    
+                    App.State.data = prevState;
                     App.Data.save(true);
-                    App.Utils.toast("Ação desfeita", "info");
+                    
+                    if (window.sincronizarEstadoComNuvem) {
+                        App.Utils.toast("Sincronizando...", "info");
+                        await window.sincronizarEstadoComNuvem(currentState, prevState);
+                    } else {
+                        App.Utils.toast("Ação desfeita", "info");
+                    }
                 },
 
                 exportData: () => {
@@ -2910,12 +2921,54 @@
             }
         }
 
+        async function sincronizarEstadoComNuvem(atual, anterior) {
+            if (!auth.currentUser) return;
+            try {
+                const batch = writeBatch(db);
+                let operacoes = 0;
+
+                for (const item of anterior) {
+                    const docRef = doc(db, "vendas", String(item.id));
+                    const currentItem = atual.find(x => String(x.id) === String(item.id));
+                    
+                    if (!currentItem) {
+                        const obj = { ...item, userId: auth.currentUser.uid };
+                        delete obj.id;
+                        batch.set(docRef, obj);
+                        operacoes++;
+                    } else if (JSON.stringify(item) !== JSON.stringify(currentItem)) {
+                        const obj = { ...item, userId: auth.currentUser.uid };
+                        delete obj.id;
+                        batch.set(docRef, obj);
+                        operacoes++;
+                    }
+                }
+
+                for (const item of atual) {
+                    if (!anterior.find(x => String(x.id) === String(item.id))) {
+                        const docRef = doc(db, "vendas", String(item.id));
+                        batch.delete(docRef);
+                        operacoes++;
+                    }
+                }
+
+                if (operacoes > 0) {
+                    await batch.commit();
+                    console.log(`Undo sincronizado: ${operacoes} operações.`);
+                }
+            } catch (e) {
+                console.error("Erro ao sincronizar undo:", e);
+                App.Utils.toast("Erro no sync de Undo", "error");
+            }
+        }
+
         // Expondo para o App
         window.salvarVendaNoFirebase = salvarVendaNoFirebase;
         window.atualizarVendaNoFirebase = atualizarVendaNoFirebase;
         window.removerVendaDoFirebase = removerVendaDoFirebase;
         window.importarBackupParaNuvem = importarBackupParaNuvem;
         window.sincronizarOrdemNoFirebase = sincronizarOrdemNoFirebase;
+        window.sincronizarEstadoComNuvem = sincronizarEstadoComNuvem;
 
 
 

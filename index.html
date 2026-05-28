@@ -425,7 +425,7 @@
         .t-header,
         .t-row {
             display: grid;
-            grid-template-columns: 30px var(--select-col-width, 0px) 3.5fr 2fr 1.5fr 1.5fr 1.2fr 1.2fr 80px;
+            grid-template-columns: 30px var(--select-col-width, 0px) 3fr 1.5fr 1.2fr 1.2fr 1.2fr 1fr 1.2fr 80px;
             padding: 0 24px;
             align-items: center;
             transition: var(--transition);
@@ -1350,10 +1350,9 @@
             <div class="form-header">
                 <h2 style="margin:0; font-size:1.1rem; color:var(--text-secondary)">Nova Transação</h2>
                 <div class="type-selector">
-                    <button class="type-btn active" onclick="App.UI.setFormType('venda')" data-type="venda">🛍️
-                        Venda</button>
-                    <button class="type-btn" onclick="App.UI.setFormType('gasto')" data-type="gasto">💸 Despesa</button>
-                    <button class="type-btn" onclick="App.UI.setFormType('kit')" data-type="kit">📦 Lote/Kit</button>
+                    <button class="type-btn active" onclick="App.UI.setFormType('venda')" data-type="venda">💻
+                        Peça / Hardware</button>
+                    <button class="type-btn" onclick="App.UI.setFormType('kit')" data-type="kit">📦 PC Montado / Kit</button>
                 </div>
             </div>
 
@@ -1455,7 +1454,8 @@
                     <div onclick="App.UI.setSort('desc')">Descrição <span class="sort-icon">↕</span></div>
                     <div onclick="App.UI.setSort('categoria')">Categoria <span class="sort-icon">↕</span></div>
                     <div onclick="App.UI.setSort('custo')">Custo <span class="sort-icon">↕</span></div>
-                    <div onclick="App.UI.setSort('saldo')">Venda/Saldo <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('venda')">Venda <span class="sort-icon">↕</span></div>
+                    <div onclick="App.UI.setSort('saldo')">Lucro <span class="sort-icon">↕</span></div>
                     <div onclick="App.UI.setSort('tipo')">Tipo <span class="sort-icon">↕</span></div>
                     <div onclick="App.UI.setSort('data')">Data <span class="sort-icon">↕</span></div>
                     <div style="text-align: center; display: flex; justify-content: center; padding-right: 0;">Ações
@@ -1599,15 +1599,15 @@
                     App.State.formType = t;
                     document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === t));
                     const show = (id, types) => document.getElementById(id).style.display = types.includes(t) ? 'flex' : 'none';
-                    show('group-custo', ['venda', 'gasto', 'troca', 'kit']);
-                    show('group-valor', ['venda', 'troca', 'kit']);
-                    show('group-recebeu', ['troca']);
-                    show('group-receita', ['kit']);
-                    show('group-volta', ['troca']);
-                    show('group-kit-pai', ['venda', 'gasto', 'troca']);
+                    show('group-custo', ['venda', 'kit']);
+                    show('group-valor', ['venda', 'kit']);
+                    show('group-recebeu', []);
+                    show('group-receita', []);
+                    show('group-volta', []);
+                    show('group-kit-pai', ['venda']);
 
-                    document.getElementById('lbl-custo').innerText = t === 'kit' ? 'Custo Inicial (R$)' : 'Custo (R$)';
-                    document.getElementById('lbl-valor').innerText = t === 'kit' ? 'Receita Final (R$)' : (t === 'troca' ? 'Sobra/Saldo (R$)' : 'Venda (R$)');
+                    document.getElementById('lbl-custo').innerText = t === 'kit' ? 'Custo Adicional/Base (R$)' : 'Custo (R$)';
+                    document.getElementById('lbl-valor').innerText = t === 'kit' ? 'Venda Final do PC (R$)' : 'Venda (R$)';
 
                     const btn = document.getElementById('btn-main-action');
                     btn.innerText = App.State.editingId ? 'Salvar Alterações' : 'Registrar ' + t.charAt(0).toUpperCase() + t.slice(1);
@@ -1782,7 +1782,8 @@
                                     </div>
                                     <div>${t.categoria || '-'}</div>
                                     <div>R$ ${App.Utils.formatCurrency(totals.custo)}</div>
-                                    <div style="color:${totals.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">R$ ${App.Utils.formatCurrency(totals.saldo)}</div>
+                                    <div>R$ ${App.Utils.formatCurrency(t._totalReceita || 0)}</div>
+                                    <div style="font-weight: bold; color:${totals.saldo > 0 ? 'var(--success)' : (totals.saldo < 0 ? 'var(--danger)' : 'var(--text-secondary)')}">${totals.saldo > 0 ? '+' : ''}R$ ${App.Utils.formatCurrency(totals.saldo)}</div>
                                     <div><span class="badge badge-${t.tipo}">${t.tipo}</span></div>
                                     <div>${App.Utils.formatDate(t.data)}</div>
                                     <div style="display:flex; gap:4px; justify-content:center">

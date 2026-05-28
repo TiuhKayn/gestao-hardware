@@ -1554,8 +1554,13 @@
                 },
                 remove: (id) => {
                     if (confirm("Remover?")) {
+                        const childrenIds = App.State.data.filter(x => String(x.kitParentId) === String(id)).map(x => x.id);
+
                         // Sincroniza Exclusão
-                        if (window.removerVendaDoFirebase) window.removerVendaDoFirebase(id);
+                        if (window.removerVendaDoFirebase) {
+                            window.removerVendaDoFirebase(id);
+                            childrenIds.forEach(childId => window.removerVendaDoFirebase(childId));
+                        }
 
                         App.State.data = App.State.data.filter(x => x.id != id && x.kitParentId != id);
                         App.Data.save();
@@ -2549,15 +2554,17 @@
                     App.Utils.toast(`Excluindo ${idsCount} itens...`, "info");
 
                     const idsToRemove = Array.from(App.State.selectedIds);
+                    const childrenToRemove = App.State.data.filter(x => idsToRemove.includes(String(x.kitParentId))).map(x => String(x.id));
+                    const allIdsToRemove = [...new Set([...idsToRemove, ...childrenToRemove])];
 
                     // Exclusão local e nuvem
-                    for (const id of idsToRemove) {
+                    for (const id of allIdsToRemove) {
                         if (window.removerVendaDoFirebase) {
                             await window.removerVendaDoFirebase(id);
                         }
                     }
 
-                    App.State.data = App.State.data.filter(x => !App.State.selectedIds.has(String(x.id)));
+                    App.State.data = App.State.data.filter(x => !allIdsToRemove.includes(String(x.id)));
                     App.State.selectedIds.clear();
 
                     App.Data.save();

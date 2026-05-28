@@ -1792,7 +1792,7 @@
                                     <div><span class="badge badge-${t.tipo}">${t.tipo}</span></div>
                                     <div style="font-size:0.75rem; display:flex; flex-direction:column; gap:2px; line-height:1.2;">
                                         <span>C: ${App.Utils.formatDate(t.data)}</span>
-                                        <span style="color:${t.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">V: ${t.dataVenda ? App.Utils.formatDate(t.dataVenda) : '-'}</span>
+                                        ${(t.tipo !== 'kit' && t.tipo !== 'separator') ? `<span style="color:${t.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">V: ${t.dataVenda ? App.Utils.formatDate(t.dataVenda) : '-'}</span>` : ''}
                                     </div>
                                     <div style="display:flex; gap:4px; justify-content:center">
                                         <button class="btn-icon" onclick="App.Actions.edit('${t.id}')">✎</button>
@@ -1885,7 +1885,6 @@
                                                   <div><span class="badge badge-${c.tipo}">${c.tipo}</span></div>
                                                   <div style="font-size:0.75rem; display:flex; flex-direction:column; gap:2px; line-height:1.2;">
                                                       <span>C: ${App.Utils.formatDate(c.data)}</span>
-                                                      <span style="color:${c.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">V: ${c.dataVenda ? App.Utils.formatDate(c.dataVenda) : '-'}</span>
                                                   </div>
                                                   <div style="display:flex; gap:4px; justify-content:center">
                                                       <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.edit('${c.id}')">✎</button>
@@ -2049,10 +2048,11 @@
                                             <span class="mob-label">Data Compra</span>
                                             <span>${App.Utils.formatDate(t.data)}</span>
                                         </div>
+                                        ${(t.tipo !== 'kit' && t.tipo !== 'separator') ? `
                                         <div class="mob-detail-cell">
                                             <span class="mob-label">Data Venda</span>
                                             <span style="color:${t.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">${t.dataVenda ? App.Utils.formatDate(t.dataVenda) : '-'}</span>
-                                        </div>
+                                        </div>` : ''}
                                         <div class="mob-detail-cell">
                                             <span class="mob-label">Custo Total</span>
                                             <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>
@@ -2101,7 +2101,7 @@
                                         <div class="mob-sub-item-grid">
                                             <div><span class="mob-label">Custo:</span> R$ ${App.Utils.formatCurrency(c.custo)}</div>
                                             <div><span class="mob-label">Valor:</span> R$ ${App.Utils.formatCurrency(c.valor)}</div>
-                                            <div><span class="mob-label">Data:</span> C: ${App.Utils.formatDate(c.data)} | <span style="color:${c.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">V: ${c.dataVenda ? App.Utils.formatDate(c.dataVenda) : '-'}</span></div>
+                                            <div><span class="mob-label">Data:</span> C: ${App.Utils.formatDate(c.data)}</div>
                                             <div><span class="mob-label">Tipo:</span> ${c.tipo}</div>
                                         </div>
                                     </div>

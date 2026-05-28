@@ -1835,7 +1835,7 @@
                                                             <div class="select-col">
                                                                 <input type="checkbox" class="checkbox-custom row-checkbox" data-id="${c.id}" ${App.State.selectedIds.has(String(c.id)) ? 'checked' : ''} onclick="event.stopPropagation(); App.Actions.toggleSelect(event, '${c.id}')">
                                                             </div>
-                                                            <div style="grid-column: span 6; text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
+                                                            <div style="grid-column: span 7; text-transform:uppercase; font-size:0.7rem; letter-spacing:1.5px; font-weight:800; color:var(--accent-primary); opacity:0.8; display:flex; align-items:center; gap:8px">
                                                                 <span style="font-size:1.2rem; line-height:1">↳</span> ${c.desc}
                                                              </div>
                                                              <div style="display:flex; gap:4px; justify-content: flex-end;">
@@ -1868,9 +1868,11 @@
                                                  <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left:8px; display:flex; align-items:center; gap:8px">
                                                      <span style="opacity:0.5">↳</span> ${c.desc}
                                                   </div>
-                                                  <div>${c.categoria || '-'}</div><div>R$ ${App.Utils.formatCurrency(c.custo)}</div>
-                                                  <div style="color:${(c.tipo === 'venda' || c.tipo === 'troca') ? 'var(--success)' : 'var(--danger)'}">
-                                                      R$ ${App.Utils.formatCurrency((c.tipo === 'venda' || c.tipo === 'troca') ? c.valor : c.custo)}
+                                                  <div>${c.categoria || '-'}</div>
+                                                  <div>R$ ${App.Utils.formatCurrency(c.custo)}</div>
+                                                  <div>R$ ${App.Utils.formatCurrency(c.valor)}</div>
+                                                  <div style="font-weight: bold; color:${(c.valor - c.custo) > 0 ? 'var(--success)' : ((c.valor - c.custo) < 0 ? 'var(--danger)' : 'var(--text-secondary)')}">
+                                                      ${(c.valor - c.custo) > 0 ? '+' : ''}R$ ${App.Utils.formatCurrency(c.valor - c.custo)}
                                                   </div>
                                                   <div><span class="badge badge-${c.tipo}">${c.tipo}</span></div>
                                                   <div>${App.Utils.formatDate(c.data)}</div>

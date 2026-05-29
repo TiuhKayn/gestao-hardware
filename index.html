@@ -1588,9 +1588,8 @@
 
             UI: {
                 toggleDataVenda: () => {
-                    const kitPai = document.getElementById('reg-kit-pai').value;
                     const type = App.State.formType;
-                    document.getElementById('group-data-venda').style.display = (type === 'venda' && !kitPai) ? 'flex' : 'none';
+                    document.getElementById('group-data-venda').style.display = (type === 'venda' || type === 'kit') ? 'flex' : 'none';
                 },
                 setFormType: (t) => {
                     const isMobile = window.innerWidth <= 768;
@@ -1798,7 +1797,10 @@
                                     <div><span class="badge badge-${t.tipo}">${t.tipo}</span></div>
                                     <div style="font-size:0.75rem; display:flex; flex-direction:column; gap:2px; line-height:1.2;">
                                         <span>C: ${App.Utils.formatDate(t.data)}</span>
-                                        ${(t.tipo !== 'kit' && t.tipo !== 'separator') ? `<span style="color:${t.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">V: ${t.dataVenda ? App.Utils.formatDate(t.dataVenda) : '-'}</span>` : ''}
+                                        ${(t.tipo === 'separator') ? '' : (
+                                            (t.tipo === 'kit') ? (t.dataVenda ? `<span style="color:var(--success)">V: ${App.Utils.formatDate(t.dataVenda)}</span>` : '') :
+                                            `<span style="color:${t.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">V: ${t.dataVenda ? App.Utils.formatDate(t.dataVenda) : '-'}</span>`
+                                        )}
                                     </div>
                                     <div style="display:flex; gap:4px; justify-content:center">
                                         <button class="btn-icon" onclick="App.Actions.edit('${t.id}')">✎</button>
@@ -1891,6 +1893,7 @@
                                                   <div><span class="badge badge-${c.tipo}">${c.tipo}</span></div>
                                                   <div style="font-size:0.75rem; display:flex; flex-direction:column; gap:2px; line-height:1.2;">
                                                       <span>C: ${App.Utils.formatDate(c.data)}</span>
+                                                      ${c.dataVenda ? `<span style="color:var(--success)">V: ${App.Utils.formatDate(c.dataVenda)}</span>` : ''}
                                                   </div>
                                                   <div style="display:flex; gap:4px; justify-content:center">
                                                       <button class="btn-icon" style="width:24px; height:24px" onclick="App.Actions.edit('${c.id}')">✎</button>
@@ -2054,11 +2057,17 @@
                                             <span class="mob-label">Data Compra</span>
                                             <span>${App.Utils.formatDate(t.data)}</span>
                                         </div>
-                                        ${(t.tipo !== 'kit' && t.tipo !== 'separator') ? `
-                                        <div class="mob-detail-cell">
-                                            <span class="mob-label">Data Venda</span>
-                                            <span style="color:${t.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">${t.dataVenda ? App.Utils.formatDate(t.dataVenda) : '-'}</span>
-                                        </div>` : ''}
+                                        ${(t.tipo === 'separator') ? '' : (
+                                            (t.tipo === 'kit') ? (t.dataVenda ? `
+                                            <div class="mob-detail-cell">
+                                                <span class="mob-label">Data Venda</span>
+                                                <span style="color:var(--success)">${App.Utils.formatDate(t.dataVenda)}</span>
+                                            </div>` : '') : `
+                                            <div class="mob-detail-cell">
+                                                <span class="mob-label">Data Venda</span>
+                                                <span style="color:${t.dataVenda ? 'var(--success)' : 'var(--text-secondary)'}">${t.dataVenda ? App.Utils.formatDate(t.dataVenda) : '-'}</span>
+                                            </div>`
+                                        )}
                                         <div class="mob-detail-cell">
                                             <span class="mob-label">Custo Total</span>
                                             <span>R$ ${App.Utils.formatCurrency(totals.custo)}</span>

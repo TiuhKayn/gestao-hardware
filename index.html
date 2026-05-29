@@ -1928,6 +1928,15 @@
                                                               <span class="mob-label">Tipo</span>
                                                               <span class="badge badge-${c.tipo}" style="transform: scale(0.85); transform-origin: left;">${c.tipo}</span>
                                                           </div>
+                                                          <div class="mob-cell" style="padding: 6px 14px">
+                                                              <span class="mob-label">Data Compra</span>
+                                                              <span>${App.Utils.formatDate(c.data)}</span>
+                                                          </div>
+                                                          ${c.dataVenda ? `
+                                                          <div class="mob-cell" style="padding: 6px 14px">
+                                                              <span class="mob-label">Data Venda</span>
+                                                              <span style="color:var(--success)">${App.Utils.formatDate(c.dataVenda)}</span>
+                                                          </div>` : ''}
                                                       </div>
                                                   </div>
                                               </div>`;

@@ -44,19 +44,30 @@ function addMonthsPreservingDay(dateStr, monthsToAdd) {
     return `${newYear}-${String(newMonth + 1).padStart(2, '0')}-${String(finalDay).padStart(2, '0')}`;
 }
 
-function calculateInstallments(valorTotal, entrada, numParcelas, primeiraParcelaData) {
+function addWeeks(dateStr, weeksToAdd) {
+    const dt = new Date(dateStr + 'T12:00:00');
+    dt.setDate(dt.getDate() + (weeksToAdd * 7));
+    return dt.toISOString().substring(0, 10);
+}
+
+function calculateInstallments(valorTotal, entrada, numParcelas, primeiraParcelaData, frequencia = 'mensal') {
     if (numParcelas <= 0) return [];
     
     const saldo = valorTotal - entrada;
     const parcelaBase = parseFloat((saldo / numParcelas).toFixed(2));
     const parcelas = [];
     
+    const calcDate = (baseDate, i) => {
+        if (frequencia === 'semanal') return addWeeks(baseDate, i);
+        return addMonthsPreservingDay(baseDate, i);
+    };
+    
     let soma = 0;
     for (let i = 0; i < numParcelas - 1; i++) {
         parcelas.push({
             numero: i + 1,
             valor: parcelaBase,
-            vencimento: addMonthsPreservingDay(primeiraParcelaData, i),
+            vencimento: calcDate(primeiraParcelaData, i),
             pago: false,
             dataPagamento: null
         });
@@ -67,7 +78,7 @@ function calculateInstallments(valorTotal, entrada, numParcelas, primeiraParcela
     parcelas.push({
         numero: numParcelas,
         valor: ultimaParcela,
-        vencimento: addMonthsPreservingDay(primeiraParcelaData, numParcelas - 1),
+        vencimento: calcDate(primeiraParcelaData, numParcelas - 1),
         pago: false,
         dataPagamento: null
     });
@@ -109,10 +120,11 @@ function setupListeners() {
         renderAll();
     });
     
-    const formInputs = ['valor-total', 'entrada', 'num-parcelas', 'data-primeira-parcela'];
+    const formInputs = ['valor-total', 'entrada', 'num-parcelas', 'data-primeira-parcela', 'frequencia'];
     formInputs.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.addEventListener('input', previewInstallments);
+        if(el) el.addEventListener('change', previewInstallments);
     });
 }
 
@@ -135,13 +147,14 @@ function previewInstallments() {
     const entrada = parseFloat(document.getElementById('entrada').value) || 0;
     const numParcelas = parseInt(document.getElementById('num-parcelas').value) || 0;
     const primeiraData = document.getElementById('data-primeira-parcela').value;
+    const frequencia = document.getElementById('frequencia').value;
     
     if (!primeiraData || numParcelas <= 0 || valorTotal <= entrada) {
         document.getElementById('preview-parcelas').innerHTML = '';
         return;
     }
     
-    const parcelas = calculateInstallments(valorTotal, entrada, numParcelas, primeiraData);
+    const parcelas = calculateInstallments(valorTotal, entrada, numParcelas, primeiraData, frequencia);
     let html = `<h4 style="margin-top:0; color:var(--text-secondary)">Preview das Parcelas</h4>`;
     html += `<ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:8px;">`;
     
@@ -185,13 +198,14 @@ async function saveVenda() {
         entrada = parseFloat(document.getElementById('entrada').value) || 0;
         const numParcelas = parseInt(document.getElementById('num-parcelas').value) || 0;
         const primeiraData = document.getElementById('data-primeira-parcela').value;
+        const frequencia = document.getElementById('frequencia').value;
         
         if (numParcelas <= 0 || !primeiraData) {
             alert("Preencha o número de parcelas e a data da 1ª parcela.");
             return;
         }
         
-        const newParcelas = calculateInstallments(valorTotal, entrada, numParcelas, primeiraData);
+        const newParcelas = calculateInstallments(valorTotal, entrada, numParcelas, primeiraData, frequencia);
         
         if (currentEditId) {
             const existingVenda = vendas.find(v => v.id === currentEditId);
@@ -229,7 +243,8 @@ async function saveVenda() {
         valorTotal,
         entrada,
         dataVenda,
-        data: dataVenda, 
+        data: dataVenda,
+        frequencia: document.getElementById('frequencia').value,
         parcelas
     };
     
@@ -256,6 +271,7 @@ function resetForm() {
     document.getElementById('entrada').value = '';
     document.getElementById('num-parcelas').value = '';
     document.getElementById('data-primeira-parcela').value = '';
+    document.getElementById('frequencia').value = 'mensal';
     document.getElementById('preview-parcelas').innerHTML = '';
     
     document.getElementById('btn-save').innerText = 'Salvar Nova Venda';
@@ -278,6 +294,7 @@ window.editVenda = function(id) {
         document.getElementById('entrada').value = v.entrada;
         document.getElementById('num-parcelas').value = v.parcelas.length;
         document.getElementById('data-primeira-parcela').value = v.parcelas[0].vencimento;
+        document.getElementById('frequencia').value = v.frequencia || 'mensal';
     } else {
         document.getElementById('tipo-venda').value = 'a_vista';
     }

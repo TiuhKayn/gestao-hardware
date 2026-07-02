@@ -210,14 +210,28 @@ async function saveVenda() {
         if (currentEditId) {
             const existingVenda = vendas.find(v => v.id === currentEditId);
             if (existingVenda) {
+                const frequenciaMudou = (existingVenda.frequencia || 'mensal') !== frequencia;
                 const existingParcelas = existingVenda.parcelas || [];
-                parcelas = newParcelas.map((nP, i) => {
-                    const eP = existingParcelas[i];
-                    if (eP && eP.valor === nP.valor && eP.vencimento === nP.vencimento) {
-                        return { ...nP, pago: eP.pago, dataPagamento: eP.dataPagamento };
-                    }
-                    return nP;
-                });
+                
+                if (frequenciaMudou) {
+                    // Frequência mudou → recalcula tudo, mas preserva pagamentos de parcelas com mesmo número
+                    parcelas = newParcelas.map(nP => {
+                        const eP = existingParcelas.find(ep => ep.numero === nP.numero);
+                        if (eP && eP.pago) {
+                            return { ...nP, pago: true, dataPagamento: eP.dataPagamento };
+                        }
+                        return nP;
+                    });
+                } else {
+                    // Mesma frequência → preserva parcelas que não mudaram
+                    parcelas = newParcelas.map((nP, i) => {
+                        const eP = existingParcelas[i];
+                        if (eP && eP.valor === nP.valor && eP.vencimento === nP.vencimento) {
+                            return { ...nP, pago: eP.pago, dataPagamento: eP.dataPagamento };
+                        }
+                        return nP;
+                    });
+                }
             } else {
                 parcelas = newParcelas;
             }

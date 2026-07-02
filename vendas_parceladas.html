@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Vendas Parceladas</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Inline styles specifically for the new UI to avoid missing CSS issues -->
+    <style>
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        @media (max-width: 768px) {
+            .grid-2, .grid-4 { grid-template-columns: 1fr; }
+        }
+        .section-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:20px">
+                <div style="background: #000; padding: 4px 16px 4px 4px; border-radius: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+                    <img src="1.png" alt="Logo" style="width:36px; height:36px; object-fit:contain; border-radius: 8px;">
+                    <div style="font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; color: #fff; display: flex; align-items: center; gap: 6px;">
+                        Masabushi <span style="font-weight:800; opacity: 0.9; font-style: italic; text-decoration: underline;">Sell</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap:16px;">
+                <button class="btn-primary" style="padding: 10px 20px; border-radius: 10px;" onclick="window.location.href='index.html'">
+                    ⬅️ Voltar ao Geral
+                </button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD -->
+        <div class="glass" style="padding: 24px; margin-bottom: 24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2 style="margin:0; font-size:1.2rem; color:var(--text-secondary)">Resumo do Mês</h2>
+                <input type="month" id="filter-month" style="background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px 16px; border-radius:8px;">
+            </div>
+            
+            <div class="grid-4">
+                <div class="stat-card" style="--stat-color: var(--accent-primary)">
+                    <div class="stat-label">Ainda a receber (Previsto)</div>
+                    <div class="stat-value" id="dash-a-receber">R$ 0,00</div>
+                </div>
+                <div class="stat-card" style="--stat-color: var(--success)">
+                    <div class="stat-label">Já recebido de fato</div>
+                    <div class="stat-value" id="dash-recebido">R$ 0,00</div>
+                </div>
+                <div class="stat-card" style="--stat-color: var(--danger)">
+                    <div class="stat-label">Atrasado (Total)</div>
+                    <div class="stat-value" id="dash-atrasado">R$ 0,00</div>
+                </div>
+                <div class="stat-card" style="--stat-color: var(--warning)">
+                    <div class="stat-label">Total Previsto (Mês)</div>
+                    <div class="stat-value" id="dash-total-previsto">R$ 0,00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <!-- COLUNA ESQUERDA: Formulário de Nova Venda -->
+            <div class="smart-form-container glass" style="margin-bottom: 24px; height: max-content;">
+                <div class="form-header">
+                    <h2 style="margin:0; font-size:1.1rem; color:var(--text-secondary)">Cadastrar Venda</h2>
+                </div>
+                
+                <div style="display:flex; flex-direction:column; gap:16px;">
+                    <div class="input-group">
+                        <label>Tipo de Venda</label>
+                        <select id="tipo-venda">
+                            <option value="parcelada">Parcelada</option>
+                            <option value="a_vista">À Vista</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Nome do Cliente</label>
+                        <input type="text" id="cliente" placeholder="Ex: João da Silva">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Produto / Descrição</label>
+                        <input type="text" id="produto" placeholder="Ex: PC Gamer Ryzen 5">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Data da Venda</label>
+                        <input type="date" id="data-venda">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Valor Total (R$)</label>
+                        <input type="number" id="valor-total" step="0.01">
+                    </div>
+
+                    <div id="parcelado-fields" style="display:flex; flex-direction:column; gap:16px; padding:16px; background:var(--bg-input); border-radius:12px; margin-top:8px;">
+                        <div class="input-group">
+                            <label>Valor de Entrada (R$)</label>
+                            <input type="number" id="entrada" step="0.01" value="0">
+                        </div>
+                        <div class="input-group">
+                            <label>Número de Parcelas</label>
+                            <input type="number" id="num-parcelas" min="1" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label>Data 1ª Parcela</label>
+                            <input type="date" id="data-primeira-parcela">
+                        </div>
+                    </div>
+                    
+                    <div id="preview-parcelas"></div>
+
+                    <div style="display:flex; gap:12px; margin-top: 16px;">
+                        <button id="btn-save" class="btn-primary" style="flex:1; height:48px; border-radius:12px; font-weight:700; cursor:pointer;">Salvar Nova Venda</button>
+                        <button id="btn-cancel" style="display:none; flex:1; height:48px; border-radius:12px; background:var(--bg-card); color:white; border:1px solid rgba(255,255,255,0.1); cursor:pointer;">Cancelar Edição</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUNA DIREITA: Listas Rápidas -->
+            <div style="display:flex; flex-direction:column; gap:24px;">
+                <div class="glass" style="padding: 24px;">
+                    <div class="section-title">🚨 Parcelas Atrasadas</div>
+                    <div id="list-atrasadas"></div>
+                </div>
+                
+                <div class="glass" style="padding: 24px;">
+                    <div class="section-title">📅 Cobranças deste mês</div>
+                    <div id="list-cobrancas-mes"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- LISTAGEM COMPLETA -->
+        <div class="glass" style="padding: 24px; margin-top:24px; margin-bottom:100px;">
+            <div class="section-title">Todas as Vendas</div>
+            <div id="list-todas-vendas"></div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { init } from './vendas_parceladas.js';
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('data-venda').value = new Date().toISOString().substring(0, 10);
+            init();
+        });
+    </script>
+</body>
+</html>

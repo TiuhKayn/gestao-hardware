@@ -91,7 +91,7 @@ export function init() {
                 renderAll();
             }, (error) => {
                 console.error("Erro ao escutar vendas:", error);
-                alert("Erro ao buscar dados: " + error.message);
+                alert("O Firebase bloqueou a leitura. Você precisa atualizar as Regras de Segurança (Rules) do seu Firestore para permitir o acesso.");
             });
         } else {
             console.log("Usuário não logado!");
@@ -242,7 +242,7 @@ async function saveVenda() {
         resetForm();
     } catch (e) {
         console.error("Erro ao salvar: ", e);
-        alert("Erro ao salvar venda: " + e.message);
+        alert("O Firebase bloqueou a gravação. Atualize as 'Rules' do Firestore no console do Firebase.");
     }
 }
 

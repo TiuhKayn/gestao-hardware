@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAfb_D2zgx0ekh_OoZoCIMVVbWFDjrCc4M",
@@ -12,6 +13,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // State
 let vendas = [];
@@ -78,12 +80,23 @@ export function init() {
     setupListeners();
     document.getElementById('filter-month').value = currentMonth;
     
-    // Subscribe to Firestore changes
-    onSnapshot(collection(db, "vendas_parceladas"), (snapshot) => {
-        vendas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Sort by dataVenda desc
-        vendas.sort((a, b) => b.dataVenda.localeCompare(a.dataVenda));
-        renderAll();
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            console.log("Usuário logado, carregando vendas parceladas...");
+            const q = query(collection(db, "vendas"), where("userId", "==", user.uid));
+            onSnapshot(q, (snapshot) => {
+                const todas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                vendas = todas.filter(item => item.tipo === "venda_parcelada");
+                vendas.sort((a, b) => b.dataVenda.localeCompare(a.dataVenda));
+                renderAll();
+            }, (error) => {
+                console.error("Erro ao escutar vendas:", error);
+                alert("Erro ao buscar dados: " + error.message);
+            });
+        } else {
+            console.log("Usuário não logado!");
+            alert("Você precisa estar logado para ver as vendas parceladas.");
+        }
     });
 }
 
@@ -201,25 +214,35 @@ async function saveVenda() {
         entrada = valorTotal;
     }
     
+    if (!auth.currentUser) {
+        alert("Você precisa estar logado para salvar.");
+        return;
+    }
+
     const vendaObj = {
+        userId: auth.currentUser.uid,
+        tipo: 'venda_parcelada',
         cliente,
         produto,
+        desc: produto, 
+        valor: valorTotal,
         valorTotal,
         entrada,
         dataVenda,
+        data: dataVenda, 
         parcelas
     };
     
     try {
         if (currentEditId) {
-            await updateDoc(doc(db, "vendas_parceladas", currentEditId), vendaObj);
+            await updateDoc(doc(db, "vendas", currentEditId), vendaObj);
         } else {
-            await addDoc(collection(db, "vendas_parceladas"), vendaObj);
+            await addDoc(collection(db, "vendas"), vendaObj);
         }
         resetForm();
     } catch (e) {
         console.error("Erro ao salvar: ", e);
-        alert("Erro ao salvar venda.");
+        alert("Erro ao salvar venda: " + e.message);
     }
 }
 
@@ -269,11 +292,12 @@ window.editVenda = function(id) {
 }
 
 window.deleteVenda = async function(id) {
+    if (!auth.currentUser) return;
     if (confirm("Tem certeza que deseja excluir esta venda?")) {
         try {
-            await deleteDoc(doc(db, "vendas_parceladas", id));
+            await deleteDoc(doc(db, "vendas", id));
         } catch(e) {
-            alert("Erro ao excluir.");
+            alert("Erro ao excluir: " + e.message);
         }
     }
 }
@@ -297,9 +321,9 @@ window.togglePagamento = async function(vendaId, numeroParcela) {
     }
     
     try {
-        await updateDoc(doc(db, "vendas_parceladas", vendaId), { parcelas: v.parcelas });
+        await updateDoc(doc(db, "vendas", vendaId), { parcelas: v.parcelas });
     } catch(e) {
-        alert("Erro ao atualizar pagamento.");
+        alert("Erro ao atualizar pagamento: " + e.message);
     }
 }
 

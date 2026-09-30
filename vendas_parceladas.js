@@ -3,12 +3,12 @@ import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, o
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAfb_D2zgx0ekh_OoZoCIMVVbWFDjrCc4M",
-    authDomain: "cash-c56e8.firebaseapp.com",
-    projectId: "cash-c56e8",
-    storageBucket: "cash-c56e8.firebasestorage.app",
-    messagingSenderId: "169106049481",
-    appId: "1:169106049481:web:a72f58bf916d9f14eb0018"
+    apiKey: "AIzaSyDeM2rW7GktcduSzCQ8v3Xp2epnwB4UJEc",
+    authDomain: "gestao-hardware.firebaseapp.com",
+    projectId: "gestao-hardware",
+    storageBucket: "gestao-hardware.firebasestorage.app",
+    messagingSenderId: "845594249944",
+    appId: "1:845594249944:web:c2400da10533827d6625ad"
 };
 
 const app = initializeApp(firebaseConfig);

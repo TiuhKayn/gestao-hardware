@@ -2834,11 +2834,12 @@
                 // 1. Apagar apenas itens do usuário na nuvem
                 const q = query(collection(db, "vendas"), where("userId", "==", auth.currentUser.uid));
                 const snapshot = await getDocs(q);
-                const totalDocs = snapshot.size;
-                console.log(`Excluindo ${totalDocs} itens do usuário...`);
+                // Nunca mexe em vendas parceladas — mesmo motivo do fix em importarBackupParaNuvem.
+                const docsParaApagar = snapshot.docs.filter(d => d.data().tipo !== 'venda_parcelada');
+                console.log(`Excluindo ${docsParaApagar.length} itens do usuário...`);
 
                 const deletePromises = [];
-                snapshot.forEach(doc => {
+                docsParaApagar.forEach(doc => {
                     deletePromises.push(deleteDoc(doc.ref));
                 });
                 await Promise.all(deletePromises);
@@ -2896,7 +2897,11 @@
                     const snap = await getDocs(q);
                     let batch = writeBatch(db);
                     let count = 0;
+                    // Nunca apaga vendas parceladas aqui: o backup (exportData) só contém os
+                    // itens deste painel, então "substituir" com ele apagaria pra sempre todo
+                    // o histórico de parcelas/clientes da outra tela, sem como recuperar.
                     for (const d of snap.docs) {
+                        if (d.data().tipo === 'venda_parcelada') continue;
                         batch.delete(d.ref);
                         count++;
                         if (count === 400) { await batch.commit(); batch = writeBatch(db); count = 0; }
@@ -3053,6 +3058,13 @@
                 const cloudItems = [];
                 snapshot.forEach((doc) => {
                     const d = doc.data();
+                    // Vendas parceladas vivem na mesma coleção "vendas", mas em outro formato
+                    // (cliente/parcelas/frequencia, sem custo nem categoria) — pertencem à tela
+                    // "Vendas Parceladas", não a este painel. Sem esse filtro, cada venda
+                    // parcelada aparecia aqui como um item fantasma ("Item sem nome", custo
+                    // R$0,00), inclusive vulnerável a ser apagada pelas ferramentas de
+                    // reparo/importação de backup deste painel (ver fix abaixo).
+                    if (d.tipo === 'venda_parcelada') return;
                     cloudItems.push({
                         id: doc.id,
                         desc: d.descricao || "Item sem nome",

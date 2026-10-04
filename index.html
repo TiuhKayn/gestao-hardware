@@ -6,27 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestão de Vendas</title>
     <link rel="icon" type="image/png" href="1.png">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap">
     <!-- Polyfill para Arraste no Mobile -->
     <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch-polyfill@1.4.1/drag-drop-touch-polyfill.js"></script>
     <style>
         :root {
-            --bg-body: #05070A;
-            --bg-glass: rgba(10, 14, 20, 0.85);
-            --bg-card: #12161F;
-            --bg-input: #0B0D13;
-            --text-primary: #EEF1F6;
-            --text-secondary: #8A93A6;
-            --accent-primary: #3FC8FF;
-            --accent-glow: rgba(63, 200, 255, 0.4);
-            --accent-blue: #3FC8FF;
-            --accent-blue-deep: #1B6FE0;
-            --accent-purple: #8B5CF6;
-            --gold: #F0B94D;
-            --success: #35D488;
-            --danger: #FF6A3D;
-            --warning: #F0B94D;
-            --purple: #8B5CF6;
+            --bg-body: #0d0d0d;
+            --bg-glass: rgba(20, 20, 20, 0.8);
+            --bg-card: #151515;
+            --bg-input: #050505;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #7c3aed;
+            --accent-glow: rgba(124, 58, 237, 0.4);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --purple: #7c3aed;
             --border-radius: 16px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --select-col-width: 0px;
@@ -36,19 +31,9 @@
             --select-col-width: 40px;
         }
 
-        /* Emblema "Ghost" original — máscara de guerra angular rachada ao meio,
-           energia azul/roxa vazando pela fenda, bordas desgastadas. Inspirado no
-           clima de Call of Duty: Ghosts mas desenhado do zero (placas facetadas
-           de metal forjado com textura irregular, cor de marca em vez de preto/
-           branco) — não é uma cópia do logo registrado do jogo. */
-        .ghost-mark path.plate { fill: url(#plateGrad); stroke: #3A4356; stroke-width: 1; filter: url(#weatheredHeader); }
-        .ghost-mark path.eye { fill: #05070A; }
-        .ghost-mark path.crackGlow { fill: none; stroke: url(#crackGrad); stroke-width: 5; filter: url(#softBlur); stroke-linejoin: round; stroke-linecap: round; }
-        .ghost-mark path.crackLine { fill: none; stroke: #BFE9FF; stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round; }
-
         body {
-            font-family: 'Rajdhani', 'Inter', system-ui, -apple-system, sans-serif;
-            background: radial-gradient(circle at top right, #0D1119, #05070A);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: radial-gradient(circle at top right, #1a1a1a, #0d0d0d);
             color: var(--text-primary);
             margin: 0;
             padding: 24px;
@@ -236,7 +221,7 @@
         .stat-value {
             font-size: 1.8rem;
             font-weight: 800;
-            font-family: 'Orbitron', 'JetBrains Mono', monospace;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .smart-form-container {
@@ -1246,43 +1231,19 @@
         <header class="page-header">
             <div style="display:flex; align-items:center; gap:20px">
                 <div
-                    style="background: #0A0E14; padding: 6px 16px 6px 8px; border-radius: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); border: 1px solid #2B3242;">
-                    <svg viewBox="0 0 200 220" class="ghost-mark" style="width: 40px; height: 44px; filter: drop-shadow(0 0 10px rgba(63,200,255,0.45)); flex-shrink: 0;">
-                        <defs>
-                            <linearGradient id="plateGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0" stop-color="#2B3444"/>
-                                <stop offset="1" stop-color="#12161F"/>
-                            </linearGradient>
-                            <linearGradient id="crackGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0" stop-color="#3FC8FF"/>
-                                <stop offset="1" stop-color="#8B5CF6"/>
-                            </linearGradient>
-                            <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
-                                <feGaussianBlur stdDeviation="3.2"/>
-                            </filter>
-                            <filter id="weatheredHeader" x="-25%" y="-25%" width="150%" height="150%">
-                                <feTurbulence type="fractalNoise" baseFrequency="0.045 0.09" numOctaves="3" seed="7" result="noise"/>
-                                <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G"/>
-                            </filter>
-                        </defs>
-                        <g transform="scale(-1,1) translate(-200,0)">
-                            <path class="plate" d="M97,8 L89,35 L99,55 L86,80 L98,105 L88,135 L97,165 L90,195 L96,218 L55,210 L46,198 L40,208 L30,190 L25,175 L18,120 L30,60 L60,20 Z"/>
-                            <path class="eye" d="M35,85 L68,78 L72,92 L42,102 Z"/>
-                        </g>
-                        <path class="plate" d="M97,8 L89,35 L99,55 L86,80 L98,105 L88,135 L97,165 L90,195 L96,218 L55,210 L46,198 L40,208 L30,190 L25,175 L18,120 L30,60 L60,20 Z"/>
-                        <path class="eye" d="M35,85 L68,78 L72,92 L42,102 Z"/>
-                        <path class="crackGlow" d="M97,8 L89,35 L99,55 L86,80 L98,105 L88,135 L97,165 L90,195 L96,218"/>
-                        <path class="crackLine" d="M97,8 L89,35 L99,55 L86,80 L98,105 L88,135 L97,165 L90,195 L96,218"/>
-                    </svg>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.15rem; letter-spacing: 1.5px; color: #EEF1F6;">MASABUSHI</span>
-                        <span style="padding: 3px 10px; border: 1px solid #3FC8FF; border-radius: 20px; color: #BFE9FF; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.5px; background: rgba(63,200,255,0.1); white-space: nowrap;">GESTÃO DE VENDAS</span>
+                    style="background: #000; padding: 4px 16px 4px 4px; border-radius: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+                    <img src="1.png" alt="Logo"
+                        style="width:36px; height:36px; object-fit:contain; border-radius: 8px;">
+                    <div
+                        style="font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; color: #fff; display: flex; align-items: center; gap: 6px;">
+                        Masabushi <span
+                            style="font-weight:800; opacity: 0.9; font-style: italic; text-decoration: underline;">Sell</span>
                     </div>
                 </div>
                 <div id="sync-status" style="display: flex; align-items: center; gap: 8px;">
                     <span id="sync-dot"
                         style="width: 8px; height: 8px; border-radius: 50%; background: #94a3b8;"></span>
-                    <span id="sync-text" style="font-size: 0.7rem; color: var(--text-secondary);">Conectando...</span>
+                    <span id="sync-text" style="font-size: 0.7rem; color: var(--text-dim);">Conectando...</span>
                 </div>
             </div>
 
@@ -1314,36 +1275,6 @@
         <div id="auth-overlay" class="glass-overlay">
             <div class="auth-card glass">
                 <div id="login-view">
-                    <div style="display: flex; justify-content: center; margin-bottom: 8px;">
-                        <svg viewBox="0 0 200 220" class="ghost-mark" style="width: 64px; height: 70px; filter: drop-shadow(0 0 14px rgba(63,200,255,0.5));">
-                            <defs>
-                                <linearGradient id="plateGradAuth" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#2B3444"/>
-                                    <stop offset="1" stop-color="#12161F"/>
-                                </linearGradient>
-                                <linearGradient id="crackGradAuth" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0" stop-color="#3FC8FF"/>
-                                    <stop offset="1" stop-color="#8B5CF6"/>
-                                </linearGradient>
-                                <filter id="softBlurAuth" x="-50%" y="-50%" width="200%" height="200%">
-                                    <feGaussianBlur stdDeviation="3.2"/>
-                                </filter>
-                                <filter id="weatheredAuth" x="-25%" y="-25%" width="150%" height="150%">
-                                    <feTurbulence type="fractalNoise" baseFrequency="0.045 0.09" numOctaves="3" seed="7" result="noise"/>
-                                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G"/>
-                                </filter>
-                            </defs>
-                            <g transform="scale(-1,1) translate(-200,0)">
-                                <path fill="url(#plateGradAuth)" stroke="#3A4356" stroke-width="1" filter="url(#weatheredAuth)" d="M97,8 L89,35 L99,55 L86,80 L98,105 L88,135 L97,165 L90,195 L96,218 L55,210 L46,198 L40,208 L30,190 L25,175 L18,120 L30,60 L60,20 Z"/>
-                                <path fill="#05070A" d="M35,85 L68,78 L72,92 L42,102 Z"/>
-                            </g>
-                            <path fill="url(#plateGradAuth)" stroke="#3A4356" stroke-width="1" filter="url(#weatheredAuth)" d="M97,8 L89,35 L99,55 L86,80 L98,105 L88,135 L97,165 L90,195 L96,218 L55,210 L46,198 L40,208 L30,190 L25,175 L18,120 L30,60 L60,20 Z"/>
-                            <path fill="#05070A" d="M35,85 L68,78 L72,92 L42,102 Z"/>
-                            <path fill="none" stroke="url(#crackGradAuth)" stroke-width="5" filter="url(#softBlurAuth)" stroke-linejoin="round" stroke-linecap="round" d="M97,8 L89,35 L99,55 L86,80 L98,105 L88,135 L97,165 L90,195 L96,218"/>
-                            <path fill="none" stroke="#BFE9FF" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" d="M97,8 L89,35 L99,55 L86,80 L98,105 L88,135 L97,165 L90,195 L96,218"/>
-                        </svg>
-                    </div>
-                    <div style="text-align: center; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.05rem; letter-spacing: 1.5px; color: #EEF1F6; margin-bottom: 4px;">MASABUSHI</div>
                     <h2>Bem-vindo</h2>
                     <div class="auth-form">
                         <input type="email" id="login-email" placeholder="Usuário ou E-mail">
@@ -1739,7 +1670,7 @@
                     const cards = {
                         investido: { title: 'Total Investido', val: expenses, color: 'var(--danger)' },
                         recebido: { title: 'Total Recebido', val: income, color: 'var(--success)' },
-                        lucro: { title: 'Lucro Estimado', val: income - expenses, color: 'var(--gold)' }
+                        lucro: { title: 'Lucro Estimado', val: income - expenses, color: 'var(--accent-primary)' }
                     };
 
                     const container = document.getElementById('dashboard-container');

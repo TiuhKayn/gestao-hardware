@@ -1559,7 +1559,7 @@
                     e.className = `toast ${t}`; e.innerText = m;
                     c.appendChild(e); setTimeout(() => e.remove(), 4000);
                 },
-                DESC_TRUNCATE_LIMIT: 48,
+                DESC_TRUNCATE_LIMIT: 40,
                 descCell: (desc) => {
                     const text = desc || '';
                     if (text.length <= App.Utils.DESC_TRUNCATE_LIMIT) return `<span class="desc-text">${text}</span>`;

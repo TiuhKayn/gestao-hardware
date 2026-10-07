@@ -3,22 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Vendas Parceladas</title>
+    <title>Vendas Parceladas — A Receber</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Inline styles specifically for the new UI to avoid missing CSS issues -->
     <style>
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        @media (max-width: 768px) {
-            .grid-2, .grid-4 { grid-template-columns: 1fr; }
+        .vp-hidden { display: none !important; }
+
+        /* ---------- botões ---------- */
+        .vp-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            height: 42px; padding: 0 18px; border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.14); background: transparent; color: var(--text-primary);
+            font: inherit; font-weight: 700; font-size: 0.9rem; cursor: pointer;
+            transition: var(--transition); white-space: nowrap;
         }
-        .section-title { font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px; }
+        .vp-btn:hover { border-color: var(--accent-primary); }
+        .vp-btn:active { transform: scale(0.97); }
+        .vp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .vp-btn-primary { background: var(--accent-primary); border-color: var(--accent-primary); color: #fff; box-shadow: 0 4px 14px var(--accent-glow); }
+        .vp-btn-primary:hover { filter: brightness(1.12); }
+        .vp-btn-ok { background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.55); color: #34d399; }
+        .vp-btn-ok:hover { background: rgba(16,185,129,0.24); border-color: #10b981; }
+        .vp-btn-danger { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.5); color: #f87171; }
+        .vp-btn-danger:hover { background: rgba(239,68,68,0.22); border-color: #ef4444; }
+        .vp-btn-sm { height: 34px; padding: 0 12px; font-size: 0.8rem; border-radius: 8px; }
+        .vp-icon-btn {
+            width: 40px; height: 40px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 10px; border: 1px solid rgba(255,255,255,0.12); background: var(--bg-card); color: var(--text-primary);
+            font: inherit; font-size: 1.15rem; line-height: 1; cursor: pointer; transition: var(--transition);
+        }
+        .vp-icon-btn:hover { border-color: var(--accent-primary); }
+
+        /* ---------- barra do mês ---------- */
+        .vp-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+        .vp-month-nav { display: flex; align-items: center; gap: 10px; }
+        .vp-month-label { min-width: 200px; text-align: center; font-weight: 800; font-size: 1.2rem; }
+
+        /* ---------- resumo ---------- */
+        .vp-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .vp-summary .stat-card { padding: 20px; }
+        .vp-summary .stat-value { font-size: 1.55rem; }
+        .vp-sub { font-size: 0.78rem; color: var(--text-secondary); }
+
+        /* ---------- seções ---------- */
+        .vp-section { padding: 24px; margin-bottom: 24px; }
+        .vp-section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+        .vp-section-title { margin: 0; font-size: 1.15rem; font-weight: 800; }
+        .vp-group { margin-bottom: 26px; }
+        .vp-group:last-child { margin-bottom: 0; }
+        .vp-group-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+        .vp-group-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.9px; font-weight: 800; color: var(--text-secondary); }
+        .vp-group-total { font-weight: 800; font-size: 0.9rem; font-family: 'JetBrains Mono', monospace; color: var(--vp-cor, var(--text-primary)); }
+        .vp-vazio { padding: 14px 16px; border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; color: var(--text-secondary); font-size: 0.9rem; text-align: center; }
+
+        /* ---------- linha de cobrança ---------- */
+        .vp-row {
+            --vp-cor: var(--accent-primary);
+            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+            padding: 14px 16px; margin-bottom: 10px;
+            background: var(--bg-input); border: 1px solid rgba(255,255,255,0.04);
+            border-left: 4px solid var(--vp-cor); border-radius: 12px;
+        }
+        .vp-row.st-atrasada { --vp-cor: var(--danger); }
+        .vp-row.st-hoje { --vp-cor: var(--warning); }
+        .vp-row.st-combinar { --vp-cor: #38bdf8; }
+        .vp-row.st-paga { --vp-cor: var(--success); }
+        .vp-row-main { flex: 1 1 220px; min-width: 0; }
+        .vp-row-cliente { font-weight: 700; overflow-wrap: anywhere; }
+        .vp-row-sub { font-size: 0.82rem; color: var(--text-secondary); overflow-wrap: anywhere; }
+        .vp-row-quando { font-size: 0.8rem; font-weight: 700; color: var(--vp-cor); margin-top: 2px; }
+        .vp-row-valor { font-weight: 800; font-family: 'JetBrains Mono', monospace; font-size: 1.02rem; white-space: nowrap; }
+        .vp-row-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* ---------- lista de vendas ---------- */
+        .vp-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .vp-pill {
+            height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12);
+            background: transparent; color: var(--text-secondary); font: inherit; font-weight: 700; font-size: 0.82rem; cursor: pointer;
+        }
+        .vp-pill.ativo { background: var(--accent-primary); border-color: var(--accent-primary); color: #fff; }
+        .vp-venda { background: var(--bg-input); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+        .vp-venda-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px 18px; cursor: pointer; }
+        .vp-venda-head:hover { background: rgba(255,255,255,0.025); }
+        .vp-venda-info { flex: 1 1 240px; min-width: 0; }
+        .vp-venda-cliente { font-weight: 800; font-size: 1.05rem; overflow-wrap: anywhere; }
+        .vp-venda-sub { font-size: 0.85rem; color: var(--text-secondary); overflow-wrap: anywhere; margin-bottom: 6px; }
+        .vp-venda-valores { text-align: right; width: 250px; flex-shrink: 0; }
+        .vp-venda-falta { font-weight: 800; font-size: 1.1rem; font-family: 'JetBrains Mono', monospace; }
+        .vp-venda-total { font-size: 0.78rem; color: var(--text-secondary); }
+        .vp-venda-body { display: none; padding: 0 18px 18px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .vp-venda.aberta .vp-venda-body { display: block; padding-top: 16px; }
+        .vp-venda-obs { margin-bottom: 14px; padding: 10px 14px; border-radius: 10px; background: rgba(255,255,255,0.04); font-size: 0.88rem; color: var(--text-secondary); white-space: pre-wrap; overflow-wrap: anywhere; }
+        .vp-venda-acoes { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+        .vp-chevron { opacity: 0.55; transition: transform 0.2s; }
+        .vp-venda.aberta .vp-chevron { transform: rotate(180deg); }
+        .vp-badge { display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.4px; text-transform: uppercase; }
+        .vp-badge.ok { background: rgba(16,185,129,0.15); color: #34d399; }
+        .vp-badge.atraso { background: rgba(239,68,68,0.15); color: #f87171; }
+        .vp-badge.aberto { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .vp-bar { height: 6px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; margin-top: 8px; }
+        .vp-bar > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #10b981, #34d399); }
+
+        /* ---------- aviso de login ---------- */
+        .vp-aviso { padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-left: 4px solid var(--warning); }
+
+        /* ---------- modais ---------- */
+        .vp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); z-index: 900; }
+        .vp-modal {
+            position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: min(560px, calc(100vw - 24px)); max-height: calc(100vh - 24px);
+            display: flex; flex-direction: column; z-index: 1000; color-scheme: dark;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+        }
+        .vp-modal-lg { width: min(820px, calc(100vw - 24px)); }
+        .vp-modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid rgba(255,255,255,0.07); }
+        .vp-modal-head h2 { margin: 0; font-size: 1.15rem; }
+        .vp-modal-body { padding: 20px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+        .vp-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid rgba(255,255,255,0.07); }
+        .vp-modal textarea {
+            background: var(--bg-input); border: 1px solid rgba(255,255,255,0.05); color: var(--text-primary);
+            border-radius: 10px; padding: 12px 16px; font: inherit; font-size: 0.95rem; resize: vertical; min-height: 64px;
+        }
+        .vp-modal textarea:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 4px var(--accent-glow); }
+        .vp-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .vp-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+        .vp-resumo-linha { padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
+        .vp-resumo-linha b { color: var(--text-primary); }
+        .vp-erro { padding: 10px 14px; border-radius: 10px; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5; font-size: 0.88rem; font-weight: 600; }
+        .vp-aviso-linha { font-size: 0.88rem; color: #fbbf24; }
+        .vp-restante { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 12px; border: 1px solid rgba(245,158,11,0.35); background: rgba(245,158,11,0.06); }
+
+        /* editor de parcelas */
+        .vp-parcelas-box { border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px; background: rgba(255,255,255,0.015); display: flex; flex-direction: column; gap: 14px; }
+        .vp-parcelas-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .vp-parcelas-head h3 { margin: 0; font-size: 1rem; }
+        .vp-gerador { display: grid; grid-template-columns: 118px minmax(0, 1.5fr) minmax(0, 1.2fr) auto; gap: 12px; align-items: end; }
+        .vp-gerador .input-group { min-width: 0; }
+        .vp-gerador label { white-space: nowrap; }
+        .vp-gerador input, .vp-gerador select { min-width: 0; width: 100%; box-sizing: border-box; }
+        .vp-erow { display: grid; grid-template-columns: 26px 130px 170px 1fr 40px; gap: 10px; align-items: center; }
+        .vp-erow input, .vp-erow select { min-width: 0; width: 100%; box-sizing: border-box; }
+        .vp-erow-n { color: var(--text-secondary); font-weight: 800; text-align: center; font-size: 0.85rem; }
+        .vp-erow.paga { grid-template-columns: 26px 1fr; padding: 10px 12px; border-radius: 10px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.25); color: #34d399; font-size: 0.88rem; font-weight: 600; }
+        .vp-parcelas-lista { display: flex; flex-direction: column; gap: 10px; }
+        .vp-parcelas-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+        .vp-balanco { font-size: 0.82rem; font-weight: 700; padding: 6px 10px; border-radius: 8px; }
+        .vp-balanco.ok { background: rgba(16,185,129,0.14); color: #34d399; }
+        .vp-balanco.falta { background: rgba(245,158,11,0.14); color: #fbbf24; }
+        .vp-balanco.passou { background: rgba(239,68,68,0.14); color: #f87171; }
+        .vp-balanco.neutro { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+
+        /* ---------- avisos rápidos ---------- */
+        #vp-toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1200; }
+        .vp-toast { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-left: 4px solid var(--accent-primary); padding: 12px 16px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 0.9rem; max-width: 340px; }
+        .vp-toast.ok { border-left-color: var(--success); }
+        .vp-toast.erro { border-left-color: var(--danger); }
+
+        @media (max-width: 900px) {
+            .vp-summary { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            body { padding: 12px; }
+            .vp-summary { grid-template-columns: 1fr; }
+            .vp-section { padding: 16px; }
+            .vp-month-label { min-width: 0; flex: 1; font-size: 1.05rem; }
+            .vp-month-nav { width: 100%; }
+            .vp-toolbar .vp-btn-primary { width: 100%; }
+            .vp-grid-2, .vp-grid-3, .vp-gerador { grid-template-columns: 1fr; }
+            .vp-erow:not(.paga) { grid-template-columns: 24px minmax(0, 1fr) 40px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            .vp-erow .er-valor { grid-column: 2; grid-row: 1; }
+            .vp-erow .er-del { grid-column: 3; grid-row: 1; }
+            .vp-erow .er-modo { grid-column: 2 / span 2; grid-row: 2; }
+            .vp-erow .er-data, .vp-erow .er-mes { grid-column: 2 / span 2; grid-row: 3; }
+            .vp-erow-n { grid-row: 1; }
+            .vp-venda-valores { text-align: left; width: 100%; flex-shrink: 1; }
+            .vp-row-acoes { width: 100%; }
+            .vp-modal-body { padding: 16px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- HEADER -->
+        <!-- CABEÇALHO -->
         <header class="page-header" style="display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex; align-items:center; gap:20px">
                 <div style="background: #000; padding: 4px 16px 4px 4px; border-radius: 10px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
@@ -28,7 +194,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div style="display: flex; align-items: center; gap:16px;">
                 <button class="btn-primary" style="padding: 10px 20px; border-radius: 10px;" onclick="window.location.href='index.html'">
                     ⬅️ Voltar ao Geral
@@ -36,129 +202,245 @@
             </div>
         </header>
 
-        <!-- DASHBOARD -->
-        <div class="glass" style="padding: 24px; margin-bottom: 24px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 style="margin:0; font-size:1.2rem; color:var(--text-secondary)">Resumo do Mês</h2>
-                <input type="month" id="filter-month" style="background:var(--bg-input); border:1px solid rgba(255,255,255,0.1); color:white; padding:8px 16px; border-radius:8px;">
+        <div id="vp-aviso-login" class="glass vp-aviso vp-hidden">
+            <div><b>Você precisa estar logado pra ver as vendas parceladas.</b><br><span class="vp-sub">Entre pelo painel principal e volte pra esta tela.</span></div>
+            <button type="button" class="vp-btn vp-btn-primary" onclick="window.location.href='index.html'">Ir para o painel</button>
+        </div>
+
+        <!-- MÊS + NOVA VENDA -->
+        <div class="vp-toolbar">
+            <div class="vp-month-nav">
+                <button type="button" class="vp-icon-btn" data-acao="mes-anterior" aria-label="Mês anterior">‹</button>
+                <div class="vp-month-label" id="mes-label"></div>
+                <button type="button" class="vp-icon-btn" data-acao="mes-proximo" aria-label="Próximo mês">›</button>
+                <button type="button" class="vp-btn vp-btn-sm" data-acao="mes-hoje">Hoje</button>
             </div>
-            
-            <div class="grid-4">
-                <div class="stat-card" style="--stat-color: var(--accent-primary)">
-                    <div class="stat-label">Ainda a receber (Previsto)</div>
-                    <div class="stat-value" id="dash-a-receber">R$ 0,00</div>
-                </div>
-                <div class="stat-card" style="--stat-color: var(--success)">
-                    <div class="stat-label">Já recebido de fato</div>
-                    <div class="stat-value" id="dash-recebido">R$ 0,00</div>
-                </div>
-                <div class="stat-card" style="--stat-color: var(--danger)">
-                    <div class="stat-label">Atrasado (Total)</div>
-                    <div class="stat-value" id="dash-atrasado">R$ 0,00</div>
-                </div>
-                <div class="stat-card" style="--stat-color: var(--warning)">
-                    <div class="stat-label">Total Previsto (Mês)</div>
-                    <div class="stat-value" id="dash-total-previsto">R$ 0,00</div>
-                </div>
+            <button type="button" class="vp-btn vp-btn-primary" data-acao="nova-venda">＋ Nova venda</button>
+        </div>
+
+        <!-- RESUMO -->
+        <div class="vp-summary">
+            <div class="stat-card glass" style="--stat-color: var(--accent-primary)">
+                <div class="stat-label">Total a receber</div>
+                <div class="stat-value" id="res-total">R$ 0,00</div>
+                <div class="vp-sub" id="res-total-sub"></div>
+            </div>
+            <div class="stat-card glass" style="--stat-color: var(--danger)">
+                <div class="stat-label">Atrasado</div>
+                <div class="stat-value" id="res-atrasado">R$ 0,00</div>
+                <div class="vp-sub" id="res-atrasado-sub"></div>
+            </div>
+            <div class="stat-card glass" style="--stat-color: var(--warning)">
+                <div class="stat-label" id="res-mes-titulo">A receber no mês</div>
+                <div class="stat-value" id="res-mes">R$ 0,00</div>
+                <div class="vp-sub" id="res-mes-sub"></div>
+            </div>
+            <div class="stat-card glass" style="--stat-color: var(--success)">
+                <div class="stat-label" id="res-recebido-titulo">Recebido no mês</div>
+                <div class="stat-value" id="res-recebido">R$ 0,00</div>
+                <div class="vp-sub" id="res-recebido-sub"></div>
             </div>
         </div>
 
-        <div class="grid-2">
-            <!-- COLUNA ESQUERDA: Formulário de Nova Venda -->
-            <div class="smart-form-container glass" style="margin-bottom: 24px; height: max-content;">
-                <div class="form-header">
-                    <h2 style="margin:0; font-size:1.1rem; color:var(--text-secondary)">Cadastrar Venda</h2>
-                </div>
-                
-                <div style="display:flex; flex-direction:column; gap:16px;">
-                    <div class="input-group">
-                        <label>Tipo de Venda</label>
-                        <select id="tipo-venda">
-                            <option value="parcelada">Parcelada</option>
-                            <option value="a_vista">À Vista</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Nome do Cliente</label>
-                        <input type="text" id="cliente" placeholder="Ex: João da Silva">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label>Produto / Descrição</label>
-                        <input type="text" id="produto" placeholder="Ex: PC Gamer Ryzen 5">
-                    </div>
-                    
-                    <div class="input-group">
-                        <label>Data da Venda</label>
-                        <input type="date" id="data-venda">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Valor Total (R$)</label>
-                        <input type="number" id="valor-total" step="0.01">
-                    </div>
-
-                    <div id="parcelado-fields" style="display:flex; flex-direction:column; gap:16px; padding:16px; background:var(--bg-input); border-radius:12px; margin-top:8px;">
-                        <div class="input-group">
-                            <label>Valor de Entrada (R$)</label>
-                            <input type="number" id="entrada" step="0.01" value="0">
-                        </div>
-                        <div class="input-group">
-                            <label>Número de Parcelas</label>
-                            <input type="number" id="num-parcelas" min="1" step="1">
-                        </div>
-                        <div class="input-group">
-                            <label>Frequência de Pagamento</label>
-                            <select id="frequencia">
-                                <option value="mensal">Mensal (a cada 30 dias)</option>
-                                <option value="semanal">Semanal (a cada 7 dias)</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Data 1ª Parcela</label>
-                            <input type="date" id="data-primeira-parcela">
-                        </div>
-                    </div>
-                    
-                    <div id="preview-parcelas"></div>
-
-                    <div style="display:flex; gap:12px; margin-top: 16px;">
-                        <button id="btn-save" class="btn-primary" style="flex:1; height:48px; border-radius:12px; font-weight:700; cursor:pointer;">Salvar Nova Venda</button>
-                        <button id="btn-cancel" style="display:none; flex:1; height:48px; border-radius:12px; background:var(--bg-card); color:white; border:1px solid rgba(255,255,255,0.1); cursor:pointer;">Cancelar Edição</button>
-                    </div>
-                </div>
+        <!-- COBRANÇAS DO MÊS -->
+        <section class="glass vp-section">
+            <div class="vp-section-head">
+                <h2 class="vp-section-title">Cobranças de <span id="quadro-mes"></span></h2>
             </div>
+            <div id="quadro"></div>
+        </section>
 
-            <!-- COLUNA DIREITA: Listas Rápidas -->
-            <div style="display:flex; flex-direction:column; gap:24px;">
-                <div class="glass" style="padding: 24px;">
-                    <div class="section-title">🚨 Parcelas Atrasadas</div>
-                    <div id="list-atrasadas"></div>
-                </div>
-                
-                <div class="glass" style="padding: 24px;">
-                    <div class="section-title">📅 Cobranças deste mês</div>
-                    <div id="list-cobrancas-mes"></div>
-                </div>
+        <!-- TODAS AS VENDAS -->
+        <section class="glass vp-section" style="margin-bottom: 100px;">
+            <div class="vp-section-head">
+                <h2 class="vp-section-title">Todas as vendas</h2>
+                <div class="vp-pills" id="vp-pills"></div>
             </div>
-        </div>
-        
-        <!-- LISTAGEM COMPLETA -->
-        <div class="glass" style="padding: 24px; margin-top:24px; margin-bottom:100px;">
-            <div class="section-title">Todas as Vendas</div>
-            <div id="list-todas-vendas"></div>
-        </div>
-
+            <div class="input-group" style="margin-bottom: 16px;">
+                <input type="search" id="busca" placeholder="Buscar por cliente, produto ou observação..." autocomplete="off">
+            </div>
+            <div id="lista-vendas"></div>
+        </section>
     </div>
 
-    <script type="module">
-        import { init } from './vendas_parceladas.js';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('data-venda').value = new Date().toISOString().substring(0, 10);
-            init();
-        });
-    </script>
+    <!-- ========== MODAIS ========== -->
+    <div id="vp-overlay" class="vp-overlay vp-hidden"></div>
+
+    <!-- Nova / editar venda -->
+    <div id="modal-venda" class="vp-modal vp-modal-lg vp-hidden" role="dialog" aria-modal="true" aria-labelledby="venda-titulo">
+        <div class="vp-modal-head">
+            <h2 id="venda-titulo">Nova venda</h2>
+            <button type="button" class="vp-icon-btn" data-acao="fechar-modal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="vp-modal-body">
+            <div class="vp-grid-2">
+                <div class="input-group">
+                    <label for="f-cliente">Cliente</label>
+                    <input type="text" id="f-cliente" placeholder="Ex: João da Silva" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="f-produto">Produto / descrição</label>
+                    <input type="text" id="f-produto" placeholder="Ex: PC Gamer Ryzen 5" autocomplete="off">
+                </div>
+            </div>
+            <div class="vp-grid-3">
+                <div class="input-group">
+                    <label for="f-data">Data da venda</label>
+                    <input type="date" id="f-data">
+                </div>
+                <div class="input-group">
+                    <label for="f-total">Valor total (R$)</label>
+                    <input type="number" id="f-total" step="0.01" min="0" inputmode="decimal">
+                </div>
+                <div class="input-group">
+                    <label for="f-entrada">Entrada já recebida (R$)</label>
+                    <input type="number" id="f-entrada" step="0.01" min="0" inputmode="decimal" value="0">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="f-obs">Observação</label>
+                <textarea id="f-obs" rows="2" placeholder="Ex: paga quando receber o salário, ligar na sexta..."></textarea>
+            </div>
+
+            <div class="vp-parcelas-box">
+                <div class="vp-parcelas-head">
+                    <h3>Parcelas</h3>
+                    <span id="balanco" class="vp-balanco neutro"></span>
+                </div>
+                <div class="vp-gerador">
+                    <div class="input-group">
+                        <label for="g-num">Nº de parcelas</label>
+                        <input type="number" id="g-num" min="1" step="1" inputmode="numeric">
+                    </div>
+                    <div class="input-group">
+                        <label for="g-tipo">Como vence</label>
+                        <select id="g-tipo">
+                            <option value="mensal">Mensal (mesmo dia)</option>
+                            <option value="semanal">Semanal (a cada 7 dias)</option>
+                            <option value="mes_cada">Sem data — 1 por mês</option>
+                            <option value="mes_mesmo">Sem data — todas no mês</option>
+                        </select>
+                    </div>
+                    <div class="input-group" id="g-data-wrap">
+                        <label for="g-data">1ª parcela em</label>
+                        <input type="date" id="g-data">
+                    </div>
+                    <div class="input-group vp-hidden" id="g-mes-wrap">
+                        <label for="g-mes">A partir do mês</label>
+                        <input type="month" id="g-mes">
+                    </div>
+                    <button type="button" class="vp-btn" id="btn-gerar">Gerar parcelas</button>
+                </div>
+                <div class="vp-parcelas-lista" id="parcelas-editor"></div>
+                <div class="vp-parcelas-acoes">
+                    <button type="button" class="vp-btn vp-btn-sm" id="btn-add-parcela">＋ Adicionar parcela</button>
+                    <button type="button" class="vp-btn vp-btn-sm" id="btn-dividir">Dividir o que falta igualmente</button>
+                </div>
+            </div>
+
+            <div id="erro-venda" class="vp-erro vp-hidden"></div>
+        </div>
+        <div class="vp-modal-foot">
+            <button type="button" class="vp-btn" data-acao="fechar-modal">Cancelar</button>
+            <button type="button" class="vp-btn vp-btn-primary" id="btn-salvar-venda">Salvar venda</button>
+        </div>
+    </div>
+
+    <!-- Registrar recebimento -->
+    <div id="modal-receber" class="vp-modal vp-hidden" role="dialog" aria-modal="true" aria-labelledby="receber-titulo">
+        <div class="vp-modal-head">
+            <h2 id="receber-titulo">Registrar recebimento</h2>
+            <button type="button" class="vp-icon-btn" data-acao="fechar-modal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="vp-modal-body">
+            <div class="vp-resumo-linha" id="rec-resumo"></div>
+            <div class="vp-grid-2">
+                <div class="input-group">
+                    <label for="rec-valor">Valor recebido (R$)</label>
+                    <input type="number" id="rec-valor" step="0.01" min="0" inputmode="decimal">
+                </div>
+                <div class="input-group">
+                    <label for="rec-data">Data do recebimento</label>
+                    <input type="date" id="rec-data">
+                </div>
+            </div>
+            <div class="vp-restante vp-hidden" id="rec-restante">
+                <div class="vp-aviso-linha">Recebeu menos que o combinado. O restante de <b id="rec-restante-valor"></b> continua em aberto:</div>
+                <div class="vp-grid-2">
+                    <div class="input-group">
+                        <label for="rec-rest-modo">O restante vence</label>
+                        <select id="rec-rest-modo">
+                            <option value="data">Em data certa</option>
+                            <option value="mes">A combinar no mês</option>
+                        </select>
+                    </div>
+                    <div class="input-group" id="rec-rest-data-wrap">
+                        <label for="rec-rest-data">Data</label>
+                        <input type="date" id="rec-rest-data">
+                    </div>
+                    <div class="input-group vp-hidden" id="rec-rest-mes-wrap">
+                        <label for="rec-rest-mes">Mês</label>
+                        <input type="month" id="rec-rest-mes">
+                    </div>
+                </div>
+            </div>
+            <div id="erro-receber" class="vp-erro vp-hidden"></div>
+        </div>
+        <div class="vp-modal-foot">
+            <button type="button" class="vp-btn" data-acao="fechar-modal">Cancelar</button>
+            <button type="button" class="vp-btn vp-btn-ok" id="btn-confirmar-receber">Confirmar recebimento</button>
+        </div>
+    </div>
+
+    <!-- Remarcar cobrança -->
+    <div id="modal-remarcar" class="vp-modal vp-hidden" role="dialog" aria-modal="true" aria-labelledby="remarcar-titulo">
+        <div class="vp-modal-head">
+            <h2 id="remarcar-titulo">Remarcar cobrança</h2>
+            <button type="button" class="vp-icon-btn" data-acao="fechar-modal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="vp-modal-body">
+            <div class="vp-resumo-linha" id="rem-resumo"></div>
+            <div class="vp-grid-2">
+                <div class="input-group">
+                    <label for="rem-modo">Vence</label>
+                    <select id="rem-modo">
+                        <option value="data">Em data certa</option>
+                        <option value="mes">A combinar no mês</option>
+                    </select>
+                </div>
+                <div class="input-group" id="rem-data-wrap">
+                    <label for="rem-data">Nova data</label>
+                    <input type="date" id="rem-data">
+                </div>
+                <div class="input-group vp-hidden" id="rem-mes-wrap">
+                    <label for="rem-mes">Mês</label>
+                    <input type="month" id="rem-mes">
+                </div>
+            </div>
+            <div id="erro-remarcar" class="vp-erro vp-hidden"></div>
+        </div>
+        <div class="vp-modal-foot">
+            <button type="button" class="vp-btn" data-acao="fechar-modal">Cancelar</button>
+            <button type="button" class="vp-btn vp-btn-primary" id="btn-confirmar-remarcar">Salvar</button>
+        </div>
+    </div>
+
+    <!-- Confirmação -->
+    <div id="modal-confirm" class="vp-modal vp-hidden" role="alertdialog" aria-modal="true" aria-labelledby="conf-titulo">
+        <div class="vp-modal-head">
+            <h2 id="conf-titulo">Confirmar</h2>
+        </div>
+        <div class="vp-modal-body">
+            <div id="conf-msg" style="line-height:1.5;"></div>
+        </div>
+        <div class="vp-modal-foot">
+            <button type="button" class="vp-btn" data-acao="confirm-nao">Cancelar</button>
+            <button type="button" class="vp-btn vp-btn-primary" id="btn-conf-sim" data-acao="confirm-sim">Confirmar</button>
+        </div>
+    </div>
+
+    <div id="vp-toasts"></div>
+
+    <script type="module" src="./vendas_parceladas.js?v=2"></script>
 </body>
 </html>

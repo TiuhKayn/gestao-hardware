@@ -1269,8 +1269,7 @@
                         style="width:36px; height:36px; object-fit:contain; border-radius: 8px;">
                     <div
                         style="font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; color: #fff; display: flex; align-items: center; gap: 6px;">
-                        Masabushi <span
-                            style="font-weight:800; opacity: 0.9; font-style: italic; text-decoration: underline;">Sell</span>
+                        Masabushi
                     </div>
                 </div>
                 <div id="sync-status" style="display: flex; align-items: center; gap: 8px;">
@@ -1422,7 +1421,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
                         <label style="margin-bottom:0">Data Venda</label>
                         <div style="display:flex; gap:8px">
-                            <span style="font-size:0.7rem; color:var(--accent-primary); cursor:pointer; opacity:0.8" onclick="let d=document.getElementById('reg-data').value; if(d){ let dt=new Date(d+'T12:00:00'); dt.setDate(dt.getDate()+1); document.getElementById('reg-data-venda').value=dt.toISOString().split('T')[0]; }">+1 Dia</span>
+                            <span style="font-size:0.7rem; color:var(--accent-primary); cursor:pointer; opacity:0.8" onclick="let d=document.getElementById('reg-data').value; if(d){ document.getElementById('reg-data-venda').value=App.Utils.addDays(d, 1); }">+1 Dia</span>
                             <span style="font-size:0.7rem; color:var(--danger); cursor:pointer; opacity:0.8" onclick="document.getElementById('reg-data-venda').value=''">Limpar</span>
                         </div>
                     </div>
@@ -1550,6 +1549,12 @@
                 },
                 getToday: () => {
                     const d = new Date();
+                    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                },
+                // Soma dias a uma data AAAA-MM-DD sem passar por UTC (toISOString vira o dia à noite em Manaus)
+                addDays: (iso, n) => {
+                    const d = new Date(iso + 'T12:00:00');
+                    d.setDate(d.getDate() + n);
                     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                 },
                 generateId: () => Date.now(),
@@ -2248,9 +2253,7 @@
 
                 resetForms: () => {
                     const today = App.Utils.getToday();
-                    const d = new Date(today + 'T12:00:00');
-                    d.setDate(d.getDate() + 1);
-                    const tomorrow = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    const tomorrow = App.Utils.addDays(today, 1);
                     
                     document.getElementById('reg-desc').value = '';
                     document.getElementById('reg-cat').value = '';
@@ -2996,7 +2999,7 @@
                         valor: Number(item.valor || item.amount || 0),
                         categoria: item.categoria || "Geral",
                         tipo: item.tipo || "venda",
-                        data: item.data || new Date().toISOString().split('T')[0],
+                        data: item.data || window.App.Utils.getToday(),
                         kitParentId: item.kitParentId || null,
                         pos: item.pos || 0,
                         userId: auth.currentUser.uid,
@@ -3147,7 +3150,7 @@
                         custo: Number(d.custo || 0),
                         categoria: d.categoria || "Geral",
                         tipo: d.tipo || "venda",
-                        data: d.data || new Date().toISOString().split('T')[0],
+                        data: d.data || window.App.Utils.getToday(),
                         dataVenda: d.dataVenda || "",
                         kitParentId: d.kitParentId || null,
                         pos: d.pos || 0

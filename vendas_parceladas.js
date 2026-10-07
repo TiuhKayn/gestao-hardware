@@ -439,7 +439,9 @@ function abrirModal(id, focoId) {
     MODAIS.forEach((m) => $(m).classList.add('vp-hidden'));
     $('vp-overlay').classList.remove('vp-hidden');
     $(id).classList.remove('vp-hidden');
-    if (focoId) setTimeout(() => { const el = $(focoId); if (el) el.focus(); }, 30);
+    // foco na hora (a janela já está visível): um setTimeout aqui podia roubar o foco de um campo que a pessoa já tinha clicado
+    const el = focoId && $(focoId);
+    if (el) el.focus();
 }
 
 function fecharModais() {

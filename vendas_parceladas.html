@@ -35,6 +35,7 @@
 
         /* ---------- barra do mês ---------- */
         .vp-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+        .vp-toolbar-acoes { display: flex; gap: 10px; flex-wrap: wrap; }
         .vp-month-nav { display: flex; align-items: center; gap: 10px; }
         .vp-month-label { min-width: 200px; text-align: center; font-weight: 800; font-size: 1.2rem; }
 
@@ -118,7 +119,7 @@
         .vp-modal-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid rgba(255,255,255,0.07); }
         .vp-modal-head h2 { margin: 0; font-size: 1.15rem; }
         .vp-modal-body { padding: 20px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
-        .vp-modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid rgba(255,255,255,0.07); }
+        .vp-modal-foot { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; padding: 16px 22px; border-top: 1px solid rgba(255,255,255,0.07); }
         .vp-modal textarea {
             background: var(--bg-input); border: 1px solid rgba(255,255,255,0.05); color: var(--text-primary);
             border-radius: 10px; padding: 12px 16px; font: inherit; font-size: 0.95rem; resize: vertical; min-height: 64px;
@@ -152,6 +153,27 @@
         .vp-balanco.passou { background: rgba(239,68,68,0.14); color: #f87171; }
         .vp-balanco.neutro { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
 
+        /* importar lista */
+        .vp-imp-passo { display: flex; flex-direction: column; gap: 14px; }
+        .vp-imp-ajuda { margin: 0; font-size: 0.9rem; line-height: 1.55; color: var(--text-secondary); }
+        #imp-texto { min-height: 240px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.5; }
+        .vp-imp-lista { display: flex; flex-direction: column; gap: 10px; }
+        .vp-imp-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.05); border-left: 4px solid var(--accent-primary); }
+        .vp-imp-item.aviso { border-left-color: var(--warning); }
+        .vp-imp-item.desmarcado { opacity: 0.55; border-left-color: rgba(255,255,255,0.2); }
+        .vp-imp-item .vp-imp-ck { flex-shrink: 0; width: 20px; height: 20px; margin: 2px 0 0; padding: 0; }
+        .vp-imp-corpo { flex: 1; min-width: 0; display: block; padding: 0; font-size: 0.9rem; font-weight: 400; color: var(--text-primary); cursor: pointer; }
+        .vp-imp-corpo > span { display: block; }
+        .vp-imp-topo { display: flex !important; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 1rem; }
+        .vp-imp-topo b { overflow-wrap: anywhere; }
+        .vp-imp-valor { font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+        .vp-imp-plano { margin-top: 4px; font-size: 0.86rem; }
+        .vp-imp-recado { margin-top: 2px; font-size: 0.78rem; color: var(--text-secondary); overflow-wrap: anywhere; }
+        .vp-imp-aviso, .vp-imp-nota, .vp-imp-dup { margin-top: 5px; font-size: 0.8rem; line-height: 1.4; }
+        .vp-imp-aviso { color: #fbbf24; }
+        .vp-imp-nota { color: var(--text-secondary); }
+        .vp-imp-dup { color: #f87171; font-weight: 700; }
+
         /* ---------- avisos rápidos ---------- */
         #vp-toasts { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1200; }
         .vp-toast { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-left: 4px solid var(--accent-primary); padding: 12px 16px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-size: 0.9rem; max-width: 340px; }
@@ -167,7 +189,8 @@
             .vp-section { padding: 16px; }
             .vp-month-label { min-width: 0; flex: 1; font-size: 1.05rem; }
             .vp-month-nav { width: 100%; }
-            .vp-toolbar .vp-btn-primary { width: 100%; }
+            .vp-toolbar-acoes { width: 100%; }
+            .vp-toolbar-acoes .vp-btn { flex: 1 1 0; }
             .vp-grid-2, .vp-grid-3, .vp-gerador { grid-template-columns: 1fr; }
             .vp-erow:not(.paga) { grid-template-columns: 24px minmax(0, 1fr) 40px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
             .vp-erow .er-valor { grid-column: 2; grid-row: 1; }
@@ -215,7 +238,10 @@
                 <button type="button" class="vp-icon-btn" data-acao="mes-proximo" aria-label="Próximo mês">›</button>
                 <button type="button" class="vp-btn vp-btn-sm" data-acao="mes-hoje">Hoje</button>
             </div>
-            <button type="button" class="vp-btn vp-btn-primary" data-acao="nova-venda">＋ Nova venda</button>
+            <div class="vp-toolbar-acoes">
+                <button type="button" class="vp-btn" data-acao="importar-lista">📥 Importar lista</button>
+                <button type="button" class="vp-btn vp-btn-primary" data-acao="nova-venda">＋ Nova venda</button>
+            </div>
         </div>
 
         <!-- RESUMO -->
@@ -317,6 +343,7 @@
                         <select id="g-tipo">
                             <option value="mensal">Mensal (mesmo dia)</option>
                             <option value="semanal">Semanal (a cada 7 dias)</option>
+                            <option value="quinzenal">Quinzenal (a cada 15 dias)</option>
                             <option value="mes_cada">Sem data — 1 por mês</option>
                             <option value="mes_mesmo">Sem data — todas no mês</option>
                         </select>
@@ -343,6 +370,31 @@
         <div class="vp-modal-foot">
             <button type="button" class="vp-btn" data-acao="fechar-modal">Cancelar</button>
             <button type="button" class="vp-btn vp-btn-primary" id="btn-salvar-venda">Salvar venda</button>
+        </div>
+    </div>
+
+    <!-- Importar lista (texto colado de uma anotação) -->
+    <div id="modal-importar" class="vp-modal vp-modal-lg vp-hidden" role="dialog" aria-modal="true" aria-labelledby="importar-titulo">
+        <div class="vp-modal-head">
+            <h2 id="importar-titulo">Importar lista de recebimentos</h2>
+            <button type="button" class="vp-icon-btn" data-acao="fechar-modal" aria-label="Fechar">✕</button>
+        </div>
+        <div class="vp-modal-body">
+            <div id="imp-passo1" class="vp-imp-passo">
+                <p class="vp-imp-ajuda">Cole aqui a sua anotação do jeito que está: uma linha “Nome: valor” e, logo abaixo, o “Recado: …” de cada pessoa. Eu leio os valores, datas e combinados, e você confere tudo na próxima tela antes de importar.</p>
+                <textarea id="imp-texto" rows="12" spellcheck="false" placeholder="Fulano: 1500&#10;Recado: receber dia 20/10&#10;&#10;Beltrano: 900&#10;Recado: 300 semanalmente a partir do dia 11/10"></textarea>
+            </div>
+            <div id="imp-passo2" class="vp-imp-passo vp-hidden">
+                <div class="vp-resumo-linha" id="imp-resumo"></div>
+                <div class="vp-imp-lista" id="imp-lista"></div>
+            </div>
+            <div id="erro-importar" class="vp-erro vp-hidden"></div>
+        </div>
+        <div class="vp-modal-foot">
+            <button type="button" class="vp-btn" data-acao="fechar-modal">Cancelar</button>
+            <button type="button" class="vp-btn vp-hidden" data-acao="imp-voltar" id="btn-imp-voltar">← Voltar</button>
+            <button type="button" class="vp-btn vp-btn-primary" id="btn-imp-analisar">Entender a lista</button>
+            <button type="button" class="vp-btn vp-btn-primary vp-hidden" id="btn-imp-confirmar">Importar</button>
         </div>
     </div>
 
@@ -441,6 +493,6 @@
 
     <div id="vp-toasts"></div>
 
-    <script type="module" src="./vendas_parceladas.js?v=3"></script>
+    <script type="module" src="./vendas_parceladas.js?v=4"></script>
 </body>
 </html>

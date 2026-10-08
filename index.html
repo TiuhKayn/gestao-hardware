@@ -155,12 +155,11 @@
         }
 
         .glass {
+            /* sem backdrop-filter: borrar o fundo de uma lista enorme a cada frame da rolagem derrubava o FPS */
             background: var(--bg-glass);
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: var(--border-radius);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
         }
 
         .page-header {
